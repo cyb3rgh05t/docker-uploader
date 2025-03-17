@@ -1,126 +1,1062 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+<html lang="en" data-theme="purple">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Uploader Dashboard</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.2.3/dist/slate/bootstrap.min.css"/>
-    <link rel="stylesheet" href="css/style.css"/>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
-</head>
-<body>
-<div class="container py-3">
-    <header>
-        <div class="d-flex flex-column flex-md-row align-items-center pb-3 mb-4 border-bottom">
-            <a href="/" class="d-flex align-items-center text-light text-decoration-none">
-                <span class="fs-4">Uploader Dashboard</span>
-            </a>
-            <div id="info_badges" class="d-inline-flex mt-2 mt-md-0 ms-md-auto">
-                <div id="download_rate">
-                    <span class="badge bg-light text-dark">0</span>
-                </div>
-                <div id="control">
-                    <span class="badge bg-success text-dark"><i class="fa-solid fa-play"></i></span>
-                </div>
-            </div>
-        </div>
-    </header>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css"
+      integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+    <style>
+      :root {
+        /* Base Colors */
+        --bg-primary: #121212;
+        --bg-secondary: #1e1e1e;
+        --bg-tertiary: #252525;
+        --bg-card: #2a2a2a;
+        --text-primary: #ffffff;
+        --text-secondary: rgba(255, 255, 255, 0.7);
+        --text-tertiary: rgba(255, 255, 255, 0.5);
+        --border-color: rgba(255, 255, 255, 0.1);
 
-    <main>
-        <div class="row">
-            <div class="pricing-header p-3 pb-md-4 mx-auto text-start">
-                <p class="h5 fw-normal">In Progress</p>
-            </div>
-            <div class="col col-12">
-                <div class="table-responsive" id="no-more-tables">
-                    <table id="uploadsTable" class="table table-sm">
-                        <thead class="table-primary">
-                        <tr>
-                            <td>Filename</td>
-                            <td class="d-none d-lg-table-cell">Folder</td>
-                            <td class="d-none d-lg-table-cell">Key</td>
-                            <td>Progress bar</td>
-                            <td class="d-none d-lg-table-cell">Filesize</td>
-                            <td class="tl-w-20 text-end">Time Left</td>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr>
-                            <td class="text-muted" colspan="6">No entries found.</td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="p-3 pb-md-4 mx-auto text-start d-inline-flex justify-content-between">
-                <span class="h5 fw-normal">Completed</span>
-            </div>
-            <div class="col col-12">
-                <div class="table-responsive">
-                    <input type="checkbox" style="display:none" id="prettyEndTime" name="prettyEndTime" />
-                    <table id="completedTable" class="table table-sm">
-                        <thead class="table-primary table-sm">
-                        <tr>
-                            <td>Filename</td>
-                            <td>Folder</td>
-                            <td>Key</td>
-                            <td>Filesize</td>
-                            <td>Time spent</td>
-                            <td>Uploaded <i class="fa-solid fa-hourglass-end" style="cursor: pointer" onclick="$('#prettyEndTime').click();"></i></td>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr><td class="text-muted" colspan="6">No entries found.</td></tr>
-                        </tbody>
-                        <tfoot>
-                        <tr>
-                            <td colspan="6">
-                                <div class="w-100 d-inline-flex justify-content-between">
-                                <div id="page"></div>
-                                <span id="clnHist">Clear History</span>
-                                <nav aria-label="Page navigation">
-                                    <ul id="pageSize" class="pagination pagination-sm" style="float:right">
-                                        <li class="page-item"><a class="page-link" href="#">5</a></li>
-                                        <li class="page-item active"><a class="page-link" href="#">10</a></li>
-                                        <li class="page-item"><a class="page-link" href="#">25</a></li>
-                                        <li class="page-item"><a class="page-link" href="#">50</a></li>
-                                    </ul>
-                                </nav>
-                                </div>
-                            </td>
-                        </tr>
-                        </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            </div>
-        </div>
-        <div class="inb">
-          <center>
-            <p>GitHub : <i class="fa-brands fa-github"></i><a href="https://github.com/dockserver" ­target="_blank"­ rel=”noopener noreferrer”> dockserver GitHub</a></p>
-            <p>Docs : <i class="fa-brands fa-wikipedia-w"></i><a href="https://dockserver.io" ­target="_blank"­ rel=”noopener noreferrer”> dockserver wiki</a></p>
-            <p>Copyrights <sup>&copy; &trade;</sup> - 2021 <script>new Date().getFullYear()>2000&&document.write(" - "+new Date().getFullYear());</script> Developed with <i class="fas fa-heart" style="color: red;"></i> by dockserver.io</p>
-          </center>
-        </div>
-    </main>
-</div>
+        /* Theme-specific colors - default is purple */
+        --accent-color: #9c27b0;
+        --accent-light: #bb6bc9;
+        --accent-dark: #7b1fa2;
+        --accent-gradient: linear-gradient(
+          45deg,
+          var(--accent-dark),
+          var(--accent-color)
+        );
+        --accent-transparent: rgba(156, 39, 176, 0.1);
 
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"
-        integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB"
-        crossorigin="anonymous">
-</script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"
-        integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13"
-        crossorigin="anonymous">
-</script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"
-        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
-        crossorigin="anonymous">
-</script>
-<script src="js/ui/pagination.js"></script>
-<script src="js/app.js"></script>
-</body>
+        /* Status Colors */
+        --success: #4caf50;
+        --warning: #ff9800;
+        --danger: #f44336;
+        --info: #2196f3;
+
+        /* Card effects */
+        --card-shadow: 0 10px 20px rgba(0, 0, 0, 0.19),
+          0 6px 6px rgba(0, 0, 0, 0.23);
+        --card-shadow-hover: 0 14px 28px rgba(0, 0, 0, 0.25),
+          0 10px 10px rgba(0, 0, 0, 0.22);
+      }
+
+      /* Theme Color Variations */
+      [data-theme="purple"] {
+        --accent-color: #9c27b0;
+        --accent-light: #bb6bc9;
+        --accent-dark: #7b1fa2;
+        --accent-gradient: linear-gradient(
+          45deg,
+          var(--accent-dark),
+          var(--accent-color)
+        );
+        --accent-transparent: rgba(156, 39, 176, 0.1);
+      }
+
+      [data-theme="blue"] {
+        --accent-color: #2196f3;
+        --accent-light: #64b5f6;
+        --accent-dark: #1976d2;
+        --accent-gradient: linear-gradient(
+          45deg,
+          var(--accent-dark),
+          var(--accent-color)
+        );
+        --accent-transparent: rgba(33, 150, 243, 0.1);
+      }
+
+      [data-theme="green"] {
+        --accent-color: #4caf50;
+        --accent-light: #81c784;
+        --accent-dark: #388e3c;
+        --accent-gradient: linear-gradient(
+          45deg,
+          var(--accent-dark),
+          var(--accent-color)
+        );
+        --accent-transparent: rgba(76, 175, 80, 0.1);
+      }
+
+      [data-theme="orange"] {
+        --accent-color: #ff9800;
+        --accent-light: #ffb74d;
+        --accent-dark: #f57c00;
+        --accent-gradient: linear-gradient(
+          45deg,
+          var(--accent-dark),
+          var(--accent-color)
+        );
+        --accent-transparent: rgba(255, 152, 0, 0.1);
+      }
+
+      [data-theme="red"] {
+        --accent-color: #f44336;
+        --accent-light: #e57373;
+        --accent-dark: #d32f2f;
+        --accent-gradient: linear-gradient(
+          45deg,
+          var(--accent-dark),
+          var(--accent-color)
+        );
+        --accent-transparent: rgba(244, 67, 54, 0.1);
+      }
+
+      /* Base Styles */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 1.5rem;
+      }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .header-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .header-title h1 {
+        font-size: 1.8rem;
+        font-weight: 600;
+      }
+
+      .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .theme-selector {
+        position: relative;
+      }
+
+      .theme-selector-toggle {
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .theme-selector-menu {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 0.5rem;
+        margin-top: 0.5rem;
+        z-index: 10;
+        display: none;
+        width: 160px;
+      }
+
+      .theme-selector-menu.active {
+        display: block;
+      }
+
+      .theme-option {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem;
+        cursor: pointer;
+        border-radius: 4px;
+      }
+
+      .theme-option:hover {
+        background: var(--bg-secondary);
+      }
+
+      .theme-dot {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+      }
+
+      .theme-dot.purple {
+        background: #9c27b0;
+      }
+      .theme-dot.blue {
+        background: #2196f3;
+      }
+      .theme-dot.green {
+        background: #4caf50;
+      }
+      .theme-dot.orange {
+        background: #ff9800;
+      }
+      .theme-dot.red {
+        background: #f44336;
+      }
+
+      #control > span {
+        background: var(--accent-gradient);
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+      }
+
+      #control > span:hover {
+        opacity: 0.9;
+        transform: translateY(-2px);
+      }
+
+      .card {
+        background: var(--bg-card);
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 1.5rem;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+      }
+
+      .card-header h2 {
+        font-size: 1.2rem;
+        font-weight: 600;
+      }
+
+      .card-actions {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .card-action {
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-color);
+        color: var(--text-secondary);
+        padding: 0.4rem 0.8rem;
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+      }
+
+      .card-action:hover {
+        background: var(--accent-transparent);
+        color: var(--accent-light);
+      }
+
+      #info_badges {
+        display: flex;
+        gap: 0.8rem;
+      }
+
+      #info_badges .badge {
+        background: var(--bg-tertiary);
+        color: var(--text-primary);
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      #download_rate .badge {
+        background: var(--accent-gradient);
+        color: white;
+      }
+
+      /* Table Styles */
+      .table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .table thead th {
+        text-align: left;
+        padding: 1rem;
+        color: var(--text-secondary);
+        border-bottom: 1px solid var(--border-color);
+        font-weight: 500;
+      }
+
+      .table tbody td {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .table tbody tr:last-child td {
+        border-bottom: none;
+      }
+
+      .table tbody tr:hover td {
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .truncate {
+        max-width: 300px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .progress {
+        height: 8px;
+        background-color: var(--bg-tertiary);
+        border-radius: 4px;
+        overflow: hidden;
+        margin-top: 0.5rem;
+      }
+
+      .progress-bar {
+        height: 100%;
+        background: var(--accent-gradient);
+        border-radius: 4px;
+        transition: width 0.3s ease;
+      }
+
+      .progress-bar.bg-success {
+        background: linear-gradient(45deg, #388e3c, #4caf50);
+      }
+
+      .progress-bar.bg-warning {
+        background: linear-gradient(45deg, #f57c00, #ff9800);
+      }
+
+      .progress-bar.bg-danger {
+        background: linear-gradient(45deg, #d32f2f, #f44336);
+      }
+
+      /* Status Indicators */
+      .table .status-indicator {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 6px;
+      }
+
+      .table .status-indicator.success {
+        background-color: var(--success);
+      }
+
+      .table .status-indicator.warning {
+        background-color: var(--warning);
+      }
+
+      .table .status-indicator.danger {
+        background-color: var(--danger);
+      }
+
+      /* Pagination */
+      .pagination-wrapper {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border-color);
+        margin-top: 1rem;
+      }
+
+      .pagination {
+        display: flex;
+        gap: 0.3rem;
+      }
+
+      .pagination-info {
+        color: var(--text-tertiary);
+        font-size: 0.9rem;
+      }
+
+      .page-item .page-link {
+        min-width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 0.5rem;
+        border-radius: 6px;
+        background: var(--bg-tertiary);
+        color: var(--text-secondary);
+        border: 1px solid var(--border-color);
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .page-item .page-link:hover {
+        background: var(--accent-transparent);
+        color: var(--accent-light);
+      }
+
+      .page-item.active .page-link {
+        background: var(--accent-color);
+        color: white;
+        border-color: var(--accent-color);
+      }
+
+      /* Status Cards */
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .stat-card {
+        background: var(--bg-card);
+        border-radius: 12px;
+        padding: 1.5rem;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .stat-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: var(--accent-gradient);
+      }
+
+      .stat-card h3 {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        margin-bottom: 0.5rem;
+      }
+
+      .stat-card .value {
+        font-size: 1.8rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+      }
+
+      .stat-card .subtitle {
+        font-size: 0.8rem;
+        color: var(--text-tertiary);
+      }
+
+      /* Charts */
+      .charts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .chart-wrapper {
+        background: var(--bg-card);
+        border-radius: 12px;
+        padding: 1.5rem;
+        min-height: 300px;
+      }
+
+      .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+      }
+
+      .chart-header h3 {
+        font-size: 1.1rem;
+        font-weight: 500;
+      }
+
+      .chart-actions {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .chart-action {
+        background: none;
+        border: none;
+        color: var(--text-tertiary);
+        cursor: pointer;
+        font-size: 1rem;
+        transition: color 0.2s ease;
+      }
+
+      .chart-action:hover {
+        color: var(--text-primary);
+      }
+
+      .chart-placeholder {
+        width: 100%;
+        height: 230px;
+        background-color: var(--bg-tertiary);
+        border-radius: 8px;
+        position: relative;
+      }
+
+      /* UI Improvements */
+      #clnHist {
+        cursor: pointer;
+        color: var(--accent-color);
+        font-size: 0.875rem;
+        padding: 0.4rem 0.8rem;
+        border-radius: 4px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background-color: var(--accent-transparent);
+        transition: all 0.2s;
+      }
+
+      #clnHist:hover {
+        background-color: var(--accent-transparent);
+        opacity: 0.9;
+      }
+
+      #prettyEndTime {
+        cursor: pointer;
+      }
+
+      /* Mobile Responsiveness */
+      @media (max-width: 768px) {
+        .header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 1rem;
+        }
+
+        .header-actions {
+          width: 100%;
+          justify-content: space-between;
+        }
+
+        .stats-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .charts-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .truncate {
+          max-width: 150px;
+        }
+
+        .table-wrapper {
+          overflow-x: auto;
+        }
+
+        .pagination-wrapper {
+          flex-direction: column;
+          gap: 1rem;
+          align-items: flex-start;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <div class="header">
+        <div class="header-title">
+          <i
+            class="fas fa-cloud-upload-alt fa-lg"
+            style="color: var(--accent-color)"
+          ></i>
+          <h1>Uploader Dashboard</h1>
+        </div>
+
+        <div class="header-actions">
+          <div id="info_badges">
+            <div id="download_rate">
+              <span class="badge">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>0</span> MB/s
+              </span>
+            </div>
+            <div id="control">
+              <span class="bg-success">
+                <i class="fa-solid fa-play"></i>
+              </span>
+            </div>
+          </div>
+
+          <div class="theme-selector">
+            <div class="theme-selector-toggle" id="theme-toggle">
+              <i class="fas fa-palette"></i>
+              <span>Theme</span>
+            </div>
+            <div class="theme-selector-menu" id="theme-menu">
+              <div class="theme-option" data-theme="purple">
+                <div class="theme-dot purple"></div>
+                <span>Purple</span>
+              </div>
+              <div class="theme-option" data-theme="blue">
+                <div class="theme-dot blue"></div>
+                <span>Blue</span>
+              </div>
+              <div class="theme-option" data-theme="green">
+                <div class="theme-dot green"></div>
+                <span>Green</span>
+              </div>
+              <div class="theme-option" data-theme="orange">
+                <div class="theme-dot orange"></div>
+                <span>Orange</span>
+              </div>
+              <div class="theme-option" data-theme="red">
+                <div class="theme-dot red"></div>
+                <span>Red</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Uploads Table -->
+      <div class="card">
+        <div class="card-header">
+          <h2>In Progress</h2>
+        </div>
+
+        <div class="table-wrapper" id="no-more-tables">
+          <table id="uploadsTable" class="table">
+            <thead>
+              <tr>
+                <th>Filename</th>
+                <th class="d-none d-lg-table-cell">Folder</th>
+                <th class="d-none d-lg-table-cell">Key</th>
+                <th>Progress</th>
+                <th class="d-none d-lg-table-cell">Filesize</th>
+                <th class="text-end">Time Left</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="text-muted" colspan="6">No entries found.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Completed Uploads Table -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Completed</h2>
+          <div class="card-actions">
+            <span id="clnHist">
+              <i class="fas fa-trash-alt"></i>
+              Clear History
+            </span>
+          </div>
+        </div>
+
+        <input
+          type="checkbox"
+          style="display: none"
+          id="prettyEndTime"
+          name="prettyEndTime"
+        />
+        <div class="table-wrapper">
+          <table id="completedTable" class="table">
+            <thead>
+              <tr>
+                <th>Filename</th>
+                <th>Folder</th>
+                <th>Key</th>
+                <th>Filesize</th>
+                <th>Time spent</th>
+                <th>
+                  Uploaded
+                  <i
+                    class="fa-solid fa-hourglass-end"
+                    style="cursor: pointer"
+                    onclick="$('#prettyEndTime').click();"
+                  ></i>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="text-muted" colspan="6">No entries found.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="pagination-wrapper">
+            <div id="page"></div>
+            <div>
+              <ul id="pageSize" class="pagination">
+                <li class="page-item"><a class="page-link" href="#">5</a></li>
+                <li class="page-item active">
+                  <a class="page-link" href="#">10</a>
+                </li>
+                <li class="page-item"><a class="page-link" href="#">25</a></li>
+                <li class="page-item"><a class="page-link" href="#">50</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Status Cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3>Upload Rate</h3>
+          <div class="value">12.5 MB/s</div>
+          <div class="subtitle">Average: 10.2 MB/s</div>
+        </div>
+
+        <div class="stat-card">
+          <h3>Files in Queue</h3>
+          <div class="value">8</div>
+          <div class="subtitle">Total size: 45.2 GB</div>
+        </div>
+
+        <div class="stat-card">
+          <h3>Files Uploaded Today</h3>
+          <div class="value">24</div>
+          <div class="subtitle">Total: 120.7 GB</div>
+        </div>
+
+        <div class="stat-card">
+          <h3>Active Transfers</h3>
+          <div class="value">3</div>
+          <div class="subtitle">Max: 5</div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="charts-grid">
+        <!-- Upload Speed Chart -->
+        <div class="chart-wrapper">
+          <div class="chart-header">
+            <h3>Upload Speed Over Time</h3>
+            <div class="chart-actions">
+              <button class="chart-action">
+                <i class="fas fa-sync-alt"></i>
+              </button>
+              <button class="chart-action">
+                <i class="fas fa-ellipsis-v"></i>
+              </button>
+            </div>
+          </div>
+          <div class="chart-placeholder">
+            <canvas id="speedChart" width="100%" height="100%"></canvas>
+          </div>
+        </div>
+
+        <!-- File Distribution Chart -->
+        <div class="chart-wrapper">
+          <div class="chart-header">
+            <h3>File Type Distribution</h3>
+            <div class="chart-actions">
+              <button class="chart-action">
+                <i class="fas fa-sync-alt"></i>
+              </button>
+              <button class="chart-action">
+                <i class="fas fa-ellipsis-v"></i>
+              </button>
+            </div>
+          </div>
+          <div class="chart-placeholder">
+            <canvas id="distributionChart" width="100%" height="100%"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Credits -->
+      <div
+        style="
+          text-align: center;
+          margin-top: 2rem;
+          padding: 1rem;
+          border-top: 1px solid var(--border-color);
+          color: var(--text-tertiary);
+        "
+      >
+        <p>
+          <a
+            href="https://github.com/dockserver"
+            style="
+              color: var(--accent-color);
+              text-decoration: none;
+              margin-right: 1rem;
+            "
+          >
+            <i class="fa-brands fa-github"></i> dockserver GitHub
+          </a>
+          <a
+            href="https://dockserver.io"
+            style="color: var(--accent-color); text-decoration: none"
+          >
+            <i class="fa-brands fa-wikipedia-w"></i> dockserver Wiki
+          </a>
+        </p>
+        <p style="margin-top: 0.5rem">
+          © 2021 -
+          <script>
+            document.write(new Date().getFullYear());
+          </script>
+          Developed with
+          <i class="fas fa-heart" style="color: var(--accent-color)"></i> by
+          dockserver.io
+        </p>
+      </div>
+    </div>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"
+      integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"
+      integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://code.jquery.com/jquery-3.6.0.min.js"
+      integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/ui/pagination.js"></script>
+    <script src="js/app.js"></script>
+
+    <script>
+      // Theme selector functionality
+      document
+        .getElementById("theme-toggle")
+        .addEventListener("click", function () {
+          document.getElementById("theme-menu").classList.toggle("active");
+        });
+
+      document.querySelectorAll(".theme-option").forEach((option) => {
+        option.addEventListener("click", function () {
+          const theme = this.getAttribute("data-theme");
+          document.documentElement.setAttribute("data-theme", theme);
+          document.getElementById("theme-menu").classList.remove("active");
+
+          // Update charts if they exist
+          updateChartsTheme(theme);
+        });
+      });
+
+      // Initialize charts
+      document.addEventListener("DOMContentLoaded", function () {
+        if (typeof Chart !== "undefined") {
+          // Set global Chart.js options for dark theme
+          Chart.defaults.color = "rgba(255, 255, 255, 0.7)";
+          Chart.defaults.borderColor = "rgba(255, 255, 255, 0.1)";
+
+          // Speed Chart
+          try {
+            const speedCtx = document
+              .getElementById("speedChart")
+              .getContext("2d");
+            window.speedChart = new Chart(speedCtx, {
+              type: "line",
+              data: {
+                labels: [
+                  "10:00",
+                  "11:00",
+                  "12:00",
+                  "13:00",
+                  "14:00",
+                  "15:00",
+                  "16:00",
+                ],
+                datasets: [
+                  {
+                    label: "Upload Speed (MB/s)",
+                    data: [8.5, 10.2, 12.5, 9.3, 11.8, 13.2, 12.5],
+                    fill: true,
+                    backgroundColor: "rgba(156, 39, 176, 0.1)",
+                    borderColor: "#9c27b0",
+                    tension: 0.4,
+                    pointBackgroundColor: "#9c27b0",
+                    pointBorderColor: "#fff",
+                    pointRadius: 4,
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    grid: {
+                      color: "rgba(255, 255, 255, 0.05)",
+                    },
+                  },
+                  x: {
+                    grid: {
+                      color: "rgba(255, 255, 255, 0.05)",
+                    },
+                  },
+                },
+              },
+            });
+
+            // Distribution Chart
+            const distCtx = document
+              .getElementById("distributionChart")
+              .getContext("2d");
+            window.distChart = new Chart(distCtx, {
+              type: "pie",
+              data: {
+                labels: ["Movies", "TV Shows", "Music", "Documents", "Other"],
+                datasets: [
+                  {
+                    data: [45, 30, 10, 8, 7],
+                    backgroundColor: [
+                      "#9c27b0",
+                      "#2196f3",
+                      "#ff9800",
+                      "#4caf50",
+                      "#9e9e9e",
+                    ],
+                    borderWidth: 1,
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: "right",
+                    labels: {
+                      padding: 15,
+                    },
+                  },
+                },
+              },
+            });
+          } catch (e) {
+            console.log("Charts could not be initialized:", e);
+          }
+        }
+      });
+
+      // Function to update chart colors based on theme
+      function updateChartsTheme(theme) {
+        if (!window.speedChart || !window.distChart) return;
+
+        let primaryColor;
+        switch (theme) {
+          case "purple":
+            primaryColor = "#9c27b0";
+            break;
+          case "blue":
+            primaryColor = "#2196f3";
+            break;
+          case "green":
+            primaryColor = "#4caf50";
+            break;
+          case "orange":
+            primaryColor = "#ff9800";
+            break;
+          case "red":
+            primaryColor = "#f44336";
+            break;
+          default:
+            primaryColor = "#9c27b0";
+        }
+
+        // Update speed chart
+        window.speedChart.data.datasets[0].borderColor = primaryColor;
+        window.speedChart.data.datasets[0].pointBackgroundColor = primaryColor;
+        window.speedChart.data.datasets[0].backgroundColor = `${primaryColor}19`;
+        window.speedChart.update();
+
+        // Update distribution chart first color
+        window.distChart.data.datasets[0].backgroundColor[0] = primaryColor;
+        window.distChart.update();
+      }
+
+      // Close theme menu when clicking outside
+      document.addEventListener("click", function (e) {
+        const themeSelectorToggle = document.getElementById("theme-toggle");
+        const themeMenu = document.getElementById("theme-menu");
+
+        if (
+          themeSelectorToggle &&
+          themeMenu &&
+          !themeSelectorToggle.contains(e.target) &&
+          !themeMenu.contains(e.target)
+        ) {
+          themeMenu.classList.remove("active");
+        }
+      });
+
+      // Toggle play/pause button
+      const controlButton = document.querySelector("#control > span");
+      const icon = controlButton.querySelector("i");
+
+      controlButton.addEventListener("click", function () {
+        const action = icon.classList.contains("fa-play")
+          ? "pause"
+          : "continue";
+
+        if (icon.classList.contains("fa-play")) {
+          icon.classList.replace("fa-play", "fa-pause");
+          controlButton.classList.replace("bg-success", "bg-danger");
+        } else {
+          icon.classList.replace("fa-pause", "fa-play");
+          controlButton.classList.replace("bg-danger", "bg-success");
+        }
+
+        // Maintain compatibility with original code
+        $.ajax({
+          type: "POST",
+          url: "srv/api/system/status.php",
+          data: { action: action },
+          success: function (data) {
+            // The original function would handle this
+          },
+        });
+      });
+    </script>
+  </body>
 </html>
