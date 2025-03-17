@@ -1,0 +1,70 @@
+table {
+    font-size: small;
+}
+
+#uploadsTable > thead > tr > td.tl-w-20 {
+    width:20%;
+}
+
+#info_badges > div {
+    padding: 3px;
+}
+
+#info_badges > div > span.badge {
+    height: 20px;
+    min-width: 24px;
+}
+
+#control > span:hover {
+    opacity:0.8;
+    background-color: Black;
+    cursor: pointer;
+}
+
+span#clnHist {
+    font-size: 10px;
+    padding: 5px;
+}
+span#clnHist:hover {
+    font-size: 10px;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+@media only screen and (max-width: 800px) {
+    .truncate {
+        width:100%;
+        white-space: nowrap !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .progress {
+        height: 2px;
+        font-size:0;
+    }
+
+    #uploadsTable > thead > tr > td.tl-w-20 {
+        width: 100%;
+    }
+    /** THANKS: https://elvery.net/demo/responsive-tables/#css-1 **/
+    #no-more-tables table,
+    #no-more-tables thead,
+    #no-more-tables tbody,
+    #no-more-tables th,
+    #no-more-tables td,
+    #no-more-tables tr {
+        display: block;
+    }
+    #no-more-tables thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+    #no-more-tables tr { border-bottom: 1px solid #ccc; }
+    #no-more-tables td {
+        border: none;
+        position: relative;
+        white-space: normal;
+        text-align:left;
+    }
+}

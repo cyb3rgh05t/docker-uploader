@@ -1,0 +1,24 @@
+{
+  "update": {
+    "rclonestart": "-> Starting Rclone update <-",
+    "rcloneend": "-> Rclone update was successful <-",
+    "packagesstart": "-> Starting Packages update <-",
+    "packagesend": "-> Packages update was successful <-"
+  },
+  "startup": {
+    "uploader": "-> Starting Uploader - ALL <-",
+    "uploadergdsa": "-> Starting Uploader - GDSA <-",
+    "uploaderdb": "-> Starting Uploader - DB <-",
+    "caddy": "-> Starting Caddy <-",
+    "php": "-> Starting PHP-FPM <-"
+  },
+  "limit": {
+    "used": "-> Beware you have hit the Google Upload-Limits <-",
+    "switch": "-> Rotate to next Service 🔑 ${KEYNOTI} done <-"
+  },
+  "uploader": {
+    "start": "Upload started for ${FILE} using ${KEYNOTI} to ${DRIVE}",
+    "end": "Upload completed for ${FILE} with Size${SIZE}",
+    "failed": "Upload failed for ${FILE} with Size${SIZE}"
+  }
+}

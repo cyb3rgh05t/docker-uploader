@@ -1,0 +1,35 @@
+#!/command/with-contenv bash
+#####################################
+# All rights reserved.              #
+# started from Zero                 #
+# Docker owned dockserver           #
+# Docker Maintainer dockserver      #
+#####################################
+# THIS DOCKER IS UNDER LICENSE      #
+# NO CUSTOMIZING IS ALLOWED         #
+# NO REBRANDING IS ALLOWED          #
+# NO CODE MIRRORING IS ALLOWED      #
+#####################################
+# RCLONE CONFIG
+ENDCONFIG=/app/rclone/rclone.conf
+CHECKTYPE=$($(which rclone) config dump --config="${ENDCONFIG}" 2>/dev/null | $(which jq) -r 'to_entries | (.[] | select(.value.type!="crypt")) | .value.type')
+
+function log() {
+   GRAY="\033[0;37m"
+   BLUE="\033[0;34m"
+   NC="\033[0m"
+   $(which echo) -e "${GRAY}[$($(which date) +'%Y/%m/%d %H:%M:%S')]${BLUE} [Uploader]${NC} ${1}"
+}
+umask 022
+
+if [[ "${CHECKTYPE}" == "dropbox" ]]; then
+   source /app/uploader/function-db.sh && lang
+elif [[ "${CHECKTYPE}" == "drive" ]]; then
+   source /app/uploader/function-gdsa.sh && lang
+else
+   source /app/uploader/function.sh && lang
+fi
+
+log "${startupuploader}"
+
+startuploader

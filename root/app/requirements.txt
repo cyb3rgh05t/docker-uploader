@@ -1,0 +1,15 @@
+caddy
+curl
+cronie
+exiftool
+jq
+php82
+php82-fpm
+php82-json
+php82-opcache
+php82-sqlite3
+py-pip
+python3
+sqlite
+unzip
+wget

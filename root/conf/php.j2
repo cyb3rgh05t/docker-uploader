@@ -1,0 +1,27 @@
+[PHP]
+file_uploads = Off
+expose_php = Off
+default_charset = "UTF-8"
+enable_dl = Off
+allow_url_fopen = Off
+
+[Date]
+date.timezone = "${TZ}"
+
+[opcache]
+opcache.enable=1
+opcache.enable_cli=1
+opcache.memory_consumption=128
+opcache.force_restart_timeout=90
+opcache.file_update_protection=1
+opcache.interned_strings_buffer=32
+opcache.max_accelerated_files=4000
+opcache.max_wasted_percentage=10
+opcache.dups_fix=1
+opcache.save_comments=0
+opcache.enable_file_override=1
+opcache.revalidate_freq=60
+opcache.fast_shutdown=1
+
+opcache.jit=tracing
+opcache.jit_buffer_size=50M

@@ -1,0 +1,336 @@
+#!/command/with-contenv bash
+# shellcheck shell=bash
+#####################################
+# All rights reserved.              #
+# started from Zero                 #
+# Docker owned dockserver           #
+# Docker Maintainer dockserver      #
+#####################################
+# THIS DOCKER IS UNDER LICENSE      #
+# NO CUSTOMIZING IS ALLOWED         #
+# NO REBRANDING IS ALLOWED          #
+# NO CODE MIRRORING IS ALLOWED      #
+#####################################
+
+function log() {
+   $(which echo) "[Uploader] ${1}"
+}
+
+#SETTINGS
+ENDCONFIG=/app/rclone/rclone.conf
+SOURCECONFIG=/system/servicekeys/rclonegdsa.conf
+ENDFILE=/system/uploader/drive.csv
+ENVA=/system/uploader/uploader.env
+SAMPLE=/app/sample/.sample.uploader.env
+EXCLUDE=/system/uploader/rclone.exclude
+DATABASE=/system/uploader/db/uploader.db
+CRON=/etc/periodic/midnight/reset
+PAUSE=/app/rclone/pause
+TEMPFILES=/app/rclone/files.txt
+TMPHOSTS=/tmp/hosts
+HOSTS=/etc/hosts
+
+#FOLDER
+BASE=/system/uploader
+JSONDIR=/system/servicekeys/keys
+USEDDIR=/system/uploader/.keys
+JSONOLD=/system/uploader/json
+ARRAY=$($(which ls) -A "${JSONDIR}" | $(which wc) -l)
+
+   $(which cat) >> /etc/apk/repositories << EOF; $(echo)
+http://dl-cdn.alpinelinux.org/alpine/edge/testing
+EOF
+
+log "**** update system packages ****" && \
+   apk --quiet --no-progress update && \
+   apk --quiet --no-progress upgrade
+
+log "**** install build packages from requirements ****" && \
+   $(which cat) /app/requirements.txt | while IFS=$'\n' read -ra myArray; do
+      apk add --quiet --no-progress --update "${myArray[@]}"
+   done
+
+log "**** install pip packages ****"
+   pip3 install --no-cache-dir -U apprise &>/dev/null
+
+log "**** install rclone ****"
+   $(which wget) -qO- https://rclone.org/install.sh | bash &>/dev/null
+
+CHECKTYPE=$($(which rclone) config dump --config="${SOURCECONFIG}" 2>/dev/null | $(which jq) -r 'to_entries | (.[] | select(.value.type!="crypt")) | .value.type' | $(which head) -n 1)
+if [[ "${ARRAY}" -lt "1" && "${CHECKTYPE}" == "drive" ]]; then
+   log "-> No match found of GDSA[01=~100] or [01=~100] <-"
+   $(which sleep) infinity
+fi
+
+log "**** copy dependencies ****"
+   $(which cp) -r /conf/fpm-pool.conf /etc/php82/php-fpm.d/www.conf
+   $(which cp) -r /conf/php.j2 /etc/php82/conf.d/custom.ini
+
+log "**** creating folders ****"
+   $(which mkdir) -p /system/uploader/{logs,db,sample} \
+           /system/servicekeys/keys \
+           /app/custom \
+           /app/rclone \
+           /root/.config/rclone/ &>/dev/null
+
+log "**** install cronjob ****"
+   #$(which mkdir) -p /etc/periodic/midnight &>/dev/null
+   #$(which echo) 'CRON_TZ=America/Los_Angeles' >> /etc/crontabs/root
+   #$(which echo) '0       0       *       *       *       run-parts /etc/periodic/midnight' >> /etc/crontabs/root
+
+#### COPY SAMPLE FILES #####
+$(which cp) -r /app/sample/crypt_multi_tdrive-example.csv /system/uploader/sample/crypt_multi_tdrive-example.csv
+$(which cp) -r /app/sample/uncrypt_multi_tdrive-example.csv /system/uploader/sample/uncrypt_multi_tdrive-example.csv
+
+if [[ -f "${ENVA}" ]]; then
+   source "${ENVA}"
+else
+   source "${SAMPLE}"
+fi
+
+#### EXCLUDE PART ####
+if [[ ! -f "${EXCLUDE}" ]]; then
+   $(which cat) > "${EXCLUDE}" << EOF; $(echo)
+-vpn/
+.anchors/
+.inProgress/
+amd/
+aria/
+deluge/
+jdownloader2/
+nzb/
+nzbget/
+qbittorrent/
+rutorrent/
+sabnzbd/
+temp/
+torrent/
+tubesync/
+EOF
+fi
+
+$(which echo) -e "#-------------------------------------------------------
+#   UPLOADER ENVIROMENTS
+#-------------------------------------------------------
+## USER VALUES
+PUID=${PUID:-1000}
+PGID=${PGID:-1000}
+TIMEZONE=${TZ:-UTC}
+
+## CRITICAL SETUP FOR CRYPT USER
+HASHPASSWORD=${HASHPASSWORD:-hashed}
+GDSA_NAME=${GDSA_NAME:-encrypt}
+DB_NAME=${DB_NAME:-encrypt}
+DB_TEAM=${DB_TEAM:-true}
+
+## RCLONE - SETTINGS
+BANDWIDTH_LIMIT=\"${BANDWIDTH_LIMIT:-null}\"
+GOOGLE_IP=${GOOGLE_IP:-142.250.201.202}
+PROXY=\"${PROXY:-null}\"
+LOG_LEVEL=${LOG_LEVEL:-INFO}
+DLFOLDER=${DLFOLDER:-/mnt/downloads}
+TRANSFERS=${TRANSFERS:-2}
+
+## USER - SETTINGS
+DRIVEUSEDSPACE=${DRIVEUSEDSPACE:-null}
+FOLDER_DEPTH=${FOLDER_DEPTH:-1}
+FOLDER_PRIORITY=${FOLDER_PRIORITY:-null}
+MIN_AGE_UPLOAD=${MIN_AGE_UPLOAD:-1}
+
+## VFS - SETTINGS
+VFS_REFRESH_ENABLE=${VFS_REFRESH_ENABLE:-true}
+MOUNT=${MOUNT:-mount:8554}
+
+## LOG - SETTINGS
+LOG_ENTRY=${LOG_ENTRY:-1000}
+LOG_RETENTION_DAYS=${LOG_RETENTION_DAYS:-null}
+
+## AUTOSCAN - SETTINGS
+AUTOSCAN_URL=${AUTOSCAN_URL:-null}
+AUTOSCAN_USER=${AUTOSCAN_USER:-null}
+AUTOSCAN_PASS=${AUTOSCAN_PASS:-null}
+
+## NOTIFICATION - SETTINGS
+NOTIFICATION_URL=${NOTIFICATION_URL:-null}
+NOTIFICATION_LEVEL=${NOTIFICATION_LEVEL:-ALL}
+NOTIFICATION_SERVERNAME=${NOTIFICATION_SERVERNAME:-null}
+
+## STRIPARR - SETTINGS
+STRIPARR_URL=${STRIPARR_URL:-null}
+
+## LANGUAGE MESSAGES
+LANGUAGE=${LANGUAGE:-en}
+
+#-------------------------------------------------------
+#   UPLOADER ENVIROMENTS
+#-------------------------------------------------------" > "${ENVA}"
+
+if [[ -f "${ENDCONFIG}" ]]; then $(which rm) -f "${ENDCONFIG}"; fi
+if [[ -f "${PAUSE}" ]]; then $(which rm) -f "${PAUSE}"; fi
+if [[ -f "${TEMPFILES}" ]]; then $(which rm) -f "${TEMPFILES}"; fi
+if [[ -d "${JSONOLD}" ]]; then $(which rm) -rf "${JSONOLD}"; fi
+if [[ -d "${USEDDIR}" ]]; then $(which rm) -rf "${USEDDIR}"; fi
+
+function sqlite3write() {
+   $(which sqlite3) -cmd "PRAGMA busy_timeout = 10000; PRAGMA synchronous = NORMAL; PRAGMA TEMP_STORE = MEMORY; PRAGMA JOURNAL_MODE = WAL;" "${DATABASE}" "$@"
+}
+
+function sqlite3read() {
+   $(which sqlite3) "file:${DATABASE}?immutable=1" "$@"
+}
+
+# CREATE UPLOADER DATABASE
+if [[ ! -f "${DATABASE}" ]]; then
+   sqlite3write "CREATE TABLE upload_keys(time DATETIME DEFAULT (datetime('now','localtime')), key TEXT, used NUMERIC, active INTEGER);" &>/dev/null
+   sqlite3write "CREATE TABLE upload_queue(time DATETIME DEFAULT (datetime('now','localtime')), drive TEXT, filedir TEXT, filebase TEXT PRIMARY KEY, filesize TEXT, metadata INTEGER);" &>/dev/null
+   sqlite3write "CREATE TABLE uploads(drive TEXT, filedir TEXT, filebase TEXT PRIMARY KEY, filesize TEXT, logfile TEXT, gdsa TEXT);" &>/dev/null
+   sqlite3write "CREATE TABLE completed_uploads(drive TEXT, filedir TEXT, filebase TEXT, filesize TEXT, gdsa TEXT, starttime NUMERIC, endtime NUMERIC, status NUMERIC, error TEXT);" &>/dev/null
+   sqlite3write "CREATE INDEX idx_completed_endtime ON completed_uploads (endtime);" &>/dev/null
+   sqlite3write "CREATE INDEX idx_queue_time ON upload_queue (time);" &>/dev/null
+fi
+
+# UPDATE UPLOADER DATEBASE
+sqlite3write "CREATE TABLE IF NOT EXISTS upload_keys(time DATETIME DEFAULT (datetime('now','localtime')), key TEXT, used NUMERIC, active INTEGER);" &>/dev/null
+
+DATABASEMETA=$(sqlite3read "PRAGMA table_info('upload_queue')" 2>/dev/null | $(which grep) -qE "metadata"  && echo true || echo false)
+if [[ "${DATABASEMETA}" == "false" ]]; then
+   sqlite3write "DROP TABLE upload_queue" &>/dev/null
+   sqlite3write "CREATE TABLE upload_queue(time DATETIME DEFAULT (datetime('now','localtime')), drive TEXT, filedir TEXT, filebase TEXT PRIMARY KEY, filesize TEXT, metadata INTEGER);" &>/dev/null
+fi
+
+# UPLOADER KEYS
+CHECKKEYS=$(sqlite3read "SELECT COUNT(*) FROM upload_keys;" 2>/dev/null)
+if [[ "${CHECKKEYS}" -lt "1" && "${CHECKTYPE}" == "drive" ]]; then
+   mapfile -t "KEYS" < <($(which ls) -A "${JSONDIR}" | $(which sort) -V)
+   for KEY in ${KEYS[@]}; do
+      sqlite3write "INSERT OR IGNORE INTO upload_keys (key,used) VALUES (\"${KEY}\",0);" &>/dev/null
+   done
+   sqlite3write "UPDATE upload_keys SET active = 0;" &>/dev/null
+   sqlite3write "UPDATE upload_keys SET active = 1 WHERE rowid = 1;" &>/dev/null
+elif [[ "${CHECKTYPE}" == "drive" ]]; then
+   if [[ "${ARRAY}" != "${CHECKKEYS}" ]]; then
+      sqlite3write "DELETE FROM upload_keys;" &>/dev/null
+      mapfile -t "KEYS" < <($(which ls) -A "${JSONDIR}" | $(which sort) -V)
+      for KEY in ${KEYS[@]}; do
+         sqlite3write "INSERT OR IGNORE INTO upload_keys (key,used) VALUES (\"${KEY}\",0);" &>/dev/null
+      done
+      sqlite3write "UPDATE upload_keys SET active = 0;" &>/dev/null
+      sqlite3write "UPDATE upload_keys SET active = 1 WHERE rowid = 1;" &>/dev/null
+   fi
+fi
+
+# CREATE RCLONE.CONF FROM RCLONEGDSA.CONF | DROPBOX AND GOOGLE
+if [[ ! -f "${ENDFILE}" && -f "${SOURCECONFIG}" ]]; then
+   if [[ "${CHECKTYPE}" == "dropbox" ]]; then
+      TOKEN=$($(which rclone) config dump --config="${SOURCECONFIG}" 2>/dev/null | $(which jq) -r 'to_entries | (.[] | select(.value.type=="dropbox")) | .value.token' | $(which head) -n 1)
+      GETCI=$($(which rclone) config dump --config="${SOURCECONFIG}" 2>/dev/null | $(which jq) -r 'to_entries | (.[] | select(.value.type=="dropbox")) | .value.client_id' | $(which head) -n 1)
+      GETCS=$($(which rclone) config dump --config="${SOURCECONFIG}" 2>/dev/null | $(which jq) -r 'to_entries | (.[] | select(.value.type=="dropbox")) | .value.client_secret' | $(which head) -n 1)
+      GETP=$($(which rclone) config dump --config="${SOURCECONFIG}" 2>/dev/null | $(which jq) -r 'to_entries | (.[] | select(.value.type=="crypt")) | .value.password' | $(which head) -n 1)
+      GETS=$($(which rclone) config dump --config="${SOURCECONFIG}" 2>/dev/null | $(which jq) -r 'to_entries | (.[] | select(.value.type=="crypt")) | .value.password2' | $(which head) -n 1)
+      if [[ "${GETCI}" == "" && "${GETCS}" == "" && "${GETP}" == "" && "${GETS}" == "" ]]; then
+         $(which rclone) config create DB dropbox server_side_across_configs=true token="${TOKEN}" --config="${ENDCONFIG}" --non-interactive &>/dev/null
+         $(which rclone) config show --config="${ENDCONFIG}"
+      elif [[ "${GETCI}" != "" && "${GETCS}" != "" && "${GETP}" == "" && "${GETS}" == "" ]]; then
+         $(which rclone) config create DB dropbox server_side_across_configs=true client_id="${GETCI}" client_secret="${GETCS}" token="${TOKEN}" --config="${ENDCONFIG}" --non-interactive &>/dev/null
+         $(which rclone) config show --config="${ENDCONFIG}"
+      else
+         if [[ "${DB_TEAM}" == "false" ]]; then
+            DROPBOXTEAM=""
+         else
+            DROPBOXTEAM="/"
+         fi
+         $(which rclone) config create DB dropbox server_side_across_configs=true client_id="${GETCI}" client_secret="${GETCS}" token="${TOKEN}" --config="${ENDCONFIG}" --non-interactive &>/dev/null
+         $(which rclone) config show --config="${ENDCONFIG}"
+         $(which rclone) config create DBC crypt remote=DB:${DROPBOXTEAM}${DB_NAME} filename_encryption=standard filename_encoding=base32768 directory_name_encryption=true password="${GETP}" password2="${GETS}" --config="${ENDCONFIG}" 2>/dev/null
+      fi
+   elif [[ "${CHECKTYPE}" == "drive" ]]; then
+      KEY=$(sqlite3read "SELECT key FROM upload_keys WHERE active = 1;" 2>/dev/null)
+      TDID=$($(which rclone) config dump --config="${SOURCECONFIG}" 2>/dev/null | $(which jq) -r 'to_entries | (.[] | select(.value.team_drive)) | .value.team_drive' | $(which head) -n 1)
+      GETP=$($(which rclone) config dump --config="${SOURCECONFIG}" 2>/dev/null | $(which jq) -r 'to_entries | (.[] | select(.value.type=="crypt")) | .value.password' | $(which head) -n 1)
+      GETS=$($(which rclone) config dump --config="${SOURCECONFIG}" 2>/dev/null | $(which jq) -r 'to_entries | (.[] | select(.value.type=="crypt")) | .value.password2' | $(which head) -n 1)
+      if [[ "${GETP}" == "" && "${GETS}" == "" ]]; then
+         $(which rclone) config create GDSA drive scope=drive server_side_across_configs=true team_drive="${TDID}" service_account_file="${JSONDIR}/${KEY}" --config="${ENDCONFIG}" 2>/dev/null
+      else
+         $(which rclone) config create GDSA drive scope=drive server_side_across_configs=true team_drive="${TDID}" service_account_file="${JSONDIR}/${KEY}" --config="${ENDCONFIG}" 2>/dev/null
+         $(which rclone) config create GDSAC crypt remote=GDSA:/${GDSA_NAME} filename_encryption=standard directory_name_encryption=true password="${GETP}" password2="${GETS}" --config="${ENDCONFIG}" 2>/dev/null
+      fi
+   else
+      $(which cp) -r "${SOURCECONFIG}" "${ENDCONFIG}" &>/dev/null
+      $(which rclone) config show --config="${ENDCONFIG}"
+   fi
+fi
+# CREATE RCLONE.CONF FROM DRIVE.CSV
+if [[ -f "${ENDFILE}" ]]; then
+   KEY=$(sqlite3read "SELECT key FROM upload_keys WHERE active = 1;" 2>/dev/null)
+   $(which cat) "${ENDFILE}" | $(which sed) '/^\s*#.*$/d' | $(which head) -n 1 | while IFS=$'|' read -r -a DRIVE; do
+      if [[ "${DRIVE[2]}" == "" && "${DRIVE[3]}" == "" ]]; then
+         $(which rclone) config create GDSA drive scope=drive server_side_across_configs=true team_drive="${DRIVE[1]}" service_account_file="${JSONDIR}/${KEY}" --config="${ENDCONFIG}" 2>/dev/null
+      else
+         if [[ "${HASHPASSWORD}" == "plain" && "${HASHPASSWORD}" != "hashed" ]]; then
+            ENC_PASSWORD=$($(which rclone) obscure "${DRIVE[2]}" | $(which tail) -n1)
+            ENC_SALT=$($(which rclone) obscure "${DRIVE[3]}" | $(which tail) -n1)
+         else
+            ENC_PASSWORD="${DRIVE[2]}"
+            ENC_SALT="${DRIVE[3]}"
+         fi
+         $(which rclone) config create GDSA drive scope=drive server_side_across_configs=true team_drive="${DRIVE[1]}" service_account_file="${JSONDIR}/${KEY}" --config="${ENDCONFIG}" 2>/dev/null
+         $(which rclone) config create GDSAC crypt remote=GDSA:/${GDSA_NAME} filename_encryption=standard directory_name_encryption=true password="${ENC_PASSWORD}" password2="${ENC_SALT}" --config="${ENDCONFIG}" 2>/dev/null
+      fi
+   done
+fi
+
+# CHECK ENDCONFIG
+CHECKENTRY=$($(which rclone) config dump --config="${ENDCONFIG}" 2>/dev/null | $(which jq) -r 'to_entries | (.[] | select(.value.type!="crypt")) | .value.type' | $(which wc) -l)
+if [[ "${CHECKENTRY}" -gt "1" ]]; then
+   log "-> Check your rclone.conf, there are too many entrys <-"
+   $(which sleep) infinity
+fi
+
+# CLEAR DATABASE OLD ENTRYS
+sqlite3write "DELETE FROM upload_queue;" &>/dev/null
+sqlite3write "DELETE FROM uploads;" &>/dev/null
+
+log "**** set permissions ****"
+$(which chown) -cR abc:abc /root/.config /app /system/* &>/dev/null
+$(which chmod) -cR 755 /root/.config/rclone/ /app /system/* &>/dev/null
+
+if [[ "${GOOGLE_IP}" == "" ]]; then
+   GOOGLE_IP="null"
+fi
+if [[ "${GOOGLE_IP}" != "null" ]]; then
+   $(which cp) "${HOSTS}" "${TMPHOSTS}" &>/dev/null
+   $(which sed) -i '/www.googleapis.com/d' "${TMPHOSTS}" &>/dev/null
+   $(which cp) -f "${TMPHOSTS}" "${HOSTS}" &>/dev/null
+   readarray -t GIP < <($(which awk) -F',' '{ for( i=1; i<=NF; i++ ) print $i }' <<<"${GOOGLE_IP}")
+      for ENTRY in "${GIP[@]}"; do
+         $(which echo) -e "${ENTRY} www.googleapis.com" >> "${HOSTS}"
+      done
+fi
+
+log "**** cleannup ****"
+$(which rm) -rf /var/cache/apk/*
+
+$(which find) "${BASE}" -type f -name '*.log' -delete
+$(which find) "${BASE}" -type f -name '*.txt' -delete
+
+$(which echo) "------------------------------
+    _____   _   _  __  __
+   |_   _| | | | | \ \/ /
+     | |   | |_| |  \  / 
+     | |   |  _  |  /  \ 
+     |_|   |_| |_| /_/\_\
+
+------------------------------
+     to all the coders
+
+We have take some code from :
+
+  88lex , RTRO , edrock200
+ ChaoticWeg & linuxserver.io
+
+       and all other
+  If we missed you, sorry..
+
+------------------------------"
+
+#### END OF FILE ####
