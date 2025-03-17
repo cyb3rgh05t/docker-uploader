@@ -183,8 +183,8 @@ function sqlite3read() {
 if [[ ! -f "${DATABASE}" ]]; then
    sqlite3write "CREATE TABLE upload_keys(time DATETIME DEFAULT (datetime('now','localtime')), key TEXT, used NUMERIC, active INTEGER);" &>/dev/null
    sqlite3write "CREATE TABLE upload_queue(time DATETIME DEFAULT (datetime('now','localtime')), drive TEXT, filedir TEXT, filebase TEXT PRIMARY KEY, filesize TEXT, metadata INTEGER);" &>/dev/null
-   sqlite3write "CREATE TABLE uploads(drive TEXT, filedir TEXT, filebase TEXT PRIMARY KEY, filesize TEXT, logfile TEXT, gdsa TEXT);" &>/dev/null
-   sqlite3write "CREATE TABLE completed_uploads(drive TEXT, filedir TEXT, filebase TEXT, filesize TEXT, gdsa TEXT, starttime NUMERIC, endtime NUMERIC, status NUMERIC, error TEXT);" &>/dev/null
+   sqlite3write "CREATE TABLE uploads(drive TEXT, filedir TEXT, filebase TEXT PRIMARY KEY, filesize TEXT, logfile TEXT, gdsa TEXT, status INTEGER DEFAULT 0);" &>/dev/null
+   sqlite3write "CREATE TABLE completed_uploads(drive TEXT, filedir TEXT, filebase TEXT, filesize TEXT, filesize_bytes INTEGER, gdsa TEXT, starttime NUMERIC, endtime NUMERIC, status NUMERIC, error TEXT);" &>/dev/null
    sqlite3write "CREATE INDEX idx_completed_endtime ON completed_uploads (endtime);" &>/dev/null
    sqlite3write "CREATE INDEX idx_queue_time ON upload_queue (time);" &>/dev/null
 fi
@@ -192,11 +192,38 @@ fi
 # UPDATE UPLOADER DATEBASE
 sqlite3write "CREATE TABLE IF NOT EXISTS upload_keys(time DATETIME DEFAULT (datetime('now','localtime')), key TEXT, used NUMERIC, active INTEGER);" &>/dev/null
 
+# Check and update metadata column in upload_queue
 DATABASEMETA=$(sqlite3read "PRAGMA table_info('upload_queue')" 2>/dev/null | $(which grep) -qE "metadata"  && echo true || echo false)
 if [[ "${DATABASEMETA}" == "false" ]]; then
    sqlite3write "DROP TABLE upload_queue" &>/dev/null
    sqlite3write "CREATE TABLE upload_queue(time DATETIME DEFAULT (datetime('now','localtime')), drive TEXT, filedir TEXT, filebase TEXT PRIMARY KEY, filesize TEXT, metadata INTEGER);" &>/dev/null
 fi
+
+# Check and add status field to uploads table if missing
+UPLOADSSTATUS=$(sqlite3read "PRAGMA table_info('uploads')" 2>/dev/null | $(which grep) -qE "status" && echo true || echo false)
+if [[ "${UPLOADSSTATUS}" == "false" ]]; then
+   sqlite3write "ALTER TABLE uploads ADD COLUMN status INTEGER DEFAULT 0;" &>/dev/null
+fi
+
+# Check and add filesize_bytes field to completed_uploads if missing
+FILESIZENUMERIC=$(sqlite3read "PRAGMA table_info('completed_uploads')" 2>/dev/null | $(which grep) -qE "filesize_bytes" && echo true || echo false)
+if [[ "${FILESIZENUMERIC}" == "false" ]]; then
+   sqlite3write "ALTER TABLE completed_uploads ADD COLUMN filesize_bytes INTEGER;" &>/dev/null
+   
+   # Update existing records with calculated sizes
+   # This converts size strings like "1.5 GiB" to bytes and stores them
+   log "**** updating filesize_bytes for existing records ****"
+   sqlite3write "CREATE TEMP TABLE size_conversion(unit TEXT, multiplier INTEGER);
+                INSERT INTO size_conversion VALUES ('B', 1), ('KB', 1024), ('MB', 1048576), ('GB', 1073741824), ('TB', 1099511627776);
+                UPDATE completed_uploads SET filesize_bytes = 
+                (SELECT CAST(REGEXP_REPLACE(filesize, '[^0-9.]', '') AS REAL) * multiplier
+                 FROM size_conversion WHERE UPPER(filesize) LIKE '%' || unit || '%' LIMIT 1)
+                WHERE filesize_bytes IS NULL AND filesize IS NOT NULL;" &>/dev/null
+fi
+
+# Ensure indexes for optimized queries
+sqlite3write "CREATE INDEX IF NOT EXISTS idx_completed_endtime ON completed_uploads (endtime);" &>/dev/null
+sqlite3write "CREATE INDEX IF NOT EXISTS idx_completed_status ON completed_uploads (status);" &>/dev/null
 
 # UPLOADER KEYS
 CHECKKEYS=$(sqlite3read "SELECT COUNT(*) FROM upload_keys;" 2>/dev/null)
@@ -290,9 +317,18 @@ fi
 sqlite3write "DELETE FROM upload_queue;" &>/dev/null
 sqlite3write "DELETE FROM uploads;" &>/dev/null
 
+# Create directories for new API endpoints if they don't exist
+log "**** setting up API endpoints ****"
+$(which mkdir) -p /var/www/html/srv/api/jobs /var/www/html/srv/api/system &>/dev/null
+
+# Create the CSS directory for the UI redesign
+$(which mkdir) -p /var/www/html/css &>/dev/null
+$(which touch) /var/www/html/css/styles.css &>/dev/null
+$(which touch) /var/www/html/js/utils.js &>/dev/null
+
 log "**** set permissions ****"
-$(which chown) -cR abc:abc /root/.config /app /system/* &>/dev/null
-$(which chmod) -cR 755 /root/.config/rclone/ /app /system/* &>/dev/null
+$(which chown) -cR abc:abc /root/.config /app /system/* /var/www/html/* &>/dev/null
+$(which chmod) -cR 755 /root/.config/rclone/ /app /system/* /var/www/html/* &>/dev/null
 
 if [[ "${GOOGLE_IP}" == "" ]]; then
    GOOGLE_IP="null"

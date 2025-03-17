@@ -289,7 +289,30 @@ function rcloneupload() {
    checkerror
    #### ECHO END-PARTS FOR UI READING ####
    $(which find) "${DLFOLDER}/${SETDIR}" -mindepth 1 -type d -empty -delete &>/dev/null
-   sqlite3write "INSERT INTO completed_uploads (drive,filedir,filebase,filesize,gdsa,starttime,endtime,status,error) VALUES (\"${DRIVE}\",\"${DIR}\",\"${FILE}\",\"${SIZE}\",\"${REMOTENAME}\",\"${STARTZ}\",\"${ENDZ}\",\"${STATUS}\",\"${ERROR}\"); DELETE FROM uploads WHERE filebase = \"${FILE}\";" &>/dev/null
+   
+   # Make sure SIZEBYTES contains the actual size in bytes for storage
+   if [[ -z "${SIZEBYTES}" || "${SIZEBYTES}" == "0" ]]; then
+      # If SIZEBYTES is empty or zero, try to derive it from SIZE
+      if [[ "${SIZE}" =~ ^([0-9.]+)\ ?([KMGT]i?B) ]]; then
+         NUM=${BASH_REMATCH[1]}
+         UNIT=${BASH_REMATCH[2]}
+         case "${UNIT}" in
+            B) SIZEBYTES=$(echo "${NUM}" | awk '{printf "%d", $1}') ;;
+            KB|KiB) SIZEBYTES=$(echo "${NUM}" | awk '{printf "%d", $1 * 1024}') ;;
+            MB|MiB) SIZEBYTES=$(echo "${NUM}" | awk '{printf "%d", $1 * 1024 * 1024}') ;;
+            GB|GiB) SIZEBYTES=$(echo "${NUM}" | awk '{printf "%d", $1 * 1024 * 1024 * 1024}') ;;
+            TB|TiB) SIZEBYTES=$(echo "${NUM}" | awk '{printf "%d", $1 * 1024 * 1024 * 1024 * 1024}') ;;
+            *) SIZEBYTES=0 ;;
+         esac
+      else
+         # Default to zero if we can't parse
+         SIZEBYTES=0
+      fi
+   fi
+   
+   # Insert into completed_uploads with the filesize_bytes field
+   sqlite3write "INSERT INTO completed_uploads (drive,filedir,filebase,filesize,filesize_bytes,gdsa,starttime,endtime,status,error) VALUES (\"${DRIVE}\",\"${DIR}\",\"${FILE}\",\"${SIZE}\",\"${SIZEBYTES}\",\"${REMOTENAME}\",\"${STARTZ}\",\"${ENDZ}\",\"${STATUS}\",\"${ERROR}\"); DELETE FROM uploads WHERE filebase = \"${FILE}\";" &>/dev/null
+   
    #### END OF MOVE ####
    $(which rm) -rf "${LOGFILE}/${FILE}.txt" &>/dev/null
    #### REMOVE CUSTOM RCLONE.CONF ####
