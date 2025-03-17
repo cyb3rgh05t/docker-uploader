@@ -36,6 +36,9 @@
         --warning: #ff9800;
         --danger: #f44336;
         --info: #2196f3;
+
+        /* Sidebar */
+        --sidebar-width: 300px;
       }
 
       /* Theme Color Variations */
@@ -90,43 +93,53 @@
         background-color: var(--bg-primary);
         color: var(--text-primary);
         line-height: 1.6;
+        overflow-x: hidden;
       }
 
-      .container {
-        width: 1600px;
-        max-width: 98%;
-        margin: 0 auto;
-        padding: 20px;
-      }
-
-      .header {
+      /* Navbar */
+      .navbar {
+        background-color: var(--bg-secondary);
+        padding: 10px 20px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 30px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        height: 60px;
       }
 
-      .header-title {
-        font-size: 24px;
-        font-weight: 600;
+      .navbar-brand {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
+        font-size: 22px;
+        font-weight: 600;
+        color: var(--text-primary);
+        text-decoration: none;
       }
 
-      .header-title i {
+      .navbar-brand i {
         color: var(--accent-color);
+        font-size: 26px;
       }
 
-      .header-controls {
+      .navbar-controls {
         display: flex;
         align-items: center;
         gap: 15px;
       }
 
-      #download_rate {
+      #info_badges {
         display: flex;
         align-items: center;
+        gap: 10px;
+      }
+
+      #download_rate {
         background-color: var(--accent-color);
         color: var(--text-primary);
         padding: 8px 15px;
@@ -155,49 +168,114 @@
         color: white;
       }
 
-      #control span:hover {
-        transform: scale(1.1);
-        opacity: 0.9;
-      }
-
-      .theme-button {
+      .theme-btn {
         background: var(--bg-tertiary);
-        border: 1px solid var(--border-color);
+        border: none;
         color: var(--text-primary);
-        padding: 8px 12px;
+        padding: 8px 15px;
         border-radius: 6px;
+        font-weight: 600;
         cursor: pointer;
         display: flex;
         align-items: center;
         gap: 8px;
+        transition: background 0.3s ease;
       }
 
-      .theme-menu {
-        position: absolute;
+      .theme-btn:hover {
+        background: var(--bg-card);
+      }
+
+      /* Sidebar */
+      .sidebar {
+        position: fixed;
         top: 60px;
-        right: 5%;
-        width: 160px;
+        right: -300px;
+        width: var(--sidebar-width);
+        height: calc(100vh - 60px);
         background: var(--bg-secondary);
-        border: 1px solid var(--border-color);
-        border-radius: 6px;
-        padding: 10px;
-        margin-top: 5px;
-        z-index: 100;
-        display: none;
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        z-index: 999;
+        overflow-y: auto;
+        transition: right 0.3s ease;
+        box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
+        padding: 20px;
       }
 
-      .theme-menu.active {
+      .sidebar.active {
+        right: 0;
+      }
+
+      .sidebar-header {
+        padding-bottom: 15px;
+        margin-bottom: 15px;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .sidebar-title {
+        font-size: 18px;
+        font-weight: 600;
+      }
+
+      .sidebar-close {
+        background: none;
+        border: none;
+        color: var(--text-primary);
+        font-size: 18px;
+        cursor: pointer;
+      }
+
+      .sidebar-section {
+        margin-bottom: 20px;
+      }
+
+      .sidebar-section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .sidebar-section-title {
+        font-size: 16px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .sidebar-section-title i {
+        color: var(--accent-color);
+      }
+
+      .sidebar-section-content {
+        padding: 15px 0;
+        display: none;
+      }
+
+      .sidebar-section-content.active {
         display: block;
+      }
+
+      .theme-options {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-top: 10px;
       }
 
       .theme-option {
         display: flex;
+        flex-direction: column;
         align-items: center;
-        gap: 10px;
-        padding: 8px 10px;
-        border-radius: 4px;
+        gap: 5px;
         cursor: pointer;
+        padding: 10px;
+        border-radius: 6px;
         transition: background 0.3s ease;
       }
 
@@ -205,10 +283,19 @@
         background: var(--bg-tertiary);
       }
 
+      .theme-option.active {
+        background: var(--accent-transparent);
+      }
+
       .theme-dot {
-        width: 16px;
-        height: 16px;
+        width: 24px;
+        height: 24px;
         border-radius: 50%;
+      }
+
+      .theme-option span {
+        font-size: 12px;
+        margin-top: 5px;
       }
 
       .theme-dot.orange {
@@ -225,6 +312,64 @@
       }
       .theme-dot.red {
         background: #f44336;
+      }
+
+      /* Settings Form */
+      .settings-form {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      .form-group label {
+        font-size: 14px;
+        color: var(--text-secondary);
+      }
+
+      .form-control {
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        padding: 8px 12px;
+        border-radius: 4px;
+        font-size: 14px;
+        width: 100%;
+      }
+
+      .btn {
+        background: var(--accent-color);
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+      }
+
+      .btn:hover {
+        opacity: 0.9;
+      }
+
+      /* Main Content */
+      .main-content {
+        margin-top: 70px;
+        padding: 20px;
+        width: 100%;
+        transition: all 0.3s ease;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 1600px;
+        margin: 0 auto;
       }
 
       .stats-row {
@@ -455,114 +600,57 @@
         text-decoration: underline;
       }
 
-      /* ENV Settings Display */
-      .env-settings {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 20px;
-        margin-bottom: 30px;
-      }
-
-      .env-card {
-        background: var(--bg-card);
-        border-radius: 8px;
-        padding: 15px 20px;
-        position: relative;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      }
-
-      .env-card::before {
-        content: "";
-        position: absolute;
+      /* Overlay */
+      .overlay {
+        position: fixed;
         top: 0;
         left: 0;
         right: 0;
-        height: 3px;
-        background: var(--top-highlight);
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 998;
+        display: none;
       }
 
-      .env-title {
-        font-size: 14px;
-        font-weight: 600;
-        margin-bottom: 15px;
-        color: var(--text-secondary);
-        display: flex;
-        align-items: center;
-        gap: 8px;
+      .overlay.active {
+        display: block;
       }
 
-      .env-title i {
-        color: var(--accent-color);
-      }
-
-      .env-list {
-        list-style: none;
-      }
-
-      .env-item {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 10px;
-        font-size: 13px;
-        border-bottom: 1px dashed var(--border-color);
-        padding-bottom: 5px;
-      }
-
-      .env-item:last-child {
-        margin-bottom: 0;
-        border-bottom: none;
-      }
-
-      .env-item-name {
-        color: var(--text-secondary);
-      }
-
-      .env-item-value {
-        font-weight: 500;
-        color: var(--text-primary);
-      }
-
-      .env-toggle {
-        background: none;
-        border: none;
-        color: var(--accent-color);
-        cursor: pointer;
-        font-size: 14px;
-        padding: 5px 10px;
-        margin-top: 10px;
+      /* Status message */
+      .status-message {
+        position: fixed;
+        top: 70px;
+        right: 20px;
+        padding: 10px 15px;
         border-radius: 4px;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        transition: all 0.3s ease;
+        background: var(--success);
+        color: white;
+        z-index: 1000;
+        display: none;
+        animation: fadeIn 0.3s, fadeOut 0.3s 2.5s;
+        max-width: 300px;
       }
 
-      .env-toggle:hover {
-        background: var(--accent-transparent);
+      .status-message.error {
+        background: var(--danger);
       }
 
-      .env-settings-container {
-        margin-bottom: 30px;
-        position: relative;
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
       }
 
-      .env-settings-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-      }
-
-      .env-settings-title {
-        font-size: 18px;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-
-      .env-settings-title i {
-        color: var(--accent-color);
+      @keyframes fadeOut {
+        from {
+          opacity: 1;
+        }
+        to {
+          opacity: 0;
+        }
       }
 
       /* Media queries for responsive design */
@@ -570,30 +658,20 @@
         .stats-row {
           grid-template-columns: repeat(2, 1fr);
         }
-
-        .env-settings {
-          grid-template-columns: repeat(2, 1fr);
-        }
       }
 
       @media screen and (max-width: 768px) {
-        .header {
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 15px;
-        }
-
-        .header-controls {
-          width: 100%;
-          justify-content: space-between;
+        .navbar-brand {
+          font-size: 18px;
         }
 
         .stats-row {
           grid-template-columns: 1fr;
         }
 
-        .env-settings {
-          grid-template-columns: 1fr;
+        .sidebar {
+          width: 100%;
+          right: -100%;
         }
 
         .truncate {
@@ -641,322 +719,434 @@
     </style>
   </head>
   <body>
-    <div class="container">
-      <div class="header">
-        <h1 class="header-title">
-          <i class="fas fa-cloud-upload-alt"></i>
-          Uploader Dashboard
-        </h1>
+    <!-- Navbar -->
+    <nav class="navbar">
+      <a href="#" class="navbar-brand">
+        <i class="fas fa-cloud-upload-alt"></i>
+        Uploader Dashboard
+      </a>
 
-        <div class="header-controls">
-          <div id="info_badges">
-            <div id="download_rate">
-              <span>60.00</span>
-            </div>
-            <div id="control">
-              <span class="bg-success">
-                <i class="fa-solid fa-play"></i>
-              </span>
-            </div>
-          </div>
-
-          <button id="theme-toggle" class="theme-button">
-            <i class="fas fa-palette"></i>
-            <span>Theme</span>
-          </button>
-        </div>
-      </div>
-
-      <div class="stats-row">
-        <div class="stat-card">
-          <div class="stat-title">Current Upload Rate</div>
-          <div class="stat-value" id="current-rate">60.00 MB/s</div>
-          <div class="stat-subtitle">Limit: 30M</div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-title">Files in Queue</div>
-          <div class="stat-value" id="queue-count">0</div>
-          <div class="stat-subtitle" id="queue-total">Total: 0 GB</div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-title">Active Transfers</div>
-          <div class="stat-value" id="active-count">0</div>
-          <div class="stat-subtitle">Max: 2</div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-title">Completed Today</div>
-          <div class="stat-value" id="completed-count">0</div>
-          <div class="stat-subtitle" id="completed-total">Total: 0 GB</div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">
-            <i class="fas fa-sync-alt"></i>
-            In Progress
-          </div>
-        </div>
-        <div id="no-more-tables">
-          <table id="uploadsTable" class="table">
-            <thead>
-              <tr>
-                <th>Filename</th>
-                <th>Folder</th>
-                <th>Key</th>
-                <th>Progress</th>
-                <th>Filesize</th>
-                <th>Time Left</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td colspan="6">No entries found.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">
-            <i class="fas fa-check-circle"></i>
-            Completed
-          </div>
-          <span id="clnHist">
-            <i class="fas fa-trash-alt"></i>
-            Clear History
+      <div class="navbar-controls">
+        <div id="download_rate">60.00</div>
+        <div id="control">
+          <span class="bg-success">
+            <i class="fa-solid fa-play"></i>
           </span>
         </div>
-        <input
-          type="checkbox"
-          style="display: none"
-          id="prettyEndTime"
-          name="prettyEndTime"
-        />
-        <div class="table-responsive">
-          <table id="completedTable" class="table">
-            <thead>
-              <tr>
-                <th>Filename</th>
-                <th>Folder</th>
-                <th>Key</th>
-                <th>Filesize</th>
-                <th>Time spent</th>
-                <th>
-                  Uploaded
-                  <i
-                    class="fa-solid fa-hourglass-end"
-                    style="cursor: pointer"
-                    onclick="$('#prettyEndTime').click();"
-                  ></i>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td colspan="6">No entries found.</td>
-              </tr>
-            </tbody>
-            <tfoot>
-              <tr>
-                <td colspan="6">
-                  <div class="pagination-container">
-                    <div id="page"></div>
-                    <nav aria-label="Page navigation">
-                      <ul id="pageSize" class="pagination pagination-sm">
-                        <li class="page-item">
-                          <a class="page-link" href="#">5</a>
-                        </li>
-                        <li class="page-item active">
-                          <a class="page-link" href="#">10</a>
-                        </li>
-                        <li class="page-item">
-                          <a class="page-link" href="#">25</a>
-                        </li>
-                        <li class="page-item">
-                          <a class="page-link" href="#">50</a>
-                        </li>
-                      </ul>
-                    </nav>
-                  </div>
-                </td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
+        <button id="sidebar-toggle" class="theme-btn">
+          <i class="fa-solid fa-palette"></i>
+          Theme
+        </button>
+      </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h2 class="sidebar-title">Settings</h2>
+        <button id="sidebar-close" class="sidebar-close">
+          <i class="fas fa-times"></i>
+        </button>
       </div>
 
-      <!-- ENV Settings Display -->
-      <div class="env-settings-container">
-        <div class="env-settings-header">
-          <h2 class="env-settings-title">
-            <i class="fas fa-cog"></i>
-            Configuration Settings
-          </h2>
-          <button id="toggle-env" class="env-toggle">
-            <i class="fas fa-chevron-down"></i>
-            Show All
-          </button>
+      <!-- Theme Section -->
+      <div class="sidebar-section">
+        <div class="sidebar-section-header" data-target="theme-section">
+          <h3 class="sidebar-section-title">
+            <i class="fas fa-palette"></i>
+            Theme
+          </h3>
+          <i class="fas fa-chevron-down"></i>
         </div>
-
-        <div class="env-settings" id="env-settings" style="display: none">
-          <div class="env-card">
-            <div class="env-title">
-              <i class="fas fa-sliders-h"></i>
-              Transfer Settings
+        <div class="sidebar-section-content active" id="theme-section">
+          <div class="theme-options">
+            <div class="theme-option" data-theme="orange">
+              <div class="theme-dot orange"></div>
+              <span>Orange</span>
             </div>
-            <ul class="env-list">
-              <li class="env-item">
-                <span class="env-item-name">Max Transfers:</span>
-                <span class="env-item-value">2</span>
-              </li>
-              <li class="env-item">
-                <span class="env-item-name">Bandwidth Limit:</span>
-                <span class="env-item-value">30M</span>
-              </li>
-              <li class="env-item">
-                <span class="env-item-name">Min Age Upload:</span>
-                <span class="env-item-value">0</span>
-              </li>
-              <li class="env-item">
-                <span class="env-item-name">Folder Depth:</span>
-                <span class="env-item-value">1</span>
-              </li>
-            </ul>
-          </div>
-
-          <div class="env-card">
-            <div class="env-title">
-              <i class="fas fa-shield-alt"></i>
-              Security Settings
+            <div class="theme-option" data-theme="purple">
+              <div class="theme-dot purple"></div>
+              <span>Purple</span>
             </div>
-            <ul class="env-list">
-              <li class="env-item">
-                <span class="env-item-name">Hash Password:</span>
-                <span class="env-item-value">hashed</span>
-              </li>
-              <li class="env-item">
-                <span class="env-item-name">GDSA Name:</span>
-                <span class="env-item-value">encrypt</span>
-              </li>
-              <li class="env-item">
-                <span class="env-item-name">DB Name:</span>
-                <span class="env-item-value">encrypt</span>
-              </li>
-              <li class="env-item">
-                <span class="env-item-name">DB Team:</span>
-                <span class="env-item-value">true</span>
-              </li>
-            </ul>
-          </div>
-
-          <div class="env-card">
-            <div class="env-title">
-              <i class="fas fa-bell"></i>
-              Notification Settings
+            <div class="theme-option" data-theme="blue">
+              <div class="theme-dot blue"></div>
+              <span>Blue</span>
             </div>
-            <ul class="env-list">
-              <li class="env-item">
-                <span class="env-item-name">Notification Level:</span>
-                <span class="env-item-value">ALL</span>
-              </li>
-              <li class="env-item">
-                <span class="env-item-name">Server Name:</span>
-                <span class="env-item-value">Drive-Upload</span>
-              </li>
-              <li class="env-item">
-                <span class="env-item-name">Autoscan URL:</span>
-                <span class="env-item-value">http://autoscan:3030</span>
-              </li>
-            </ul>
-          </div>
-
-          <div class="env-card">
-            <div class="env-title">
-              <i class="fas fa-database"></i>
-              System Settings
+            <div class="theme-option" data-theme="green">
+              <div class="theme-dot green"></div>
+              <span>Green</span>
             </div>
-            <ul class="env-list">
-              <li class="env-item">
-                <span class="env-item-name">Log Level:</span>
-                <span class="env-item-value">INFO</span>
-              </li>
-              <li class="env-item">
-                <span class="env-item-name">Log Entry:</span>
-                <span class="env-item-value">1000</span>
-              </li>
-              <li class="env-item">
-                <span class="env-item-name">VFS Refresh:</span>
-                <span class="env-item-value">true</span>
-              </li>
-              <li class="env-item">
-                <span class="env-item-name">Language:</span>
-                <span class="env-item-value">en</span>
-              </li>
-            </ul>
+            <div class="theme-option" data-theme="red">
+              <div class="theme-dot red"></div>
+              <span>Red</span>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="inb">
-        <p>
-          GitHub : <i class="fa-brands fa-github"></i
-          ><a
-            href="https://github.com/dockserver"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            dockserver GitHub</a
-          >
-        </p>
-        <p>
-          Docs : <i class="fa-brands fa-wikipedia-w"></i
-          ><a
-            href="https://dockserver.io"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            dockserver wiki</a
-          >
-        </p>
-        <p>
-          Copyrights <sup>&copy; &trade;</sup> - 2021
-          <script>
-            new Date().getFullYear() > 2000 &&
-              document.write(" - " + new Date().getFullYear());
-          </script>
-          Developed with
-          <i class="fas fa-heart" style="color: var(--accent-color)"></i> by
-          dockserver.io
-        </p>
+      <!-- Transfer Settings -->
+      <div class="sidebar-section">
+        <div class="sidebar-section-header" data-target="transfer-section">
+          <h3 class="sidebar-section-title">
+            <i class="fas fa-exchange-alt"></i>
+            Transfer Settings
+          </h3>
+          <i class="fas fa-chevron-down"></i>
+        </div>
+        <div class="sidebar-section-content" id="transfer-section">
+          <form class="settings-form" id="transfer-form">
+            <div class="form-group">
+              <label for="bandwidth_limit">Bandwidth Limit (MB/s)</label>
+              <input
+                type="text"
+                id="bandwidth_limit"
+                class="form-control"
+                value="30"
+              />
+            </div>
+            <div class="form-group">
+              <label for="transfers">Max Transfers</label>
+              <input
+                type="number"
+                id="transfers"
+                class="form-control"
+                value="2"
+                min="1"
+                max="10"
+              />
+            </div>
+            <div class="form-group">
+              <label for="min_age_upload">Min Age Upload (minutes)</label>
+              <input
+                type="number"
+                id="min_age_upload"
+                class="form-control"
+                value="0"
+                min="0"
+              />
+            </div>
+            <div class="form-group">
+              <label for="folder_depth">Folder Depth</label>
+              <input
+                type="number"
+                id="folder_depth"
+                class="form-control"
+                value="1"
+                min="1"
+              />
+            </div>
+            <button type="submit" class="btn">Save Changes</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Notification Settings -->
+      <div class="sidebar-section">
+        <div class="sidebar-section-header" data-target="notification-section">
+          <h3 class="sidebar-section-title">
+            <i class="fas fa-bell"></i>
+            Notification Settings
+          </h3>
+          <i class="fas fa-chevron-down"></i>
+        </div>
+        <div class="sidebar-section-content" id="notification-section">
+          <form class="settings-form" id="notification-form">
+            <div class="form-group">
+              <label for="notification_level">Notification Level</label>
+              <select id="notification_level" class="form-control">
+                <option value="ALL" selected>ALL</option>
+                <option value="ERROR">ERROR</option>
+                <option value="NONE">NONE</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="notification_servername">Server Name</label>
+              <input
+                type="text"
+                id="notification_servername"
+                class="form-control"
+                value="Drive-Upload"
+              />
+            </div>
+            <div class="form-group">
+              <label for="notification_url">Notification URL</label>
+              <input
+                type="text"
+                id="notification_url"
+                class="form-control"
+                value="discord://1031924840032124971/8-0H8iEHK7nGFVJSqtTqreK3gmuMLdkqLqLsCGS1t4PwRLp6SNvZRIeOvHE-6WnCfwIy"
+              />
+            </div>
+            <button type="submit" class="btn">Save Changes</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- System Settings -->
+      <div class="sidebar-section">
+        <div class="sidebar-section-header" data-target="system-section">
+          <h3 class="sidebar-section-title">
+            <i class="fas fa-cogs"></i>
+            System Settings
+          </h3>
+          <i class="fas fa-chevron-down"></i>
+        </div>
+        <div class="sidebar-section-content" id="system-section">
+          <form class="settings-form" id="system-form">
+            <div class="form-group">
+              <label for="log_level">Log Level</label>
+              <select id="log_level" class="form-control">
+                <option value="INFO" selected>INFO</option>
+                <option value="DEBUG">DEBUG</option>
+                <option value="WARNING">WARNING</option>
+                <option value="ERROR">ERROR</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="log_entry">Log Entry Count</label>
+              <input
+                type="number"
+                id="log_entry"
+                class="form-control"
+                value="1000"
+                min="100"
+              />
+            </div>
+            <div class="form-group">
+              <label for="vfs_refresh">VFS Refresh</label>
+              <select id="vfs_refresh" class="form-control">
+                <option value="true" selected>Enabled</option>
+                <option value="false">Disabled</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="language">Language</label>
+              <select id="language" class="form-control">
+                <option value="en" selected>English</option>
+                <option value="de">German</option>
+              </select>
+            </div>
+            <button type="submit" class="btn">Save Changes</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Security Settings -->
+      <div class="sidebar-section">
+        <div class="sidebar-section-header" data-target="security-section">
+          <h3 class="sidebar-section-title">
+            <i class="fas fa-shield-alt"></i>
+            Security Settings
+          </h3>
+          <i class="fas fa-chevron-down"></i>
+        </div>
+        <div class="sidebar-section-content" id="security-section">
+          <form class="settings-form" id="security-form">
+            <div class="form-group">
+              <label for="hash_password">Hash Password</label>
+              <select id="hash_password" class="form-control">
+                <option value="hashed" selected>Hashed</option>
+                <option value="plain">Plain</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="gdsa_name">GDSA Name</label>
+              <input
+                type="text"
+                id="gdsa_name"
+                class="form-control"
+                value="encrypt"
+              />
+            </div>
+            <div class="form-group">
+              <label for="db_name">DB Name</label>
+              <input
+                type="text"
+                id="db_name"
+                class="form-control"
+                value="encrypt"
+              />
+            </div>
+            <div class="form-group">
+              <label for="db_team">DB Team</label>
+              <select id="db_team" class="form-control">
+                <option value="true" selected>Enabled</option>
+                <option value="false">Disabled</option>
+              </select>
+            </div>
+            <button type="submit" class="btn">Save Changes</button>
+          </form>
+        </div>
       </div>
     </div>
 
-    <div id="theme-menu" class="theme-menu">
-      <div class="theme-option" data-theme="orange">
-        <div class="theme-dot orange"></div>
-        <span>Orange</span>
-      </div>
-      <div class="theme-option" data-theme="purple">
-        <div class="theme-dot purple"></div>
-        <span>Purple</span>
-      </div>
-      <div class="theme-option" data-theme="blue">
-        <div class="theme-dot blue"></div>
-        <span>Blue</span>
-      </div>
-      <div class="theme-option" data-theme="green">
-        <div class="theme-dot green"></div>
-        <span>Green</span>
-      </div>
-      <div class="theme-option" data-theme="red">
-        <div class="theme-dot red"></div>
-        <span>Red</span>
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Status Message -->
+    <div class="status-message" id="status-message"></div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <div class="container">
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-title">Current Upload Rate</div>
+            <div class="stat-value" id="current-rate">60.00 MB/s</div>
+            <div class="stat-subtitle" id="rate-limit">
+              Limit per Transfer: 30 MB/s
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-title">Files in Queue</div>
+            <div class="stat-value" id="queue-count">0</div>
+            <div class="stat-subtitle" id="queue-total">Total: 0 GB</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-title">Active Transfers</div>
+            <div class="stat-value" id="active-count">0</div>
+            <div class="stat-subtitle" id="active-max">Max: 2</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-title">Completed Today</div>
+            <div class="stat-value" id="completed-count">0</div>
+            <div class="stat-subtitle" id="completed-total">Total: 0 GB</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <i class="fas fa-sync-alt"></i>
+              In Progress
+            </div>
+          </div>
+          <div id="no-more-tables">
+            <table id="uploadsTable" class="table">
+              <thead>
+                <tr>
+                  <th>Filename</th>
+                  <th>Folder</th>
+                  <th>Key</th>
+                  <th>Progress</th>
+                  <th>Filesize</th>
+                  <th>Time Left</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colspan="6">No entries found.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <i class="fas fa-check-circle"></i>
+              Completed
+            </div>
+            <span id="clnHist">
+              <i class="fas fa-trash-alt"></i>
+              Clear History
+            </span>
+          </div>
+          <input
+            type="checkbox"
+            style="display: none"
+            id="prettyEndTime"
+            name="prettyEndTime"
+          />
+          <div class="table-responsive">
+            <table id="completedTable" class="table">
+              <thead>
+                <tr>
+                  <th>Filename</th>
+                  <th>Folder</th>
+                  <th>Key</th>
+                  <th>Filesize</th>
+                  <th>Time spent</th>
+                  <th>
+                    Uploaded
+                    <i
+                      class="fa-solid fa-hourglass-end"
+                      style="cursor: pointer"
+                      onclick="$('#prettyEndTime').click();"
+                    ></i>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colspan="6">No entries found.</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="6">
+                    <div class="pagination-container">
+                      <div id="page"></div>
+                      <nav aria-label="Page navigation">
+                        <ul id="pageSize" class="pagination pagination-sm">
+                          <li class="page-item">
+                            <a class="page-link" href="#">5</a>
+                          </li>
+                          <li class="page-item active">
+                            <a class="page-link" href="#">10</a>
+                          </li>
+                          <li class="page-item">
+                            <a class="page-link" href="#">25</a>
+                          </li>
+                          <li class="page-item">
+                            <a class="page-link" href="#">50</a>
+                          </li>
+                        </ul>
+                      </nav>
+                    </div>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+        <div class="inb">
+          <p>
+            GitHub : <i class="fa-brands fa-github"></i
+            ><a
+              href="https://github.com/dockserver"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              dockserver GitHub</a
+            >
+          </p>
+          <p>
+            Docs : <i class="fa-brands fa-wikipedia-w"></i
+            ><a
+              href="https://dockserver.io"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              dockserver wiki</a
+            >
+          </p>
+          <p>
+            Copyrights <sup>&copy; &trade;</sup> - 2021
+            <script>
+              new Date().getFullYear() > 2000 &&
+                document.write(" - " + new Date().getFullYear());
+            </script>
+            Developed with
+            <i class="fas fa-heart" style="color: var(--accent-color)"></i> by
+            dockserver.io
+          </p>
+        </div>
       </div>
     </div>
 
@@ -979,87 +1169,222 @@
     <script src="js/app.js"></script>
 
     <script>
-      // Theme selector functionality
+      // Load current theme
+      document.addEventListener("DOMContentLoaded", function () {
+        const currentTheme =
+          document.documentElement.getAttribute("data-theme") || "orange";
+        highlightCurrentTheme(currentTheme);
+
+        // Set the current active transfers limit
+        document.getElementById("active-max").textContent = `Max: ${
+          document.getElementById("transfers").value
+        }`;
+
+        // Convert bandwidth limit to MB/s format and set subtitle
+        const bandwidthLimit = document.getElementById("bandwidth_limit").value;
+        document.getElementById(
+          "rate-limit"
+        ).textContent = `Limit per Transfer: ${bandwidthLimit} MB/s`;
+
+        // Initialize real-time stats
+        updateRealTimeStats();
+        setInterval(updateRealTimeStats, 1000);
+      });
+
+      // Sidebar toggle
       document
-        .getElementById("theme-toggle")
+        .getElementById("sidebar-toggle")
         .addEventListener("click", function () {
-          document.getElementById("theme-menu").classList.toggle("active");
+          document.getElementById("sidebar").classList.add("active");
+          document.getElementById("overlay").classList.add("active");
         });
 
+      document
+        .getElementById("sidebar-close")
+        .addEventListener("click", function () {
+          document.getElementById("sidebar").classList.remove("active");
+          document.getElementById("overlay").classList.remove("active");
+        });
+
+      document.getElementById("overlay").addEventListener("click", function () {
+        document.getElementById("sidebar").classList.remove("active");
+        document.getElementById("overlay").classList.remove("active");
+      });
+
+      // Theme selection
       document.querySelectorAll(".theme-option").forEach((option) => {
         option.addEventListener("click", function () {
           const theme = this.getAttribute("data-theme");
           document.documentElement.setAttribute("data-theme", theme);
-          document.getElementById("theme-menu").classList.remove("active");
+          highlightCurrentTheme(theme);
         });
       });
 
-      // Toggle ENV settings
-      document
-        .getElementById("toggle-env")
-        .addEventListener("click", function () {
-          const envSettings = document.getElementById("env-settings");
-          const isHidden = envSettings.style.display === "none";
-
-          envSettings.style.display = isHidden ? "grid" : "none";
-          this.innerHTML = isHidden
-            ? '<i class="fas fa-chevron-up"></i> Hide'
-            : '<i class="fas fa-chevron-down"></i> Show All';
+      function highlightCurrentTheme(theme) {
+        document.querySelectorAll(".theme-option").forEach((option) => {
+          if (option.getAttribute("data-theme") === theme) {
+            option.classList.add("active");
+          } else {
+            option.classList.remove("active");
+          }
         });
+      }
 
-      // Close theme menu when clicking outside
-      document.addEventListener("click", function (e) {
-        const themeSelectorToggle = document.getElementById("theme-toggle");
-        const themeMenu = document.getElementById("theme-menu");
+      // Sidebar accordion
+      document.querySelectorAll(".sidebar-section-header").forEach((header) => {
+        header.addEventListener("click", function () {
+          const targetId = this.getAttribute("data-target");
+          const content = document.getElementById(targetId);
+          const icon = this.querySelector("i:last-child");
 
-        if (
-          themeSelectorToggle &&
-          themeMenu &&
-          !themeSelectorToggle.contains(e.target) &&
-          !themeMenu.contains(e.target)
-        ) {
-          themeMenu.classList.remove("active");
+          if (content.classList.contains("active")) {
+            content.classList.remove("active");
+            icon.classList.remove("fa-chevron-up");
+            icon.classList.add("fa-chevron-down");
+          } else {
+            content.classList.add("active");
+            icon.classList.remove("fa-chevron-down");
+            icon.classList.add("fa-chevron-up");
+          }
+        });
+      });
+
+      // Form submissions
+      document.querySelectorAll(".settings-form").forEach((form) => {
+        form.addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          // Gather all form data
+          const formData = new FormData(this);
+          const data = {};
+
+          for (const [key, value] of formData.entries()) {
+            data[key] = value;
+          }
+
+          // In a real implementation, you would send this data to a server endpoint
+          // Here we'll just simulate a successful update
+
+          // Update relevant UI elements
+          if (this.id === "transfer-form") {
+            document.getElementById("active-max").textContent = `Max: ${
+              document.getElementById("transfers").value
+            }`;
+            document.getElementById(
+              "rate-limit"
+            ).textContent = `Limit per Transfer: ${
+              document.getElementById("bandwidth_limit").value
+            } MB/s`;
+          }
+
+          showStatusMessage("Settings updated successfully!");
+
+          // Example of how to send the data to the server
+          /*
+                fetch('/api/update-env', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showStatusMessage('Settings updated successfully!');
+                    } else {
+                        showStatusMessage('Failed to update settings.', true);
+                    }
+                })
+                .catch(error => {
+                    showStatusMessage('An error occurred.', true);
+                    console.error('Error:', error);
+                });
+                */
+        });
+      });
+
+      function showStatusMessage(message, isError = false) {
+        const statusMessage = document.getElementById("status-message");
+        statusMessage.textContent = message;
+
+        if (isError) {
+          statusMessage.classList.add("error");
+        } else {
+          statusMessage.classList.remove("error");
         }
-      });
 
-      // Update stats from real data
-      function updateStats() {
-        // Get data from the tables - these are just initial checks
+        statusMessage.style.display = "block";
+
+        // Hide after 3 seconds
+        setTimeout(() => {
+          statusMessage.style.display = "none";
+        }, 3000);
+      }
+
+      // Real-time stats update with proper calculations for completed today
+      function updateRealTimeStats() {
+        // Get current upload rate from the rate indicator - real-time value
+        const currentRate = $("#download_rate").text() || "0";
+        $("#current-rate").text(currentRate + " MB/s");
+
+        // Get active uploads count - these are real rows in the uploadsTable
         const activeUploads =
           $("#uploadsTable tbody tr").not(':contains("No entries")').length ||
           0;
-        const completedUploads =
-          $("#completedTable tbody tr").not(':contains("No entries")').length ||
-          0;
-
-        // Update stats if there's real data
         $("#active-count").text(activeUploads);
-        $("#queue-count").text(activeUploads); // Queue = active for this simple example
-        $("#completed-count").text(completedUploads);
 
-        // Calculate totals (in a real app, you'd sum the actual filesizes)
-        let activeTotalGB = 0;
+        // Update queue count - for simplicity, we use the same number here
+        $("#queue-count").text(activeUploads);
+
+        // Calculate total file sizes in the queue
+        let queueTotal = 0;
         $("#uploadsTable tbody tr")
           .not(':contains("No entries")')
           .each(function () {
             const sizeText = $(this).find("td:eq(4)").text();
-            const sizeGB = parseFloat(sizeText) || 0;
-            activeTotalGB += sizeGB;
+            // Extract numeric part from size text (e.g. "2.3GiB" → 2.3)
+            const sizeMatch = sizeText.match(/(\d+(\.\d+)?)/);
+            if (sizeMatch) {
+              queueTotal += parseFloat(sizeMatch[0]);
+            }
           });
 
+        if (queueTotal > 0) {
+          $("#queue-total").text(`Total: ${queueTotal.toFixed(1)} GB`);
+        }
+
+        // Calculate completed uploads for today - only count files uploaded today
+        // and sum their sizes properly
+        const today = new Date().toLocaleDateString();
+        let completedToday = 0;
         let completedTotalGB = 0;
+
         $("#completedTable tbody tr")
           .not(':contains("No entries")')
           .each(function () {
+            const uploadedText = $(this).find("td:eq(5)").text();
             const sizeText = $(this).find("td:eq(3)").text();
-            const sizeGB = parseFloat(sizeText) || 0;
-            completedTotalGB += sizeGB;
+
+            // Check if this is from today (anything with 'ago')
+            if (uploadedText.includes("ago")) {
+              completedToday++;
+
+              // Extract size - properly handle GB/MB format
+              const sizeMatch = sizeText.match(/(\d+(\.\d+)?)/);
+              if (sizeMatch) {
+                const size = parseFloat(sizeMatch[0]);
+                // Convert to GB if necessary
+                if (sizeText.includes("MB")) {
+                  completedTotalGB += size / 1024;
+                } else {
+                  completedTotalGB += size;
+                }
+              }
+            }
           });
 
-        // Update totals
-        if (activeTotalGB > 0) {
-          $("#queue-total").text(`Total: ${activeTotalGB.toFixed(1)} GB`);
-        }
+        $("#completed-count").text(completedToday);
 
         if (completedTotalGB > 0) {
           $("#completed-total").text(
@@ -1067,20 +1392,13 @@
           );
         }
 
-        // Make sure the progress bars are properly styled
-        const progressBars = document.querySelectorAll(".progress-bar");
-        progressBars.forEach((bar) => {
-          if (bar.getAttribute("aria-valuenow")) {
-            bar.style.width = bar.getAttribute("aria-valuenow") + "%";
+        // Make sure progress bars are styled correctly
+        $(".progress-bar").each(function () {
+          if ($(this).attr("aria-valuenow")) {
+            $(this).css("width", $(this).attr("aria-valuenow") + "%");
           }
         });
       }
-
-      // Update stats on load and every few seconds
-      $(document).ready(function () {
-        updateStats();
-        setInterval(updateStats, 3000);
-      });
     </script>
   </body>
 </html>
