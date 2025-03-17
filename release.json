@@ -1,10 +1,10 @@
 {
-   "appname": "docker-uploader",
-   "apppic": "./images/docker-uploader.png",
-   "appfolder": "./apps/docker-uploader",
-   "newversion": "3.18.2",
-   "baseimage": "ghcr.io/linuxserver/baseimage-alpine",
-   "baseversion": "3.18-bd2a5b02-ls10",
-   "body": "Upgrading docker-uploader to ",
-   "user": "dockserver image update[bot]"
+  "appname": "docker-uploader",
+  "apppic": "./images/docker-uploader.png",
+  "appfolder": "./",
+  "newversion": "4.0.0",
+  "baseimage": "ghcr.io/linuxserver/baseimage-alpine",
+  "baseversion": "3.18-bd2a5b02-ls10",
+  "body": "Upgrading docker-uploader to ",
+  "user": "dockserver image update[bot]"
 }

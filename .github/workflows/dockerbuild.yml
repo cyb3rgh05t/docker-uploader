@@ -1,0 +1,159 @@
+name: Build Docker Image
+
+on:
+  push:
+    branches:
+      - "main"
+      - "dev"
+    tags:
+      - "v*" # Automatically triggers on new version tags (v1.2.0, etc.)
+    paths-ignore:
+      - ".github/**"
+      - "LICENSE"
+      - "**.md"
+
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to build (e.g., v1.2.0)"
+        required: false
+      branch:
+        description: "Branch to build (main or dev)"
+        required: false
+        default: "main"
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - uses: FranzDiebold/github-env-vars-action@v2.8.0
+
+      - name: Determine Image Tags
+        id: prep
+        run: |
+          REPO=$CI_REPOSITORY_NAME
+          DOCKER_IMAGE=${{ github.repository_owner }}/${REPO}
+
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && -n "${{ github.event.inputs.tag }}" ]]; then
+            VERSION="${{ github.event.inputs.tag }}"
+            TAGS="${DOCKER_IMAGE}:${VERSION},${DOCKER_IMAGE}:latest"
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" && -n "${{ github.event.inputs.branch }}" ]]; then
+            VERSION="${{ github.event.inputs.branch }}"
+            TAGS="${DOCKER_IMAGE}:${VERSION}"
+          elif [[ "$GITHUB_REF" == refs/heads/main ]]; then
+            VERSION="latest"
+            TAGS="${DOCKER_IMAGE}:latest"
+          elif [[ "$GITHUB_REF" == refs/heads/dev ]]; then
+            VERSION="dev"
+            TAGS="${DOCKER_IMAGE}:dev"
+          elif [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            VERSION="${GITHUB_REF#refs/tags/}"
+            TAGS="${DOCKER_IMAGE}:${VERSION},${DOCKER_IMAGE}:latest"
+          else
+            VERSION="unknown"
+            TAGS="${DOCKER_IMAGE}:unknown"
+          fi
+
+          CREATED=$(date +'%Y-%m-%dT%H:%M:%SZ')
+
+          echo "::set-output name=tags::${TAGS}"
+          echo "::set-output name=title::${GITHUB_REPOSITORY}"
+          echo "::set-output name=version::${VERSION}"
+          echo "::set-output name=created::${CREATED}"
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: linux/amd64
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3.9.0
+
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Login to GitHub Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3.3.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.PACKAGES }}
+
+      - name: Build and push GHCR.io
+        id: docker_build
+        uses: docker/build-push-action@v6.14.0
+        with:
+          builder: ${{ steps.buildx.outputs.name }}
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64
+          push: ${{ github.event_name != 'pull_request' }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+          tags: |
+            ghcr.io/${{ steps.prep.outputs.tags }}
+          build-args: |
+            COMMIT_TAG=${{ github.sha }}
+          labels: |
+            org.opencontainers.image.title=${{ steps.prep.outputs.title }}
+            org.opencontainers.image.version=${{ steps.prep.outputs.version }}
+            org.opencontainers.image.created=${{ steps.prep.outputs.created }}
+            org.opencontainers.image.description=Plex & Tautulli Dashboard
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+      - name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
+
+      - name: Send Discord Notification on Success
+        if: success()
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d '{
+              "content": "🚀 Docker build and push completed successfully!",
+              "embeds": [{
+                "title": "Build Details",
+                "color": 5025616,
+                "fields": [
+                  {
+                    "name": "Repository",
+                    "value": "${{ github.repository }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Version",
+                    "value": "${{ steps.prep.outputs.version }}",
+                    "inline": true
+                  },
+                  {
+                    "name": "Commit",
+                    "value": "`${{ github.sha }}`",
+                    "inline": true
+                  }
+                ],
+                "timestamp": "'$(date -u +'%Y-%m-%dT%H:%M:%SZ')'"
+              }]
+            }' \
+            ${{ secrets.DISCORD_WEBHOOK }}
