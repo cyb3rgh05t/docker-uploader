@@ -46,7 +46,7 @@ function getQueueStats()
 
 /**
  * Convert a file size string to bytes
- * @param string $sizeStr File size string (e.g. "2.5 GiB", "500 MiB")
+ * @param string $sizeStr File size string (e.g. "2.5 GiB", "500 MiB") or numeric string
  * @return int Size in bytes
  */
 function convertSizeToBytes($sizeStr)
@@ -55,7 +55,12 @@ function convertSizeToBytes($sizeStr)
         return 0;
     }
 
-    // Extract numeric part and unit
+    // If it's already a number (or a numeric string), return it directly
+    if (is_numeric($sizeStr)) {
+        return (int)$sizeStr;
+    }
+
+    // Extract numeric part and unit for formatted strings
     if (preg_match('/^([0-9.]+)\s*([KMGT]i?B?)$/i', $sizeStr, $matches)) {
         $num = (float) $matches[1];
         $unit = strtoupper($matches[2]);

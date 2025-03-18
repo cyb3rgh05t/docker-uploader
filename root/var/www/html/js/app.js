@@ -82,15 +82,16 @@ function setupEventListeners() {
   $(".sidebar-section-header").on("click", function () {
     const targetId = $(this).data("target");
     const $content = $("#" + targetId);
-    const $icon = $(this).find("i:last-child");
+    // Use a more specific selector to target only the chevron icon
+    const $chevronIcon = $(this).find("i.fa-chevron-up, i.fa-chevron-down");
 
     if ($content.hasClass("active")) {
       $content.removeClass("active");
-      $icon.removeClass("fa-chevron-up").addClass("fa-chevron-down");
+      $chevronIcon.removeClass("fa-chevron-up").addClass("fa-chevron-down");
       $(this).attr("aria-expanded", "false");
     } else {
       $content.addClass("active");
-      $icon.removeClass("fa-chevron-down").addClass("fa-chevron-up");
+      $chevronIcon.removeClass("fa-chevron-down").addClass("fa-chevron-up");
       $(this).attr("aria-expanded", "true");
     }
   });
@@ -534,13 +535,13 @@ function checkStatus() {
         return;
       }
 
-      alignPauseControl(json.status);
+      // Pass false as second parameter since this is an automatic check, not user action
+      alignPauseControl(json.status, false);
     })
     .fail(function (jqXHR, textStatus, errorThrown) {
       console.error("Failed to check status:", textStatus, errorThrown);
     });
 }
-
 /**
  * Update the pause/play control based on service status
  * @param {string} status - Service status (STARTED or STOPPED)
@@ -552,7 +553,7 @@ function setupPauseControl() {
 
     // Determine action based on current state
     const $icon = $(this).find("i");
-    const action = $icon.hasClass("fa-play") ? "pause" : "continue";
+    const action = $icon.hasClass("fa-play") ? "continue" : "pause";
 
     // Visual feedback while processing
     const $button = $(this);
@@ -569,7 +570,8 @@ function setupPauseControl() {
       success: function (data) {
         console.log("Status update response:", data);
         if (data && data.status) {
-          alignPauseControl(data.status);
+          // Pass true as second parameter since this was triggered by user action
+          alignPauseControl(data.status, true);
         } else {
           console.error("Invalid response from status API");
         }
@@ -591,7 +593,7 @@ function setupPauseControl() {
 }
 
 // Update the UI based on the current status
-function alignPauseControl(status) {
+function alignPauseControl(status, fromUserAction = false) {
   console.log("Aligning pause control to status:", status);
 
   const $control = $("#control > span");
@@ -601,12 +603,18 @@ function alignPauseControl(status) {
     $icon.removeClass("fa-pause").addClass("fa-play");
     $control.removeClass("bg-danger").addClass("bg-success");
     $control.attr("aria-label", "Pause uploads");
-    //showStatusMessage("Uploader is running");
+    // Only show message if this was triggered by a user action
+    if (fromUserAction) {
+      showStatusMessage("Uploader is running");
+    }
   } else if (status === "STOPPED") {
     $icon.removeClass("fa-play").addClass("fa-pause");
     $control.removeClass("bg-success").addClass("bg-danger");
     $control.attr("aria-label", "Resume uploads");
-    showStatusMessage("Uploader is paused");
+    // Only show message if this was triggered by a user action
+    if (fromUserAction) {
+      showStatusMessage("Uploader is paused");
+    }
   }
 }
 
