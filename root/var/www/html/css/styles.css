@@ -1003,7 +1003,6 @@ a:hover {
   margin-bottom: var(--space-xl);
 }
 
-/* Enhanced Stat Cards */
 .stat-card {
   background: var(--transparency-dark-40);
   border-radius: var(--border-radius-md);
@@ -1055,23 +1054,6 @@ a:hover {
   box-shadow: 0 0 20px var(--accent-transparent);
 }
 
-/* Colorize each specific icon for better distinction */
-.stat-card:nth-child(1) .stat-icon {
-  color: var(--accent-color);
-}
-
-.stat-card:nth-child(2) .stat-icon {
-  color: var(--info);
-}
-
-.stat-card:nth-child(3) .stat-icon {
-  color: var(--warning);
-}
-
-.stat-card:nth-child(4) .stat-icon {
-  color: var(--success);
-}
-
 .stat-content {
   flex: 1;
 }
@@ -1080,9 +1062,6 @@ a:hover {
   font-size: 0.875rem;
   color: var(--text-secondary);
   margin-bottom: var(--space-xs);
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
 .stat-value {
