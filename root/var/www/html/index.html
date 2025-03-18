@@ -12,7 +12,7 @@
       referrerpolicy="no-referrer"
     />
     <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="stylesheet" href="css/styles.css?v=<?php echo time(); ?>" />
+    <link rel="stylesheet" href="css/styles.css?v=1.0.1" />
   </head>
   <body>
     <!-- Navbar -->
@@ -24,7 +24,10 @@
 
       <div class="navbar-controls">
         <div class="badge-container">
-          <div id="download_rate" class="badge">0.00</div>
+          <div class="badge-with-icon">
+            <i class="fas fa-tachometer-alt"></i>
+            <div id="download_rate" class="badge">0.00</div>
+          </div>
         </div>
         <div id="control">
           <span class="control-button bg-success" aria-label="Pause uploads">
@@ -563,7 +566,7 @@
             </a>
           </p>
           <p>
-            Copyrights <sup>&copy; &trade;</sup> 2021
+            Copyrights <sup>&copy; &trade;</sup> - 2021
             <script>
               document.write(" - " + new Date().getFullYear());
             </script>
@@ -577,8 +580,8 @@
 
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="js/ui/pagination.js?v=<?php echo time(); ?>"></script>
-    <script src="js/utils.js?v=<?php echo time(); ?>"></script>
-    <script src="js/app.js?v=<?php echo time(); ?>"></script>
+    <script src="js/ui/pagination.js?v=1.0.1"></script>
+    <script src="js/utils.js?v=1.0.1"></script>
+    <script src="js/app.js?v=1.0.1"></script>
   </body>
 </html>
