@@ -384,10 +384,8 @@
   --border-color: rgba(255, 255, 255, 0.1);
 
   --success: #27c24c;
-}
 
-/* Properly apply the Plex background to the body element */
-body[data-theme="plex"] {
+  /* Correct background from plex.css file */
   background: radial-gradient(
       circle farthest-side at 0% 100%,
       rgb(47, 47, 47) 0%,
