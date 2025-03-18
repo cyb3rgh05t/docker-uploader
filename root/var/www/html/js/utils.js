@@ -137,6 +137,12 @@ async function fetchWithErrorHandling(url, options = {}) {
  */
 function showStatusMessage(message, isError = false) {
   const statusMessage = document.getElementById("status-message");
+  if (!statusMessage) {
+    console.error("Status message element not found");
+    console.log(message);
+    return;
+  }
+
   statusMessage.textContent = message;
 
   if (isError) {
@@ -189,7 +195,7 @@ function getQueryParams() {
 }
 
 /**
- * Save the user's settings to localStorage
+ * Save a user setting to localStorage
  * @param {string} key - Setting key
  * @param {any} value - Setting value
  */
@@ -388,4 +394,85 @@ function updateChartThemeColors() {
   window.uploadChart.data.datasets[0].borderColor = accentColor;
   window.uploadChart.data.datasets[0].backgroundColor = accentTransparent;
   window.uploadChart.update();
+}
+
+/**
+ * Set the theme for the application
+ * @param {string} theme - Theme name
+ */
+function setTheme(theme) {
+  // Update both html and body elements to ensure background gradients work properly
+  document.documentElement.setAttribute("data-theme", theme);
+  document.body.setAttribute("data-theme", theme);
+
+  // Update theme backgrounds
+  updateThemeBackground(theme);
+
+  // Update active state in the theme options
+  const themeOptions = document.querySelectorAll(".theme-option");
+  themeOptions.forEach((option) => {
+    if (option.dataset.theme === theme) {
+      option.classList.add("active");
+    } else {
+      option.classList.remove("active");
+    }
+  });
+
+  // Alternative jQuery implementation
+  // $(".theme-option").removeClass("active");
+  // $(`.theme-option[data-theme="${theme}"]`).addClass("active");
+
+  // Update chart colors when theme changes
+  updateChartThemeColors();
+}
+
+/**
+ * Ensure theme backgrounds apply correctly
+ * @param {string} theme - Theme name
+ */
+function updateThemeBackground(theme) {
+  // Themes with custom backgrounds
+  const themesWithBackgrounds = ["overseerr", "hotline", "maroon", "plex"];
+
+  // If switching to a theme with a custom background
+  if (themesWithBackgrounds.includes(theme)) {
+    // Make sure the body has the theme's background
+    document.body.style.backgroundImage = "none"; // Clear any existing backgrounds
+    document.body.setAttribute("data-theme", theme); // Apply the theme
+  } else {
+    // For standard themes, just use the background color
+    document.body.style.backgroundImage = "none";
+    document.body.setAttribute("data-theme", theme);
+  }
+}
+
+/**
+ * Initialize theme on page load
+ */
+function initializeTheme() {
+  // Load current theme from localStorage or use default
+  const savedTheme = getUserSetting("theme", "orange");
+  setTheme(savedTheme);
+}
+
+/**
+ * Setup event listeners for theme switching
+ */
+function setupThemeEventListeners() {
+  // Theme selection using event delegation for better performance
+  document.addEventListener("click", function (e) {
+    const themeOption = e.target.closest(".theme-option");
+    if (themeOption) {
+      const theme = themeOption.dataset.theme;
+      setTheme(theme);
+      saveUserSetting("theme", theme);
+    }
+  });
+
+  // Alternative jQuery implementation
+  // $(".theme-option").on("click", function () {
+  //   const theme = $(this).data("theme");
+  //   setTheme(theme);
+  //   saveUserSetting("theme", theme);
+  // });
 }

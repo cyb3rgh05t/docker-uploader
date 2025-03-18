@@ -1,5 +1,8 @@
 /**
  * Main application JavaScript for the Uploader Dashboard
+ *
+ * Note: Common utility functions have been moved to utils.js
+ * This file now focuses on application-specific functionality
  */
 
 // Store global data
@@ -27,8 +30,7 @@ $(document).ready(function () {
   initializeApp();
 
   // Load current theme from localStorage or use default
-  const savedTheme = getUserSetting("theme", "orange");
-  setTheme(savedTheme);
+  initializeTheme();
 
   // Setup event listeners
   setupEventListeners();
@@ -73,12 +75,8 @@ function setupEventListeners() {
 
   setupSettingsModal();
 
-  // Theme selection - updated to work in the modal
-  $(".theme-option").on("click", function () {
-    const theme = $(this).data("theme");
-    setTheme(theme);
-    saveUserSetting("theme", theme);
-  });
+  // Theme selection - uses function from utils.js
+  setupThemeEventListeners();
 
   // Sidebar accordion toggles
   $(".sidebar-section-header").on("click", function () {
@@ -163,8 +161,6 @@ function setupEventListeners() {
 /**
  * Settings Modal and Tabbed Interface Functionality
  */
-
-// Add this to the existing setupEventListeners function
 function setupSettingsModal() {
   // Modal open/close
   $("#settings-toggle").on("click", function () {
@@ -293,50 +289,6 @@ function fixNotificationForm() {
 }
 
 /**
- * Set the theme for the application
- * @param {string} theme - Theme name
- */
-function setTheme(theme) {
-  document.documentElement.setAttribute("data-theme", theme);
-  $(".theme-option").removeClass("active");
-  $(`.theme-option[data-theme="${theme}"]`).addClass("active");
-
-  // Update chart colors when theme changes
-  if (typeof updateChartThemeColors === "function") {
-    updateChartThemeColors();
-  }
-}
-
-/**
- * Save a user setting to localStorage
- * @param {string} key - Setting key
- * @param {any} value - Setting value
- */
-function saveUserSetting(key, value) {
-  try {
-    localStorage.setItem(`uploader_${key}`, JSON.stringify(value));
-  } catch (e) {
-    console.warn("Failed to save setting to localStorage:", e);
-  }
-}
-
-/**
- * Get a user setting from localStorage
- * @param {string} key - Setting key
- * @param {any} defaultValue - Default value if setting not found
- * @returns {any} The setting value or default
- */
-function getUserSetting(key, defaultValue) {
-  try {
-    const value = localStorage.getItem(`uploader_${key}`);
-    return value !== null ? JSON.parse(value) : defaultValue;
-  } catch (e) {
-    console.warn("Failed to get setting from localStorage:", e);
-    return defaultValue;
-  }
-}
-
-/**
  * Start all periodic update intervals
  */
 function startPeriodicUpdates() {
@@ -407,25 +359,25 @@ function handleInProgressJobs() {
 
       // Create table row with responsive data attributes
       $tableBody.append(`
-              <tr>
-                <td data-title="Filename" class="truncate">${data.file_name}</td>
-                <td data-title="Folder" class="d-none d-lg-table-cell">${data.drive}</td>
-                <td data-title="Key" class="d-none d-lg-table-cell">${data.gdsa}</td>
-                <td data-title="Progress">
-                  <div class="progress">
-                    <div class="progress-bar ${progressClass}" role="progressbar"
-                         style="width: ${data.upload_percentage};" 
-                         aria-valuenow="${progress}" 
-                         aria-valuemin="0" 
-                         aria-valuemax="100">
-                      ${data.upload_percentage}
+                <tr>
+                  <td data-title="Filename" class="truncate">${data.file_name}</td>
+                  <td data-title="Folder" class="d-none d-lg-table-cell">${data.drive}</td>
+                  <td data-title="Key" class="d-none d-lg-table-cell">${data.gdsa}</td>
+                  <td data-title="Progress">
+                    <div class="progress">
+                      <div class="progress-bar ${progressClass}" role="progressbar"
+                           style="width: ${data.upload_percentage};" 
+                           aria-valuenow="${progress}" 
+                           aria-valuemin="0" 
+                           aria-valuemax="100">
+                        ${data.upload_percentage}
+                      </div>
                     </div>
-                  </div>
-                </td>
-                <td data-title="Filesize" class="d-none d-lg-table-cell">${data.file_size}</td>
-                <td data-title="Time Left" class="text-end">${data.upload_remainingtime} (with ${data.upload_speed})</td>
-              </tr>
-            `);
+                  </td>
+                  <td data-title="Filesize" class="d-none d-lg-table-cell">${data.file_size}</td>
+                  <td data-title="Time Left" class="text-end">${data.upload_remainingtime} (with ${data.upload_speed})</td>
+                </tr>
+              `);
     });
 
     // Update the upload rate display
@@ -517,17 +469,19 @@ function handleCompletedJobList() {
         const rowClass = job.successful === true ? "" : "table-danger";
 
         $completedTableBody.append(`
-                <tr class="${rowClass}">
-                  <td data-title="Filename" class="truncate">${
-                    job.file_name
-                  }</td>
-                  <td data-title="Folder">${job.drive}</td>
-                  <td data-title="Key">${job.gdsa}</td>
-                  <td data-title="Filesize">${job.file_size}</td>
-                  <td data-title="Time spent">${job.time_elapsed || "n/a"}</td>
-                  <td data-title="Uploaded">${endTime}</td>
-                </tr>
-              `);
+                  <tr class="${rowClass}">
+                    <td data-title="Filename" class="truncate">${
+                      job.file_name
+                    }</td>
+                    <td data-title="Folder">${job.drive}</td>
+                    <td data-title="Key">${job.gdsa}</td>
+                    <td data-title="Filesize">${job.file_size}</td>
+                    <td data-title="Time spent">${
+                      job.time_elapsed || "n/a"
+                    }</td>
+                    <td data-title="Uploaded">${endTime}</td>
+                  </tr>
+                `);
       });
 
       // Fetch all completed uploads for today
@@ -644,9 +598,7 @@ function alignPauseControl(status, fromUserAction = false) {
 
 /**
  * Update the pause/play control based on service status
- * @param {string} status - Service status (STARTED or STOPPED)
  */
-// Also update the click handler to make the logic clearer
 function setupPauseControl() {
   $("#control > span").on("click", function () {
     console.log("Pause/play button clicked");
@@ -1006,74 +958,4 @@ function estimateQueueStats() {
 
     $("#queue-total").text(`Total: ${formatFileSize(totalSize)}`);
   });
-}
-
-/**
- * Display a status message to the user
- * @param {string} message - Message to display
- * @param {boolean} isError - Whether this is an error message
- */
-function showStatusMessage(message, isError = false) {
-  const $statusMessage = $("#status-message");
-
-  if (!$statusMessage.length) {
-    console.error("Status message element not found");
-    console.log(message);
-    return;
-  }
-
-  $statusMessage.text(message);
-
-  if (isError) {
-    $statusMessage.addClass("error");
-  } else {
-    $statusMessage.removeClass("error");
-  }
-
-  $statusMessage.css("display", "block");
-
-  // Hide after 3 seconds
-  setTimeout(function () {
-    $statusMessage.css("display", "none");
-  }, 3000);
-}
-
-// File size formatter helper function
-function formatFileSize(bytes) {
-  if (bytes === 0) return "0 B";
-
-  const sizes = ["B", "KB", "MB", "GB", "TB", "PB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(1024));
-
-  return parseFloat((bytes / Math.pow(1024, i)).toFixed(2)) + " " + sizes[i];
-}
-
-// Parse file size string to bytes
-function parseFileSize(sizeStr) {
-  if (!sizeStr) return 0;
-
-  const match = sizeStr.match(/^([0-9.]+)\s*([KMGT]i?B?)?$/i);
-  if (!match) return 0;
-
-  const num = parseFloat(match[1]);
-  const unit = match[2] ? match[2].toUpperCase() : "B";
-
-  switch (unit) {
-    case "B":
-      return num;
-    case "KB":
-    case "KIB":
-      return num * 1024;
-    case "MB":
-    case "MIB":
-      return num * 1024 * 1024;
-    case "GB":
-    case "GIB":
-      return num * 1024 * 1024 * 1024;
-    case "TB":
-    case "TIB":
-      return num * 1024 * 1024 * 1024 * 1024;
-    default:
-      return num;
-  }
 }

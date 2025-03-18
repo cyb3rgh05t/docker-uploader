@@ -87,6 +87,237 @@
   --top-highlight: var(--accent-color);
 }
 
+/* New Theme Variations */
+[data-theme="organizr"] {
+  --bg-primary: #1f1f1f;
+  --bg-secondary: #333;
+  --bg-tertiary: #232323;
+  --bg-card: #333;
+
+  --accent-color: #2cabe3;
+  --accent-light: #3cc5ff;
+  --accent-dark: #298fbc;
+  --accent-transparent: rgba(44, 171, 227, 0.2);
+  --top-highlight: var(--accent-color);
+
+  --text-primary: #fff;
+  --text-secondary: #96a2b4;
+  --text-tertiary: #999;
+
+  --button-color: #2cabe3;
+  --button-color-hover: #298fbc;
+  --border-color: rgba(255, 255, 255, 0.1);
+
+  --success: #2cabe3;
+}
+
+[data-theme="nord"] {
+  --bg-primary: #2e3440;
+  --bg-secondary: #3b4252;
+  --bg-tertiary: #434c5e;
+  --bg-card: #3b4252;
+
+  --accent-color: #79b8ca;
+  --accent-light: #88c0d0;
+  --accent-dark: #6a9daf;
+  --accent-transparent: rgba(121, 184, 202, 0.2);
+  --top-highlight: var(--accent-color);
+
+  --text-primary: #eceff4;
+  --text-secondary: #d8dee9;
+  --text-tertiary: #81a1c1;
+
+  --button-color: #79b8ca;
+  --button-color-hover: #6a9daf;
+  --border-color: rgba(255, 255, 255, 0.1);
+
+  --success: #a3be8c;
+}
+
+[data-theme="overseerr"] {
+  --bg-primary: hsl(221, 39%, 11%);
+  --bg-secondary: #1f2937;
+  --bg-tertiary: #374151;
+  --bg-card: #1f2937;
+
+  --accent-color: #4f46e5;
+  --accent-light: #a78bfa;
+  --accent-dark: #6366f1;
+  --accent-transparent: rgba(167, 139, 250, 0.2);
+  --top-highlight: var(--accent-color);
+
+  --text-primary: #fff;
+  --text-secondary: #d1d5db;
+  --text-tertiary: #9ca3af;
+
+  --button-color: #4f46e5;
+  --button-color-hover: #6366f1;
+  --border-color: rgba(255, 255, 255, 0.1);
+
+  --success: #6366f1;
+
+  /* Custom background gradient */
+  background: linear-gradient(
+    360deg,
+    hsl(221, 39%, 11%) 65%,
+    hsl(215, 28%, 17%) 100%
+  );
+}
+
+[data-theme="onedark"] {
+  --bg-primary: #282c34;
+  --bg-secondary: #1e222a;
+  --bg-tertiary: #1e222a;
+  --bg-card: #1e222a;
+
+  --accent-color: #61afef;
+  --accent-light: #98c379;
+  --accent-dark: #c678dd;
+  --accent-transparent: rgba(152, 195, 121, 0.2);
+  --top-highlight: var(--accent-color);
+
+  --text-primary: #c8ccd4;
+  --text-secondary: #abb2bf;
+  --text-tertiary: #565c64;
+
+  --button-color: #61afef;
+  --button-color-hover: #c678dd;
+  --border-color: rgba(255, 255, 255, 0.1);
+
+  --success: #98c379;
+}
+
+[data-theme="hotline"] {
+  --bg-primary: #155fa5;
+  --bg-secondary: #5e61ab;
+  --bg-tertiary: #5e61ab;
+  --bg-card: #5e61ab;
+
+  --accent-color: #f98dc9;
+  --accent-light: #ffb3de;
+  --accent-dark: #ff4cb1;
+  --accent-transparent: rgba(249, 141, 201, 0.2);
+  --top-highlight: var(--accent-color);
+
+  --text-primary: #fff;
+  --text-secondary: #ddd;
+  --text-tertiary: #999;
+
+  --button-color: #f98dc9;
+  --button-color-hover: #ff4cb1;
+  --border-color: rgba(255, 255, 255, 0.2);
+
+  --success: #f98dc9;
+
+  /* Custom background gradient */
+  background: linear-gradient(
+      0deg,
+      rgba(247, 101, 184, 1) 0%,
+      rgb(21, 95, 165) 100%
+    )
+    center center/cover no-repeat fixed;
+}
+
+[data-theme="maroon"] {
+  --bg-primary: #220a25;
+  --bg-secondary: #4c2133;
+  --bg-tertiary: #220a25;
+  --bg-card: #4c2133;
+
+  --accent-color: #7b154d;
+  --accent-light: #a21c65;
+  --accent-dark: #961a5e;
+  --accent-transparent: rgba(162, 28, 101, 0.2);
+  --top-highlight: var(--accent-color);
+
+  --text-primary: #fff;
+  --text-secondary: #dadada;
+  --text-tertiary: #999;
+
+  --button-color: #7b154d;
+  --button-color-hover: #961a5e;
+  --border-color: rgba(255, 255, 255, 0.1);
+
+  --success: #66bb55;
+
+  /* Custom background gradient */
+  background: radial-gradient(
+      circle farthest-corner at 48.4% 47.5%,
+      rgba(76, 21, 51, 1) 0%,
+      rgba(34, 10, 37, 1) 90%
+    )
+    center center/cover no-repeat fixed;
+}
+
+[data-theme="dracula"] {
+  --bg-primary: #282a36;
+  --bg-secondary: #1e2029;
+  --bg-tertiary: #1e2029;
+  --bg-card: #1e2029;
+
+  --accent-color: #bd93f9;
+  --accent-light: #8be9fd;
+  --accent-dark: #ff79c6;
+  --accent-transparent: rgba(80, 250, 123, 0.2);
+  --top-highlight: var(--accent-color);
+
+  --text-primary: #fff;
+  --text-secondary: #f8f8f2;
+  --text-tertiary: #6272a4;
+
+  --button-color: #bd93f9;
+  --button-color-hover: #ff79c6;
+  --border-color: rgba(255, 255, 255, 0.1);
+
+  --success: #50fa7b;
+}
+
+[data-theme="plex"] {
+  --bg-primary: #282828;
+  --bg-secondary: #323232;
+  --bg-tertiary: #191a1c;
+  --bg-card: #323232;
+
+  --accent-color: #cc7b19;
+  --accent-light: #e5a00d;
+  --accent-dark: #e59029;
+  --accent-transparent: rgba(229, 160, 13, 0.2);
+  --top-highlight: var(--accent-color);
+
+  --text-primary: #fff;
+  --text-secondary: #ddd;
+  --text-tertiary: #999;
+
+  --button-color: #cc7b19;
+  --button-color-hover: #e59029;
+  --border-color: rgba(255, 255, 255, 0.1);
+
+  --success: #27c24c;
+
+  /* Custom background gradient */
+  background: radial-gradient(
+      circle farthest-side at 0% 100%,
+      rgb(47, 47, 47) 0%,
+      rgba(47, 47, 47, 0) 100%
+    ),
+    radial-gradient(
+      circle farthest-side at 100% 100%,
+      rgb(63, 63, 63) 0%,
+      rgba(63, 63, 63, 0) 100%
+    ),
+    radial-gradient(
+      circle farthest-side at 100% 0%,
+      rgb(76, 76, 76) 0%,
+      rgba(76, 76, 76, 0) 100%
+    ),
+    radial-gradient(
+      circle farthest-side at 0% 0%,
+      rgb(58, 58, 58) 0%,
+      rgba(58, 58, 58, 0) 100%
+    ),
+    black center center/cover no-repeat fixed;
+}
+
 /* Custom Scrollbar Styling */
 ::-webkit-scrollbar {
   width: 8px;
@@ -131,6 +362,15 @@ body {
   min-height: 100vh;
 }
 
+/* Apply custom background for themes that have one */
+body[data-theme="overseerr"],
+body[data-theme="hotline"],
+body[data-theme="maroon"],
+body[data-theme="plex"] {
+  background: inherit;
+}
+
+/* Rest of the CSS remains unchanged */
 /* Typography */
 h1,
 h2,
@@ -371,9 +611,23 @@ a:hover {
 /* Theme options */
 .theme-options {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: var(--space-sm);
   margin-top: var(--space-sm);
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+@media screen and (max-width: 768px) {
+  .theme-options {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .theme-options {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .theme-option {
@@ -426,6 +680,31 @@ a:hover {
 }
 .theme-dot.red {
   background: #f44336;
+}
+
+.theme-dot.organizr {
+  background: #2cabe3;
+}
+.theme-dot.nord {
+  background: #79b8ca;
+}
+.theme-dot.overseerr {
+  background: #4f46e5;
+}
+.theme-dot.onedark {
+  background: #61afef;
+}
+.theme-dot.hotline {
+  background: #f98dc9;
+}
+.theme-dot.maroon {
+  background: #7b154d;
+}
+.theme-dot.dracula {
+  background: #bd93f9;
+}
+.theme-dot.plex {
+  background: #cc7b19;
 }
 
 /* Settings Form */
