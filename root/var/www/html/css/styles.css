@@ -384,8 +384,10 @@
   --border-color: rgba(255, 255, 255, 0.1);
 
   --success: #27c24c;
+}
 
-  /* Custom background gradient */
+/* Properly apply the Plex background to the body element */
+body[data-theme="plex"] {
   background: radial-gradient(
       circle farthest-side at 0% 100%,
       rgb(47, 47, 47) 0%,
@@ -738,35 +740,55 @@ a:hover {
   display: block;
 }
 
-/* Theme options - Enhanced */
+/* Enhanced Theme Section Styling */
 .theme-section {
-  background-color: var(--transparency-dark-05);
+  background-color: var(--transparency-dark-15);
   border-radius: var(--border-radius-md);
   padding: var(--space-lg);
   border: 1px solid var(--transparency-light-10);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-speed) ease;
+}
+
+.theme-section:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--transparency-light-15);
 }
 
 .theme-section h3 {
   color: var(--accent-color);
   margin-bottom: var(--space-sm);
   font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.theme-section h3::before {
+  content: "";
+  width: 4px;
+  height: 1.2rem;
+  background-color: var(--accent-color);
+  border-radius: 2px;
 }
 
 .theme-section p {
   color: var(--text-secondary);
   margin-bottom: var(--space-lg);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  opacity: 0.8;
 }
 
 .theme-options {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   gap: var(--space-md);
   margin-top: var(--space-md);
-  max-height: 400px;
-  overflow-y: auto;
-  padding: var(--space-sm);
-  background-color: var(--transparency-dark-15);
+  padding: var(--space-md);
+  background-color: var(--transparency-dark-25);
   border-radius: var(--border-radius-sm);
+  border: 1px solid var(--transparency-light-05);
 }
 
 .theme-option {
@@ -778,8 +800,22 @@ a:hover {
   padding: var(--space-md);
   border-radius: var(--border-radius-md);
   transition: all var(--transition-speed) ease;
-  border: 1px solid var(--transparency-light-05);
+  border: 2px solid transparent;
   background-color: var(--transparency-dark-40);
+  position: relative;
+  overflow: hidden;
+}
+
+.theme-option::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent-color);
+  transform: translateY(100%);
+  transition: transform var(--transition-speed) ease;
 }
 
 .theme-option:hover {
@@ -788,9 +824,18 @@ a:hover {
   box-shadow: var(--shadow-md);
 }
 
+.theme-option:hover::after {
+  transform: translateY(0);
+}
+
 .theme-option.active {
   background-color: var(--accent-transparent);
   border-color: var(--accent-color);
+  transform: translateY(-2px);
+}
+
+.theme-option.active::after {
+  transform: translateY(0);
 }
 
 .theme-dot {
@@ -813,6 +858,7 @@ a:hover {
   font-weight: 500;
   color: var(--text-secondary);
   transition: var(--transition-speed) ease;
+  text-align: center;
 }
 
 .theme-option.active span {
