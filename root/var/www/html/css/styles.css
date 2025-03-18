@@ -1003,6 +1003,7 @@ a:hover {
   margin-bottom: var(--space-xl);
 }
 
+/* Enhanced Stat Cards */
 .stat-card {
   background: var(--transparency-dark-40);
   border-radius: var(--border-radius-md);
@@ -1026,17 +1027,49 @@ a:hover {
   background: var(--top-highlight);
 }
 
+/* Improved Icon Styling */
 .stat-icon {
   font-size: 2.5rem;
-  color: var(--accent-transparent);
+  color: var(
+    --accent-color
+  ); /* Using full accent color instead of transparent */
   margin-right: var(--space-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 60px;
-  height: 60px;
+  width: 64px; /* Slightly larger */
+  height: 64px; /* Slightly larger */
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(
+    --transparency-dark-60
+  ); /* Darker background for better contrast */
+  border: 2px solid var(--transparency-light-15); /* Adding a subtle border */
+  box-shadow: 0 0 15px var(--transparency-light-10); /* Adding a subtle glow */
+  transition: all 0.3s ease;
+}
+
+/* Add a hover effect */
+.stat-card:hover .stat-icon {
+  transform: scale(1.05);
+  color: var(--accent-light);
+  box-shadow: 0 0 20px var(--accent-transparent);
+}
+
+/* Colorize each specific icon for better distinction */
+.stat-card:nth-child(1) .stat-icon {
+  color: var(--accent-color);
+}
+
+.stat-card:nth-child(2) .stat-icon {
+  color: var(--info);
+}
+
+.stat-card:nth-child(3) .stat-icon {
+  color: var(--warning);
+}
+
+.stat-card:nth-child(4) .stat-icon {
+  color: var(--success);
 }
 
 .stat-content {
@@ -1047,6 +1080,9 @@ a:hover {
   font-size: 0.875rem;
   color: var(--text-secondary);
   margin-bottom: var(--space-xs);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .stat-value {
