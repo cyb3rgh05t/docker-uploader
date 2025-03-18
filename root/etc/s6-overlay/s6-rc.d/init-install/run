@@ -165,6 +165,11 @@ LANGUAGE=${LANGUAGE:-en}
 #   UPLOADER ENVIROMENTS
 #-------------------------------------------------------" > "${ENVA}"
 
+# Ensure environment file is writable by the web server
+log "**** ensuring uploader.env is writable ****"
+$(which chmod) 0666 "${ENVA}" &>/dev/null
+$(which chown) abc:abc "${ENVA}" &>/dev/null
+
 if [[ -f "${ENDCONFIG}" ]]; then $(which rm) -f "${ENDCONFIG}"; fi
 if [[ -f "${PAUSE}" ]]; then $(which rm) -f "${PAUSE}"; fi
 if [[ -f "${TEMPFILES}" ]]; then $(which rm) -f "${TEMPFILES}"; fi
@@ -322,9 +327,17 @@ log "**** setting up API endpoints ****"
 $(which mkdir) -p /var/www/html/srv/api/jobs /var/www/html/srv/api/system &>/dev/null
 
 # Create the CSS directory for the UI redesign
-$(which mkdir) -p /var/www/html/css &>/dev/null
+$(which mkdir) -p /var/www/html/css /var/www/html/js &>/dev/null
 $(which touch) /var/www/html/css/styles.css &>/dev/null
 $(which touch) /var/www/html/js/utils.js &>/dev/null
+
+# Make sure pause file directory exists and is writable
+log "**** ensuring pause file directory is writable ****"
+$(which mkdir) -p "$(dirname "${PAUSE}")" &>/dev/null
+$(which touch) "${PAUSE}" &>/dev/null
+$(which rm) -f "${PAUSE}" &>/dev/null
+$(which chmod) 777 "$(dirname "${PAUSE}")" &>/dev/null
+$(which chown) -R abc:abc "$(dirname "${PAUSE}")" &>/dev/null
 
 log "**** set permissions ****"
 $(which chown) -cR abc:abc /root/.config /app /system/* /var/www/html/* &>/dev/null

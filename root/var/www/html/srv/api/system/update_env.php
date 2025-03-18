@@ -8,8 +8,14 @@ header('Content-Type: application/json; charset=utf-8');
  */
 function updateEnvSettings()
 {
+    // Enable error logging for debugging
+    ini_set('display_errors', 1);
+    ini_set('log_errors', 1);
+    error_log("update_env.php called");
+
     // Check request method
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        error_log("Invalid request method: " . $_SERVER['REQUEST_METHOD']);
         return json_encode(array(
             'success' => false,
             'message' => 'Invalid request method. Only POST is allowed.'
@@ -17,58 +23,109 @@ function updateEnvSettings()
     }
 
     // Get the request data
-    $data = json_decode(file_get_contents('php://input'), true);
+    $rawInput = file_get_contents('php://input');
+    error_log("Raw input received: " . $rawInput);
+
+    $data = json_decode($rawInput, true);
 
     if (!$data || !is_array($data)) {
-        return json_encode(array(
-            'success' => false,
-            'message' => 'Invalid request data.'
-        ));
+        error_log("Invalid data format received");
+
+        // Try to get regular POST data if JSON parsing failed
+        if (!empty($_POST)) {
+            $data = $_POST;
+            error_log("Using standard POST data instead: " . print_r($data, true));
+        } else {
+            return json_encode(array(
+                'success' => false,
+                'message' => 'Invalid request data.',
+                'received' => $rawInput
+            ));
+        }
     }
 
+    error_log("Processing data: " . print_r($data, true));
+
+    // Use the full path defined in the Docker container
     $envFile = '/system/uploader/uploader.env';
 
     // Check if file exists and is writable
     if (!file_exists($envFile)) {
+        error_log("Environment file not found: $envFile");
         return json_encode(array(
             'success' => false,
-            'message' => 'Environment file not found.'
+            'message' => 'Environment file not found.',
+            'path' => $envFile
         ));
     }
 
+    // Check permissions
+    $filePerms = substr(sprintf('%o', fileperms($envFile)), -4);
+    error_log("File permissions: $filePerms");
+
     if (!is_writable($envFile)) {
-        return json_encode(array(
-            'success' => false,
-            'message' => 'Environment file is not writable.'
-        ));
+        error_log("Environment file is not writable: $envFile");
+
+        // Try to fix permissions
+        $chmodResult = chmod($envFile, 0666);
+        error_log("Attempted to fix permissions: " . ($chmodResult ? "success" : "failed"));
+
+        if (!is_writable($envFile)) {
+            return json_encode(array(
+                'success' => false,
+                'message' => 'Environment file is not writable.',
+                'permissions' => $filePerms
+            ));
+        }
     }
 
     // Read the current env file
     $lines = file($envFile, FILE_IGNORE_NEW_LINES);
+    if ($lines === false) {
+        error_log("Failed to read environment file");
+        return json_encode(array(
+            'success' => false,
+            'message' => 'Failed to read environment file.'
+        ));
+    }
+
+    error_log("Read " . count($lines) . " lines from environment file");
     $updated = false;
 
-    // Sanitize and validate input data
+    // Process input data
     foreach ($data as $key => &$value) {
+        // Skip empty or invalid keys
+        if (empty($key) || !is_string($key)) {
+            continue;
+        }
+
         // Remove any dangerous characters
         $key = preg_replace('/[^A-Za-z0-9_]/', '', $key);
 
         // Format the value properly based on type
         if (is_bool($value)) {
             $value = $value ? 'true' : 'false';
-        } elseif (is_null($value)) {
+        } elseif ($value === null) {
             $value = 'null';
         } elseif (is_string($value) && strpos($value, ' ') !== false) {
             $value = '"' . $value . '"';
         }
+
+        error_log("Processed setting: $key=$value");
     }
 
     // Update the env file with new values
     foreach ($lines as $i => $line) {
         foreach ($data as $key => $value) {
-            $pattern = '/^(' . strtoupper($key) . '=).*/i';
+            // Match both uppercase and the exact case version of the key
+            $upperKey = strtoupper($key);
+            $pattern = '/^(' . preg_quote($upperKey, '/') . '=).*/i';
 
             if (preg_match($pattern, $line)) {
+                $oldLine = $lines[$i];
                 $lines[$i] = preg_replace($pattern, '$1' . $value, $line);
+
+                error_log("Updated line: '$oldLine' to '{$lines[$i]}'");
                 $updated = true;
 
                 // Remove from data array to keep track of what's been processed
@@ -79,10 +136,20 @@ function updateEnvSettings()
 
     // Add any settings that weren't found (new settings)
     if (!empty($data)) {
-        // Find the end section marker
-        $endIndex = array_search('#-------------------------------------------------------', $lines);
+        error_log("Adding new settings: " . print_r($data, true));
 
-        if ($endIndex !== false) {
+        // Find the end section marker
+        $endMarkerPattern = '/^#-+$/';
+        $endIndex = null;
+
+        foreach ($lines as $i => $line) {
+            if (preg_match($endMarkerPattern, $line) && $i > count($lines) / 2) {
+                $endIndex = $i;
+                break;
+            }
+        }
+
+        if ($endIndex !== null) {
             $insertIndex = $endIndex;
 
             // Find the appropriate section to add the setting
@@ -91,32 +158,43 @@ function updateEnvSettings()
                 $upperKey = strtoupper($key);
                 $newLine = "$upperKey=$value";
 
+                error_log("Inserting new line at $insertIndex: $newLine");
+
                 // Insert the new line before the end section
                 array_splice($lines, $insertIndex, 0, $newLine);
                 $insertIndex++;
                 $updated = true;
             }
+        } else {
+            error_log("Could not find end marker in env file");
         }
     }
 
     if (!$updated) {
+        error_log("No settings were updated");
         return json_encode(array(
             'success' => false,
             'message' => 'No settings were updated.'
         ));
     }
 
+    error_log("Writing " . count($lines) . " lines back to file");
+
     // Write the updated content back to the file
-    if (file_put_contents($envFile, implode("\n", $lines)) === false) {
+    $result = file_put_contents($envFile, implode("\n", $lines));
+    if ($result === false) {
+        error_log("Failed to write to environment file");
         return json_encode(array(
             'success' => false,
             'message' => 'Failed to write to environment file.'
         ));
     }
 
+    error_log("Successfully wrote $result bytes to environment file");
     return json_encode(array(
         'success' => true,
-        'message' => 'Settings updated successfully.'
+        'message' => 'Settings updated successfully.',
+        'bytes_written' => $result
     ));
 }
 
