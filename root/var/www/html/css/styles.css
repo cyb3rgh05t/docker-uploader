@@ -22,7 +22,7 @@
   --danger: #f44336;
   --info: #2196f3;
 
-  /* Sidebar */
+  /* Sidebar - Kept for backwards compatibility */
   --sidebar-width: 320px;
 
   /* Spacing */
@@ -85,6 +85,32 @@
   --accent-dark: #d32f2f;
   --accent-transparent: rgba(244, 67, 54, 0.2);
   --top-highlight: var(--accent-color);
+}
+
+/* Custom Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--accent-color);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-dark);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-color) var(--bg-tertiary);
 }
 
 /* Base Styles */
@@ -190,6 +216,27 @@ a:hover {
   text-align: center;
 }
 
+.badge-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: transparent;
+  color: var(--accent-color);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--border-radius-sm);
+  font-weight: 600;
+}
+
+.badge-with-icon i {
+  font-size: 14px;
+}
+
+#download_rate {
+  background-color: transparent; /* Remove background since parent already has it */
+  padding: 0;
+  min-width: auto;
+}
+
 .control-button {
   width: 36px;
   height: 36px;
@@ -217,9 +264,9 @@ a:hover {
 }
 
 .settings-btn {
-  background: var(--bg-tertiary);
+  background: var(--accent-color);
   border: none;
-  color: var(--text-primary);
+  color: white;
   padding: var(--space-sm) var(--space-md);
   border-radius: var(--border-radius-sm);
   font-weight: 600;
@@ -231,10 +278,10 @@ a:hover {
 }
 
 .settings-btn:hover {
-  background: var(--bg-card);
+  background: var(--accent-dark);
 }
 
-/* Sidebar */
+/* Sidebar - Kept for backwards compatibility */
 .sidebar {
   position: fixed;
   top: 60px;
@@ -321,6 +368,7 @@ a:hover {
   display: block;
 }
 
+/* Theme options */
 .theme-options {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -514,6 +562,25 @@ a:hover {
   margin-bottom: var(--space-xs);
 }
 
+/* Stat value row for play/pause button */
+.stat-value-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xs);
+}
+
+.stat-value-row .control-button {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+}
+
+.stat-value-row #current-rate {
+  font-size: 1.625rem;
+  font-weight: 700;
+}
+
 .stat-subtitle {
   font-size: 0.75rem;
   color: var(--text-tertiary);
@@ -668,15 +735,15 @@ a:hover {
 }
 
 .progress-bar.bg-success {
-  background: var(--success);
+  background: var(--accent-color);
 }
 
 .progress-bar.bg-warning {
-  background: var(--warning);
+  background: var(--accent-color);
 }
 
 .progress-bar.bg-danger {
-  background: var(--danger);
+  background: var(--accent-color);
 }
 
 /* Helper classes */
@@ -882,91 +949,6 @@ a:hover {
   }
 }
 
-/* Media queries for responsive design */
-@media screen and (max-width: 1200px) {
-  .stats-row {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media screen and (max-width: 768px) {
-  .navbar {
-    padding: var(--space-sm) var(--space-md);
-  }
-
-  .navbar-brand {
-    font-size: 1.125rem;
-  }
-
-  .navbar-brand i {
-    font-size: 1.25rem;
-  }
-
-  .settings-btn span {
-    display: none;
-  }
-
-  .badge-container .badge-label {
-    display: none;
-  }
-
-  .stats-row {
-    grid-template-columns: 1fr;
-    gap: var(--space-md);
-  }
-
-  .sidebar {
-    width: 100%;
-    right: -100%;
-  }
-
-  .main-content {
-    padding: var(--space-md);
-  }
-
-  .card-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--space-sm);
-  }
-
-  .card-actions {
-    width: 100%;
-    justify-content: flex-end;
-  }
-}
-
-@media screen and (max-width: 480px) {
-  .badge {
-    min-width: 40px;
-    padding: var(--space-xs) var(--space-sm);
-  }
-
-  .navbar-controls {
-    gap: var(--space-sm);
-  }
-
-  .control-button {
-    width: 32px;
-    height: 32px;
-  }
-
-  .card-body {
-    padding: var(--space-md);
-  }
-
-  .stat-card {
-    flex-direction: column;
-    text-align: center;
-    padding: var(--space-md);
-  }
-
-  .stat-icon {
-    margin-right: 0;
-    margin-bottom: var(--space-sm);
-  }
-}
-
 /* Modal and Tabbed Settings Styles */
 .modal {
   display: none;
@@ -1043,6 +1025,21 @@ a:hover {
   position: sticky;
   top: 0;
   z-index: 2;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-color) transparent;
+}
+
+.settings-tabs::-webkit-scrollbar {
+  height: 4px;
+}
+
+.settings-tabs::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.settings-tabs::-webkit-scrollbar-thumb {
+  background: var(--accent-color);
+  border-radius: 4px;
 }
 
 .tab-button {
@@ -1096,6 +1093,8 @@ a:hover {
 /* Tab Content */
 .tab-content-container {
   padding: var(--space-lg);
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-color) transparent;
 }
 
 .tab-content {
@@ -1149,17 +1148,59 @@ a:hover {
   }
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
+/* Media queries for responsive design */
+@media screen and (max-width: 1200px) {
+  .stats-row {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
-/* Responsive Adjustments */
 @media screen and (max-width: 768px) {
+  .navbar {
+    padding: var(--space-sm) var(--space-md);
+  }
+
+  .navbar-brand {
+    font-size: 1.125rem;
+  }
+
+  .navbar-brand i {
+    font-size: 1.25rem;
+  }
+
+  .settings-btn span {
+    display: none;
+  }
+
+  .badge-container .badge-label {
+    display: none;
+  }
+
+  .stats-row {
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+  }
+
+  .sidebar {
+    width: 100%;
+    right: -100%;
+  }
+
+  .main-content {
+    padding: var(--space-md);
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-sm);
+  }
+
+  .card-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
   .modal-content {
     width: 95%;
     height: 95vh;
@@ -1188,95 +1229,37 @@ a:hover {
   }
 }
 
-/* Add this to your styles.css */
+@media screen and (max-width: 480px) {
+  .badge {
+    min-width: 40px;
+    padding: var(--space-xs) var(--space-sm);
+  }
 
-/* Custom Scrollbar Styling */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
+  .navbar-controls {
+    gap: var(--space-sm);
+  }
 
-::-webkit-scrollbar-track {
-  background: var(--bg-tertiary);
-  border-radius: 4px;
-}
+  .control-button {
+    width: 32px;
+    height: 32px;
+  }
 
-::-webkit-scrollbar-thumb {
-  background: var(--accent-color);
-  border-radius: 4px;
-}
+  .card-body {
+    padding: var(--space-md);
+  }
 
-::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-dark);
-}
+  .stat-card {
+    flex-direction: column;
+    text-align: center;
+    padding: var(--space-md);
+  }
 
-/* Firefox scrollbar */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--accent-color) var(--bg-tertiary);
-}
+  .stat-icon {
+    margin-right: 0;
+    margin-bottom: var(--space-sm);
+  }
 
-/* Settings Button Accent Color */
-.settings-btn {
-  background: var(--accent-color);
-  border: none;
-  color: white;
-  padding: var(--space-sm) var(--space-md);
-  border-radius: var(--border-radius-sm);
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  transition: background var(--transition-speed) ease;
-}
-
-.settings-btn:hover {
-  background: var(--accent-dark);
-}
-
-/* Updated Modal Tabs Scrollbar */
-.settings-tabs {
-  scrollbar-width: thin;
-  scrollbar-color: var(--accent-color) transparent;
-}
-
-.settings-tabs::-webkit-scrollbar {
-  height: 4px;
-}
-
-.settings-tabs::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.settings-tabs::-webkit-scrollbar-thumb {
-  background: var(--accent-color);
-  border-radius: 4px;
-}
-
-/* Tab Content Container Scrollbar */
-.tab-content-container {
-  scrollbar-width: thin;
-  scrollbar-color: var(--accent-color) transparent;
-}
-
-.badge-with-icon {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background-color: var(--accent-color);
-  color: white;
-  padding: var(--space-sm) var(--space-md);
-  border-radius: var(--border-radius-sm);
-  font-weight: 600;
-}
-
-.badge-with-icon i {
-  font-size: 14px;
-}
-
-#download_rate {
-  background-color: transparent; /* Remove background since parent already has it */
-  padding: 0;
-  min-width: auto;
+  .stat-value-row {
+    justify-content: center;
+  }
 }

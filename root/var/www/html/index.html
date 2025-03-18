@@ -12,7 +12,7 @@
       referrerpolicy="no-referrer"
     />
     <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="stylesheet" href="css/styles.css?v=1.0.1" />
+    <link rel="stylesheet" href="css/styles.css?v=1.0.3" />
   </head>
   <body>
     <!-- Navbar -->
@@ -28,11 +28,6 @@
             <i class="fas fa-tachometer-alt"></i>
             <div id="download_rate" class="badge">0.00</div>
           </div>
-        </div>
-        <div id="control">
-          <span class="control-button bg-success" aria-label="Pause uploads">
-            <i class="fa-solid fa-play"></i>
-          </span>
         </div>
         <button
           id="settings-toggle"
@@ -357,7 +352,17 @@
             </div>
             <div class="stat-content">
               <div class="stat-title">Current Upload Rate</div>
-              <div class="stat-value" id="current-rate">0.00 MB/s</div>
+              <div class="stat-value-row">
+                <div id="current-rate">0.00 MB/s</div>
+                <div id="control">
+                  <span
+                    class="control-button bg-success"
+                    aria-label="Pause uploads"
+                  >
+                    <i class="fa-solid fa-pause"></i>
+                  </span>
+                </div>
+              </div>
               <div class="stat-subtitle" id="rate-limit">
                 Limit per Transfer: 30 MB/s
               </div>
@@ -580,8 +585,8 @@
 
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="js/ui/pagination.js?v=1.0.1"></script>
-    <script src="js/utils.js?v=1.0.1"></script>
-    <script src="js/app.js?v=1.0.1"></script>
+    <script src="js/ui/pagination.js?v=1.0.3"></script>
+    <script src="js/utils.js?v=1.0.3"></script>
+    <script src="js/app.js?v=1.0.3"></script>
   </body>
 </html>
