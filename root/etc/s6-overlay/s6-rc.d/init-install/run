@@ -44,11 +44,11 @@ function validate_env_file() {
    if [ ! -f "$ENV_FILE" ]; then
       log "Error: $ENV_FILE not found, will create default file"
       return 1
-   }
+   fi
    
    # Check for essential variables
    local MISSING=0
-   local ESSENTIAL_VARS=("PUID" "PGID" "TIMEZONE" "BANDWIDTH_LIMIT" "TRANSFERS" "FOLDER_DEPTH" "MIN_AGE_UPLOAD" "NOTIFICATION_URL" "NOTIFICATION_LEVEL" "NOTIFICATION_SERVERNAME" "AUTOSCAN_URL" "AUTOSCAN_USER" "AUTOSCAN_PASS")
+   local ESSENTIAL_VARS=("PUID" "PGID" "TIMEZONE" "BANDWIDTH_LIMIT" "TRANSFERS" "FOLDER_DEPTH" "MIN_AGE_UPLOAD")
    
    for var in "${ESSENTIAL_VARS[@]}"; do
       if ! grep -q "^${var}=" "$ENV_FILE"; then
@@ -109,7 +109,8 @@ function update_env_var() {
    log "Updated ${VAR_NAME} to ${NEW_VALUE} in environment file"
 }
 
-   $(which cat) >> /etc/apk/repositories << EOF; $(echo)
+# Setup repositories
+$(which cat) >> /etc/apk/repositories << EOF; $(echo)
 http://dl-cdn.alpinelinux.org/alpine/edge/testing
 EOF
 
@@ -187,7 +188,7 @@ EOF
 fi
 
 # Create the environment file if needed while preserving existing values
-if [[ ! -f "${ENVA}" || "$(validate_env_file)" == "1" ]]; then
+if [[ ! -f "${ENVA}" ]]; then
    log "Setting up environment variables"
    $(which echo) -e "#-------------------------------------------------------
 #   UPLOADER ENVIROMENTS
