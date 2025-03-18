@@ -623,5 +623,48 @@
     <script src="js/ui/pagination.js?v=1.0.4"></script>
     <script src="js/utils.js?v=1.0.4"></script>
     <script src="js/app.js?v=1.0.4"></script>
+    <script>
+      // Apply direct event binding for theme selection
+      $(document).ready(function () {
+        // Direct theme option binding with jQuery
+        $(".theme-option").on("click", function () {
+          const theme = $(this).data("theme");
+          // Set the theme attributes
+          document.documentElement.setAttribute("data-theme", theme);
+          document.body.setAttribute("data-theme", theme);
+
+          // Update active state in the theme options
+          $(".theme-option").removeClass("active");
+          $(this).addClass("active");
+
+          // Save to localStorage
+          try {
+            localStorage.setItem(`uploader_theme`, JSON.stringify(theme));
+          } catch (error) {
+            console.error("Failed to save theme setting:", error);
+          }
+
+          // Update chart colors if applicable
+          if (typeof updateChartThemeColors === "function") {
+            updateChartThemeColors();
+          }
+        });
+
+        // Load saved theme on page load
+        try {
+          const savedTheme = localStorage.getItem("uploader_theme");
+          if (savedTheme) {
+            const theme = JSON.parse(savedTheme);
+            // Set theme without triggering a click
+            document.documentElement.setAttribute("data-theme", theme);
+            document.body.setAttribute("data-theme", theme);
+            $(".theme-option").removeClass("active");
+            $(`.theme-option[data-theme="${theme}"]`).addClass("active");
+          }
+        } catch (error) {
+          console.error("Failed to load theme setting:", error);
+        }
+      });
+    </script>
   </body>
 </html>
