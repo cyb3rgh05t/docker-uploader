@@ -966,3 +966,224 @@ a:hover {
     margin-bottom: var(--space-sm);
   }
 }
+
+/* Modal and Tabbed Settings Styles */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1001;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
+  animation: fadeIn var(--transition-speed) ease;
+}
+
+.modal.active {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background-color: var(--bg-secondary);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: 90%;
+  max-width: 900px;
+  max-height: 90vh;
+  animation: slideInUp var(--transition-speed) ease;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-lg);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: color var(--transition-speed) ease;
+}
+
+.modal-close:hover {
+  color: var(--accent-color);
+}
+
+.modal-body {
+  padding: 0;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Settings Tabs */
+.settings-tabs {
+  display: flex;
+  overflow-x: auto;
+  background-color: var(--bg-primary);
+  border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.tab-button {
+  background: transparent;
+  border: none;
+  padding: var(--space-md) var(--space-lg);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-speed) ease;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  position: relative;
+  white-space: nowrap;
+}
+
+.tab-button i {
+  color: var(--accent-color);
+  opacity: 0.7;
+  transition: opacity var(--transition-speed) ease;
+}
+
+.tab-button:hover {
+  color: var(--text-primary);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.tab-button:hover i {
+  opacity: 1;
+}
+
+.tab-button.active {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.tab-button.active i {
+  opacity: 1;
+}
+
+.tab-button.active::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: var(--accent-color);
+}
+
+/* Tab Content */
+.tab-content-container {
+  padding: var(--space-lg);
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+  animation: fadeIn var(--transition-speed) ease;
+}
+
+/* Settings Cards */
+.settings-card {
+  background-color: var(--bg-card);
+  border-radius: var(--border-radius-md);
+  margin-bottom: var(--space-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+}
+
+.settings-card-title {
+  margin: 0;
+  padding: var(--space-md) var(--space-lg);
+  font-size: 1rem;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.settings-card-title i {
+  color: var(--accent-color);
+}
+
+.settings-card-body {
+  padding: var(--space-lg);
+}
+
+/* Animation for modal and tabs */
+@keyframes slideInUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Responsive Adjustments */
+@media screen and (max-width: 768px) {
+  .modal-content {
+    width: 95%;
+    height: 95vh;
+    max-height: 95vh;
+  }
+
+  .tab-button {
+    padding: var(--space-sm) var(--space-md);
+    font-size: 0.875rem;
+  }
+
+  .tab-button span {
+    display: none;
+  }
+
+  .tab-button i {
+    font-size: 1.25rem;
+  }
+
+  .settings-card-title {
+    padding: var(--space-sm) var(--space-md);
+  }
+
+  .settings-card-body {
+    padding: var(--space-md);
+  }
+}

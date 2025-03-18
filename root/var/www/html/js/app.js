@@ -71,7 +71,9 @@ function setupEventListeners() {
     $("#overlay").removeClass("active");
   });
 
-  // Theme selection
+  setupSettingsModal();
+
+  // Theme selection - updated to work in the modal
   $(".theme-option").on("click", function () {
     const theme = $(this).data("theme");
     setTheme(theme);
@@ -155,6 +157,75 @@ function setupEventListeners() {
     const timeRange = $(this).val();
     createMockUploadChart("upload-history-chart", timeRange);
     saveUserSetting("chartTimeRange", timeRange);
+  });
+}
+
+/**
+ * Settings Modal and Tabbed Interface Functionality
+ */
+
+// Add this to the existing setupEventListeners function
+function setupSettingsModal() {
+  // Modal open/close
+  $("#settings-toggle").on("click", function () {
+    $("#settings-modal").addClass("active");
+    $("#modal-overlay").addClass("active");
+  });
+
+  $("#modal-close, #modal-overlay").on("click", function () {
+    $("#settings-modal").removeClass("active");
+    $("#modal-overlay").removeClass("active");
+  });
+
+  // Close modal when clicking outside of it
+  $(document).on("click", function (event) {
+    if (
+      $("#settings-modal").hasClass("active") &&
+      !$(event.target).closest(".modal-content").length &&
+      !$(event.target).closest("#settings-toggle").length
+    ) {
+      $("#settings-modal").removeClass("active");
+      $("#modal-overlay").removeClass("active");
+    }
+  });
+
+  // Prevent closing when clicking inside modal content
+  $(".modal-content").on("click", function (event) {
+    event.stopPropagation();
+  });
+
+  // Tab switching
+  $(".tab-button").on("click", function () {
+    const targetId = $(this).data("target");
+
+    // Update active state for buttons
+    $(".tab-button").removeClass("active");
+    $(this).addClass("active");
+
+    // Update active state for content
+    $(".tab-content").removeClass("active");
+    $("#" + targetId).addClass("active");
+  });
+
+  // Submit handling for forms in tabs
+  $(".tab-content form").on("submit", function (e) {
+    e.preventDefault();
+
+    // Get form ID to determine which settings to update
+    const formId = $(this).attr("id");
+
+    // Serialize form data
+    const formData = {};
+    const formArray = $(this).serializeArray();
+
+    // Convert form data to a simple object
+    formArray.forEach((item) => {
+      // Convert form field names to uppercase as the backend expects them that way
+      formData[item.name.toUpperCase()] = item.value;
+    });
+
+    // Update environment file with new settings
+    updateEnvSettings(formId, formData);
   });
 }
 
