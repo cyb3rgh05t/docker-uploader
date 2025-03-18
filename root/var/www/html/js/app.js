@@ -95,26 +95,11 @@ function setupEventListeners() {
     }
   });
 
-  // Form submissions
-  $(".settings-form").on("submit", function (e) {
-    e.preventDefault();
+  // Form submissions - with improved handling
+  setupFormSubmissions();
 
-    // Get form ID to determine which settings to update
-    const formId = $(this).attr("id");
-
-    // Serialize form data
-    const formData = {};
-    const formArray = $(this).serializeArray();
-
-    // Convert form data to a simple object
-    formArray.forEach((item) => {
-      // Convert form field names to uppercase as the backend expects them that way
-      formData[item.name.toUpperCase()] = item.value;
-    });
-
-    // Update environment file with new settings
-    updateEnvSettings(formId, formData);
-  });
+  // Fix notification form issues
+  fixNotificationForm();
 
   // Play/Pause button
   $("#control > span").on("click", function () {
@@ -169,6 +154,69 @@ function setupEventListeners() {
     const timeRange = $(this).val();
     createMockUploadChart("upload-history-chart", timeRange);
     saveUserSetting("chartTimeRange", timeRange);
+  });
+}
+
+/**
+ * Special handling for form submissions
+ */
+function setupFormSubmissions() {
+  // Form submissions
+  $(".settings-form").on("submit", function (e) {
+    e.preventDefault();
+
+    // Get form ID to determine which settings to update
+    const formId = $(this).attr("id");
+
+    // Skip notification form as it has special handling
+    if (formId === "notification-form") {
+      return;
+    }
+
+    // Serialize form data
+    const formData = {};
+    const formArray = $(this).serializeArray();
+
+    // Convert form data to a simple object
+    formArray.forEach((item) => {
+      // Convert form field names to uppercase as the backend expects them that way
+      formData[item.name.toUpperCase()] = item.value;
+    });
+
+    // Update environment file with new settings
+    updateEnvSettings(formId, formData);
+  });
+}
+
+/**
+ * Special handling for notification form to prevent conflicts
+ */
+function fixNotificationForm() {
+  // Prevent ServerName from affecting Notification URL
+  $("#notification_servername").on("change", function () {
+    // This empty handler prevents any automatic updates that might happen
+    console.log("ServerName changed to:", $(this).val());
+  });
+
+  // Ensure both fields get submitted separately
+  $("#notification-form").on("submit", function (e) {
+    e.preventDefault();
+
+    const serverName = $("#notification_servername").val();
+    const notificationUrl = $("#notification_url").val();
+
+    console.log("Submitting notification form with separate values:", {
+      serverName: serverName,
+      notificationUrl: notificationUrl,
+    });
+
+    const formData = {
+      NOTIFICATION_SERVERNAME: serverName,
+      NOTIFICATION_URL: notificationUrl,
+      NOTIFICATION_LEVEL: $("#notification_level").val(),
+    };
+
+    updateEnvSettings("notification-form", formData);
   });
 }
 
@@ -287,25 +335,25 @@ function handleInProgressJobs() {
 
       // Create table row with responsive data attributes
       $tableBody.append(`
-            <tr>
-              <td data-title="Filename" class="truncate">${data.file_name}</td>
-              <td data-title="Folder" class="d-none d-lg-table-cell">${data.drive}</td>
-              <td data-title="Key" class="d-none d-lg-table-cell">${data.gdsa}</td>
-              <td data-title="Progress">
-                <div class="progress">
-                  <div class="progress-bar ${progressClass}" role="progressbar"
-                       style="width: ${data.upload_percentage};" 
-                       aria-valuenow="${progress}" 
-                       aria-valuemin="0" 
-                       aria-valuemax="100">
-                    ${data.upload_percentage}
+              <tr>
+                <td data-title="Filename" class="truncate">${data.file_name}</td>
+                <td data-title="Folder" class="d-none d-lg-table-cell">${data.drive}</td>
+                <td data-title="Key" class="d-none d-lg-table-cell">${data.gdsa}</td>
+                <td data-title="Progress">
+                  <div class="progress">
+                    <div class="progress-bar ${progressClass}" role="progressbar"
+                         style="width: ${data.upload_percentage};" 
+                         aria-valuenow="${progress}" 
+                         aria-valuemin="0" 
+                         aria-valuemax="100">
+                      ${data.upload_percentage}
+                    </div>
                   </div>
-                </div>
-              </td>
-              <td data-title="Filesize" class="d-none d-lg-table-cell">${data.file_size}</td>
-              <td data-title="Time Left" class="text-end">${data.upload_remainingtime} (with ${data.upload_speed})</td>
-            </tr>
-          `);
+                </td>
+                <td data-title="Filesize" class="d-none d-lg-table-cell">${data.file_size}</td>
+                <td data-title="Time Left" class="text-end">${data.upload_remainingtime} (with ${data.upload_speed})</td>
+              </tr>
+            `);
     });
 
     // Update the upload rate display
@@ -397,15 +445,17 @@ function handleCompletedJobList() {
         const rowClass = job.successful === true ? "" : "table-danger";
 
         $completedTableBody.append(`
-              <tr class="${rowClass}">
-                <td data-title="Filename" class="truncate">${job.file_name}</td>
-                <td data-title="Folder">${job.drive}</td>
-                <td data-title="Key">${job.gdsa}</td>
-                <td data-title="Filesize">${job.file_size}</td>
-                <td data-title="Time spent">${job.time_elapsed || "n/a"}</td>
-                <td data-title="Uploaded">${endTime}</td>
-              </tr>
-            `);
+                <tr class="${rowClass}">
+                  <td data-title="Filename" class="truncate">${
+                    job.file_name
+                  }</td>
+                  <td data-title="Folder">${job.drive}</td>
+                  <td data-title="Key">${job.gdsa}</td>
+                  <td data-title="Filesize">${job.file_size}</td>
+                  <td data-title="Time spent">${job.time_elapsed || "n/a"}</td>
+                  <td data-title="Uploaded">${endTime}</td>
+                </tr>
+              `);
       });
 
       // Fetch all completed uploads for today
@@ -708,9 +758,21 @@ function updateEnvSettings(formId, settings) {
   const originalText = $submitBtn.text();
   $submitBtn.prop("disabled", true).text("Saving...");
 
+  // Special handling for BANDWIDTH_LIMIT
+  if (
+    settings.BANDWIDTH_LIMIT !== undefined &&
+    settings.BANDWIDTH_LIMIT !== "null" &&
+    settings.BANDWIDTH_LIMIT !== "" &&
+    !/[KMG]$/i.test(settings.BANDWIDTH_LIMIT)
+  ) {
+    // Append 'M' if no unit is specified
+    settings.BANDWIDTH_LIMIT = settings.BANDWIDTH_LIMIT + "M";
+    console.log("Added M suffix to bandwidth limit:", settings.BANDWIDTH_LIMIT);
+  }
+
   // Make actual API call to update env settings
   $.ajax({
-    url: "srv/api/settings/update.php",
+    url: "srv/api/system/update_env.php",
     type: "POST",
     data: JSON.stringify(settings),
     contentType: "application/json",
@@ -740,6 +802,10 @@ function updateEnvSettings(formId, settings) {
 
           case "notification-form":
             // Update notification settings UI if needed
+            break;
+
+          case "autoscan-form":
+            // Update autoscan settings UI if needed
             break;
 
           case "security-form":

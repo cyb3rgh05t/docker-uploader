@@ -256,6 +256,52 @@
         </div>
       </div>
 
+      <!-- AutoScan Settings -->
+      <div class="sidebar-section">
+        <div class="sidebar-section-header" data-target="autoscan-section">
+          <h3 class="sidebar-section-title">
+            <i class="fas fa-search"></i>
+            AutoScan Settings
+          </h3>
+          <i class="fas fa-chevron-down"></i>
+        </div>
+        <div class="sidebar-section-content" id="autoscan-section">
+          <form class="settings-form" id="autoscan-form">
+            <div class="form-group">
+              <label for="autoscan_url">AutoScan URL</label>
+              <input
+                type="text"
+                id="autoscan_url"
+                name="autoscan_url"
+                class="form-control"
+                placeholder="http://autoscan:3030"
+              />
+            </div>
+            <div class="form-group">
+              <label for="autoscan_user">AutoScan Username</label>
+              <input
+                type="text"
+                id="autoscan_user"
+                name="autoscan_user"
+                class="form-control"
+                placeholder="username (leave empty for none)"
+              />
+            </div>
+            <div class="form-group">
+              <label for="autoscan_pass">AutoScan Password</label>
+              <input
+                type="password"
+                id="autoscan_pass"
+                name="autoscan_pass"
+                class="form-control"
+                placeholder="password (leave empty for none)"
+              />
+            </div>
+            <button type="submit" class="btn">Save Changes</button>
+          </form>
+        </div>
+      </div>
+
       <!-- Security Settings -->
       <div class="sidebar-section">
         <div class="sidebar-section-header" data-target="security-section">

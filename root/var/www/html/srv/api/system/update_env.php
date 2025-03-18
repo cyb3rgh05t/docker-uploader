@@ -79,6 +79,16 @@ function updateEnvSettings()
         }
     }
 
+    // Create a backup before modifying
+    $backupFile = $envFile . '.bak.' . date('YmdHis');
+    if (!copy($envFile, $backupFile)) {
+        error_log("Failed to create backup file");
+        return json_encode(array(
+            'success' => false,
+            'message' => 'Failed to create backup file.'
+        ));
+    }
+
     // Read the current env file
     $lines = file($envFile, FILE_IGNORE_NEW_LINES);
     if ($lines === false) {
@@ -92,7 +102,7 @@ function updateEnvSettings()
     error_log("Read " . count($lines) . " lines from environment file");
     $updated = false;
 
-    // Process input data
+    // Process input data - special handling for certain fields
     foreach ($data as $key => &$value) {
         // Skip empty or invalid keys
         if (empty($key) || !is_string($key)) {
@@ -102,28 +112,41 @@ function updateEnvSettings()
         // Remove any dangerous characters
         $key = preg_replace('/[^A-Za-z0-9_]/', '', $key);
 
-        // Format the value properly based on type
-        if (is_bool($value)) {
-            $value = $value ? 'true' : 'false';
-        } elseif ($value === null) {
-            $value = 'null';
-        } elseif (is_string($value) && strpos($value, ' ') !== false) {
-            $value = '"' . $value . '"';
+        // Special handling for BANDWIDTH_LIMIT
+        if ($key === 'BANDWIDTH_LIMIT' && !empty($value) && $value !== 'null' && !preg_match('/[KMG]$/i', $value)) {
+            // Append 'M' if no unit is specified
+            $value = $value . 'M';
+            error_log("Added M suffix to bandwidth limit: $value");
         }
 
         error_log("Processed setting: $key=$value");
     }
+    // Important: unset the reference to avoid issues
+    unset($value);
 
     // Update the env file with new values
     foreach ($lines as $i => $line) {
         foreach ($data as $key => $value) {
-            // Match both uppercase and the exact case version of the key
+            // Match the exact key at the start of the line
             $upperKey = strtoupper($key);
-            $pattern = '/^(' . preg_quote($upperKey, '/') . '=).*/i';
+            $pattern = '/^' . preg_quote($upperKey, '/') . '=/';
 
             if (preg_match($pattern, $line)) {
                 $oldLine = $lines[$i];
-                $lines[$i] = preg_replace($pattern, '$1' . $value, $line);
+
+                // Check if the value needs quotes
+                if ($value === 'true' || $value === 'false' || $value === 'null' || is_numeric($value)) {
+                    $formattedValue = $value;
+                } else {
+                    // If the value already has quotes, keep them
+                    if (preg_match('/^".*"$/', $value) || preg_match("/^'.*'$/", $value)) {
+                        $formattedValue = $value;
+                    } else {
+                        $formattedValue = '"' . $value . '"';
+                    }
+                }
+
+                $lines[$i] = $upperKey . '=' . $formattedValue;
 
                 error_log("Updated line: '$oldLine' to '{$lines[$i]}'");
                 $updated = true;
@@ -156,7 +179,19 @@ function updateEnvSettings()
             foreach ($data as $key => $value) {
                 // Convert key to uppercase for env file
                 $upperKey = strtoupper($key);
-                $newLine = "$upperKey=$value";
+
+                // Check if the value needs quotes
+                if ($value === 'true' || $value === 'false' || $value === 'null' || is_numeric($value)) {
+                    $formattedValue = $value;
+                } else {
+                    if (preg_match('/^".*"$/', $value) || preg_match("/^'.*'$/", $value)) {
+                        $formattedValue = $value;
+                    } else {
+                        $formattedValue = '"' . $value . '"';
+                    }
+                }
+
+                $newLine = "$upperKey=$formattedValue";
 
                 error_log("Inserting new line at $insertIndex: $newLine");
 
