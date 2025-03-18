@@ -613,24 +613,56 @@ function checkStatus() {
       console.error("Failed to check status:", textStatus, errorThrown);
     });
 }
+
+// Play/Pause button handler
+function alignPauseControl(status, fromUserAction = false) {
+  console.log("Aligning pause control to status:", status);
+
+  const $control = $("#control > span");
+  const $icon = $control.find("i");
+
+  if (status === "STARTED") {
+    // If uploader is RUNNING, show PAUSE icon (so user can pause it)
+    $icon.removeClass("fa-play").addClass("fa-pause");
+    $control.removeClass("bg-danger").addClass("bg-success");
+    $control.attr("aria-label", "Pause uploads");
+
+    if (fromUserAction) {
+      showStatusMessage("Uploader is running");
+    }
+  } else if (status === "STOPPED") {
+    // If uploader is STOPPED, show PLAY icon (so user can resume it)
+    $icon.removeClass("fa-pause").addClass("fa-play");
+    $control.removeClass("bg-success").addClass("bg-danger");
+    $control.attr("aria-label", "Resume uploads");
+
+    if (fromUserAction) {
+      showStatusMessage("Uploader is paused");
+    }
+  }
+}
+
 /**
  * Update the pause/play control based on service status
  * @param {string} status - Service status (STARTED or STOPPED)
  */
-// Play/Pause button handler
+// Also update the click handler to make the logic clearer
 function setupPauseControl() {
   $("#control > span").on("click", function () {
     console.log("Pause/play button clicked");
 
     // Determine action based on current state
     const $icon = $(this).find("i");
-    const action = $icon.hasClass("fa-play") ? "continue" : "pause";
+
+    // If we see pause icon, clicking means we want to pause
+    // If we see play icon, clicking means we want to resume
+    const action = $icon.hasClass("fa-pause") ? "pause" : "continue";
+
+    console.log("Icon class:", $icon.attr("class"), "Action:", action);
 
     // Visual feedback while processing
     const $button = $(this);
     $button.css("opacity", "0.5").css("pointer-events", "none");
-
-    console.log("Sending action:", action);
 
     // Send request to API
     $.ajax({
@@ -641,7 +673,6 @@ function setupPauseControl() {
       success: function (data) {
         console.log("Status update response:", data);
         if (data && data.status) {
-          // Pass true as second parameter since this was triggered by user action
           alignPauseControl(data.status, true);
         } else {
           console.error("Invalid response from status API");
@@ -661,32 +692,6 @@ function setupPauseControl() {
       },
     });
   });
-}
-
-// Update the UI based on the current status
-function alignPauseControl(status, fromUserAction = false) {
-  console.log("Aligning pause control to status:", status);
-
-  const $control = $("#control > span");
-  const $icon = $control.find("i");
-
-  if (status === "STARTED") {
-    $icon.removeClass("fa-pause").addClass("fa-play");
-    $control.removeClass("bg-danger").addClass("bg-success");
-    $control.attr("aria-label", "Pause uploads");
-    // Only show message if this was triggered by a user action
-    if (fromUserAction) {
-      showStatusMessage("Uploader is running");
-    }
-  } else if (status === "STOPPED") {
-    $icon.removeClass("fa-play").addClass("fa-pause");
-    $control.removeClass("bg-success").addClass("bg-danger");
-    $control.attr("aria-label", "Resume uploads");
-    // Only show message if this was triggered by a user action
-    if (fromUserAction) {
-      showStatusMessage("Uploader is paused");
-    }
-  }
 }
 
 // Update the updateRealTimeStats function
