@@ -48,6 +48,42 @@ function log() {
    $(which echo) -e "${GRAY}[$($(which date) +'%Y/%m/%d %H:%M:%S')]${BLUE} [Uploader]${NC} ${1}"
 }
 
+function update_env_var() {
+   # $1 = variable name (e.g., BANDWIDTH_LIMIT)
+   # $2 = new value (e.g., "30M")
+   local VAR_NAME="$1"
+   local NEW_VALUE="$2"
+   local ENV_FILE="/system/uploader/uploader.env"
+   
+   # Create a temporary file
+   local TEMP_FILE=$(mktemp)
+   
+   # Read line by line, update the specific variable
+   while IFS= read -r line; do
+      if [[ "$line" =~ ^$VAR_NAME= ]]; then
+         # Special handling for string vs numeric/boolean values
+         if [[ "$NEW_VALUE" == "true" || "$NEW_VALUE" == "false" || "$NEW_VALUE" == "null" || "$NEW_VALUE" =~ ^[0-9]+$ ]]; then
+            # Boolean, null, or numeric values don't need quotes
+            echo "${VAR_NAME}=${NEW_VALUE}" >> "$TEMP_FILE"
+         else
+            # String values should be quoted
+            echo "${VAR_NAME}=\"${NEW_VALUE}\"" >> "$TEMP_FILE"
+         fi
+      else
+         echo "$line" >> "$TEMP_FILE"
+      fi
+   done < "$ENV_FILE"
+   
+   # Replace original file
+   mv "$TEMP_FILE" "$ENV_FILE"
+   
+   # Set permissions
+   chmod 755 "$ENV_FILE"
+   chown abc:abc "$ENV_FILE"
+   
+   log "Updated ${VAR_NAME} to ${NEW_VALUE} in environment file"
+}
+
 function refreshVFS() {
    source /system/uploader/uploader.env
    #### SEND VFS REFRESH TO MOUNT ####
@@ -191,6 +227,12 @@ function cleanuplog() {
 
 function rcloneupload() {
    source /system/uploader/uploader.env
+   # Validate BANDWIDTH_LIMIT
+   if [[ "${BANDWIDTH_LIMIT}" != "null" && ! "${BANDWIDTH_LIMIT}" =~ ^[0-9]+[KMG]?$ ]]; then
+      log "Warning: BANDWIDTH_LIMIT format invalid, setting to null"
+      BANDWIDTH_LIMIT="null"
+   fi
+
    FILETYPE="${FILE##*.}"
    SETDIR=$($(which echo) "${DIR}" | $(which cut) -d/ -f-"${FOLDER_DEPTH}")
    SIZE=$($(which echo) "${SIZEBYTES}" | $(which numfmt) --to=iec-i --suffix=B)
@@ -289,30 +331,7 @@ function rcloneupload() {
    checkerror
    #### ECHO END-PARTS FOR UI READING ####
    $(which find) "${DLFOLDER}/${SETDIR}" -mindepth 1 -type d -empty -delete &>/dev/null
-   
-   # Make sure SIZEBYTES contains the actual size in bytes for storage
-   if [[ -z "${SIZEBYTES}" || "${SIZEBYTES}" == "0" ]]; then
-      # If SIZEBYTES is empty or zero, try to derive it from SIZE
-      if [[ "${SIZE}" =~ ^([0-9.]+)\ ?([KMGT]i?B) ]]; then
-         NUM=${BASH_REMATCH[1]}
-         UNIT=${BASH_REMATCH[2]}
-         case "${UNIT}" in
-            B) SIZEBYTES=$(echo "${NUM}" | awk '{printf "%d", $1}') ;;
-            KB|KiB) SIZEBYTES=$(echo "${NUM}" | awk '{printf "%d", $1 * 1024}') ;;
-            MB|MiB) SIZEBYTES=$(echo "${NUM}" | awk '{printf "%d", $1 * 1024 * 1024}') ;;
-            GB|GiB) SIZEBYTES=$(echo "${NUM}" | awk '{printf "%d", $1 * 1024 * 1024 * 1024}') ;;
-            TB|TiB) SIZEBYTES=$(echo "${NUM}" | awk '{printf "%d", $1 * 1024 * 1024 * 1024 * 1024}') ;;
-            *) SIZEBYTES=0 ;;
-         esac
-      else
-         # Default to zero if we can't parse
-         SIZEBYTES=0
-      fi
-   fi
-   
-   # Insert into completed_uploads with the filesize_bytes field
-   sqlite3write "INSERT INTO completed_uploads (drive,filedir,filebase,filesize,filesize_bytes,gdsa,starttime,endtime,status,error) VALUES (\"${DRIVE}\",\"${DIR}\",\"${FILE}\",\"${SIZE}\",\"${SIZEBYTES}\",\"${REMOTENAME}\",\"${STARTZ}\",\"${ENDZ}\",\"${STATUS}\",\"${ERROR}\"); DELETE FROM uploads WHERE filebase = \"${FILE}\";" &>/dev/null
-   
+   sqlite3write "INSERT INTO completed_uploads (drive,filedir,filebase,filesize,gdsa,starttime,endtime,status,error) VALUES (\"${DRIVE}\",\"${DIR}\",\"${FILE}\",\"${SIZE}\",\"${REMOTENAME}\",\"${STARTZ}\",\"${ENDZ}\",\"${STATUS}\",\"${ERROR}\"); DELETE FROM uploads WHERE filebase = \"${FILE}\";" &>/dev/null
    #### END OF MOVE ####
    $(which rm) -rf "${LOGFILE}/${FILE}.txt" &>/dev/null
    #### REMOVE CUSTOM RCLONE.CONF ####
@@ -323,6 +342,19 @@ function rcloneupload() {
 
 function listfiles() {
    source /system/uploader/uploader.env
+   
+   # Validate MIN_AGE_UPLOAD
+   if [[ -z "${MIN_AGE_UPLOAD}" || ! "${MIN_AGE_UPLOAD}" =~ ^[0-9]+$ ]]; then
+      MIN_AGE_UPLOAD=1
+      log "Warning: MIN_AGE_UPLOAD was invalid, reset to 1"
+   fi
+   
+   # Validate FOLDER_DEPTH
+   if [[ -z "${FOLDER_DEPTH}" || ! "${FOLDER_DEPTH}" =~ ^[0-9]+$ || "${FOLDER_DEPTH}" -lt 1 ]]; then
+      FOLDER_DEPTH=1
+      log "Warning: FOLDER_DEPTH was invalid, reset to 1"
+   fi
+   
    #### CREATE TEMP_FILE ####
    sqlite3read "SELECT filebase FROM upload_queue UNION ALL SELECT filebase FROM uploads;" > "${TEMPFILES}"
    #### FIND NEW FILES ####
@@ -332,7 +364,12 @@ function listfiles() {
    for NAME in ${FILEBASE[@]}; do
       LISTFILE=$($(which basename) "${NAME}")
       LISTDIR=$($(which dirname) "${NAME}")
-      LISTDRIVE=$($(which echo) "${LISTDIR}" | $(which cut) -d/ -f-"${FOLDER_DEPTH}" | $(which xargs) -I {} $(which basename) {})
+      # Ensure FOLDER_DEPTH is valid
+      if [[ -z "${FOLDER_DEPTH}" || "${FOLDER_DEPTH}" -lt 1 ]]; then
+        FOLDER_DEPTH=1
+        log "Warning: FOLDER_DEPTH was invalid, reset to 1"
+      fi
+      LISTDRIVE=$($(which echo) "${LISTDIR}" | $(which cut) -d/ -f1-"${FOLDER_DEPTH}" | $(which xargs) -I {} $(which basename) {})
       LISTSIZE=$($(which stat) -c %s "${DLFOLDER}/${NAME}" 2>/dev/null)
       LISTTYPE="${NAME##*.}"
       if [[ "${LISTTYPE}" == "mkv" ]] || [[ "${LISTTYPE}" == "mp4" ]] || [[ "${LISTTYPE}" == "avi" ]] || [[ "${LISTTYPE}" == "mov" ]] || [[ "${LISTTYPE}" == "mpeg" ]] || [[ "${LISTTYPE}" == "mpegts" ]] || [[ "${LISTTYPE}" == "ts" ]]; then
@@ -382,7 +419,7 @@ function checkmeta() {
 function checkspace() {
    source /system/uploader/uploader.env
    #### CHECK DRIVEUSEDSPACE ####
-   if [[ "${DRIVEUSEDSPACE}" =~ ^[0-9][0-9]+([.][0-9]+)?$ ]]; then
+   if [[ "${DRIVEUSEDSPACE}" != "null" && "${DRIVEUSEDSPACE}" =~ ^[0-9][0-9]+([.][0-9]+)?$ ]]; then
       while true; do
         LCT=$($(which df) --output=pcent "${DLFOLDER}" | tr -dc '0-9')
         if [[ "${DRIVEUSEDSPACE}" =~ ^[0-9][0-9]+([.][0-9]+)?$ ]]; then
@@ -403,11 +440,13 @@ function transfercheck() {
       pausecheck
       #### START TRANSFER CHECK ####
       ACTIVETRANSFERS=$(sqlite3read "SELECT COUNT(*) FROM uploads;" 2>/dev/null)
-      if [[ "${TRANSFERS}" != +([0-9.]) ]] || [ "${TRANSFERS}" -gt "99" ] || [ "${TRANSFERS}" -eq "0" ]; then
-         TRANSFERS="1"
-      else
-         TRANSFERS="${TRANSFERS}"
+      
+      # Validate TRANSFERS
+      if [[ -z "${TRANSFERS}" || ! "${TRANSFERS}" =~ ^[0-9]+$ || "${TRANSFERS}" -gt 99 || "${TRANSFERS}" -lt 1 ]]; then
+         TRANSFERS=1
+         log "Warning: TRANSFERS was invalid, reset to 1"
       fi
+      
       if [[ "${ACTIVETRANSFERS}" -lt "${TRANSFERS}" ]]; then
          #### CREATE DATABASE ENTRY ####
          sqlite3write "DELETE FROM upload_queue WHERE filebase = \"${FILE}\"; INSERT INTO uploads (filebase) VALUES (\"${FILE}\");" &>/dev/null

@@ -37,6 +37,40 @@ USEDDIR=/system/uploader/.keys
 JSONOLD=/system/uploader/json
 ARRAY=$($(which ls) -A "${JSONDIR}" | $(which wc) -l)
 
+function validate_env_file() {
+   local ENV_FILE="/system/uploader/uploader.env"
+   
+   if [ ! -f "$ENV_FILE" ]; then
+      log "Error: $ENV_FILE not found, will create default file"
+      return 1
+   fi
+   
+   # Check for essential variables
+   local MISSING=0
+   local ESSENTIAL_VARS=("PUID" "PGID" "TIMEZONE" "BANDWIDTH_LIMIT" "TRANSFERS" "FOLDER_DEPTH" "MIN_AGE_UPLOAD")
+   
+   for var in "${ESSENTIAL_VARS[@]}"; do
+      if ! grep -q "^${var}=" "$ENV_FILE"; then
+         log "Missing essential variable: $var"
+         MISSING=1
+      fi
+   done
+   
+   # If missing any essential variables, recreate the file
+   if [ "$MISSING" -eq 1 ]; then
+      log "Will recreate env file with missing variables"
+      return 1
+   fi
+   
+   # Check variable format for common issues
+   if grep -q "^BANDWIDTH_LIMIT=[^\"']" "$ENV_FILE"; then
+      log "BANDWIDTH_LIMIT is not properly quoted, fixing"
+      sed -i 's|^BANDWIDTH_LIMIT=\(.*\)|BANDWIDTH_LIMIT=\"\1\"|g' "$ENV_FILE"
+   fi
+   
+   return 0
+}
+
    $(which cat) >> /etc/apk/repositories << EOF; $(echo)
 http://dl-cdn.alpinelinux.org/alpine/edge/testing
 EOF
@@ -83,8 +117,13 @@ $(which cp) -r /app/sample/crypt_multi_tdrive-example.csv /system/uploader/sampl
 $(which cp) -r /app/sample/uncrypt_multi_tdrive-example.csv /system/uploader/sample/uncrypt_multi_tdrive-example.csv
 
 if [[ -f "${ENVA}" ]]; then
-   source "${ENVA}"
+   # Validate the environment file
+   validate_env_file || {
+      log "Creating new environment file due to validation failure"
+      source "${SAMPLE}"
+   }
 else
+   log "Environment file not found, using sample"
    source "${SAMPLE}"
 fi
 
@@ -109,6 +148,8 @@ tubesync/
 EOF
 fi
 
+# Create the environment file with proper values and quoting
+log "Setting up environment variables"
 $(which echo) -e "#-------------------------------------------------------
 #   UPLOADER ENVIROMENTS
 #-------------------------------------------------------
@@ -134,29 +175,29 @@ TRANSFERS=${TRANSFERS:-2}
 ## USER - SETTINGS
 DRIVEUSEDSPACE=${DRIVEUSEDSPACE:-null}
 FOLDER_DEPTH=${FOLDER_DEPTH:-1}
-FOLDER_PRIORITY=${FOLDER_PRIORITY:-null}
+FOLDER_PRIORITY=\"${FOLDER_PRIORITY:-null}\"
 MIN_AGE_UPLOAD=${MIN_AGE_UPLOAD:-1}
 
 ## VFS - SETTINGS
 VFS_REFRESH_ENABLE=${VFS_REFRESH_ENABLE:-true}
-MOUNT=${MOUNT:-mount:8554}
+MOUNT=\"${MOUNT:-mount:8554}\"
 
 ## LOG - SETTINGS
 LOG_ENTRY=${LOG_ENTRY:-1000}
 LOG_RETENTION_DAYS=${LOG_RETENTION_DAYS:-null}
 
 ## AUTOSCAN - SETTINGS
-AUTOSCAN_URL=${AUTOSCAN_URL:-null}
-AUTOSCAN_USER=${AUTOSCAN_USER:-null}
-AUTOSCAN_PASS=${AUTOSCAN_PASS:-null}
+AUTOSCAN_URL=\"${AUTOSCAN_URL:-null}\"
+AUTOSCAN_USER=\"${AUTOSCAN_USER:-null}\"
+AUTOSCAN_PASS=\"${AUTOSCAN_PASS:-null}\"
 
 ## NOTIFICATION - SETTINGS
-NOTIFICATION_URL=${NOTIFICATION_URL:-null}
+NOTIFICATION_URL=\"${NOTIFICATION_URL:-null}\"
 NOTIFICATION_LEVEL=${NOTIFICATION_LEVEL:-ALL}
-NOTIFICATION_SERVERNAME=${NOTIFICATION_SERVERNAME:-null}
+NOTIFICATION_SERVERNAME=\"${NOTIFICATION_SERVERNAME:-null}\"
 
 ## STRIPARR - SETTINGS
-STRIPARR_URL=${STRIPARR_URL:-null}
+STRIPARR_URL=\"${STRIPARR_URL:-null}\"
 
 ## LANGUAGE MESSAGES
 LANGUAGE=${LANGUAGE:-en}
@@ -164,11 +205,6 @@ LANGUAGE=${LANGUAGE:-en}
 #-------------------------------------------------------
 #   UPLOADER ENVIROMENTS
 #-------------------------------------------------------" > "${ENVA}"
-
-# Ensure environment file is writable by the web server
-log "**** ensuring uploader.env is writable ****"
-$(which chmod) 0666 "${ENVA}" &>/dev/null
-$(which chown) abc:abc "${ENVA}" &>/dev/null
 
 if [[ -f "${ENDCONFIG}" ]]; then $(which rm) -f "${ENDCONFIG}"; fi
 if [[ -f "${PAUSE}" ]]; then $(which rm) -f "${PAUSE}"; fi
@@ -188,8 +224,8 @@ function sqlite3read() {
 if [[ ! -f "${DATABASE}" ]]; then
    sqlite3write "CREATE TABLE upload_keys(time DATETIME DEFAULT (datetime('now','localtime')), key TEXT, used NUMERIC, active INTEGER);" &>/dev/null
    sqlite3write "CREATE TABLE upload_queue(time DATETIME DEFAULT (datetime('now','localtime')), drive TEXT, filedir TEXT, filebase TEXT PRIMARY KEY, filesize TEXT, metadata INTEGER);" &>/dev/null
-   sqlite3write "CREATE TABLE uploads(drive TEXT, filedir TEXT, filebase TEXT PRIMARY KEY, filesize TEXT, logfile TEXT, gdsa TEXT, status INTEGER DEFAULT 0);" &>/dev/null
-   sqlite3write "CREATE TABLE completed_uploads(drive TEXT, filedir TEXT, filebase TEXT, filesize TEXT, filesize_bytes INTEGER, gdsa TEXT, starttime NUMERIC, endtime NUMERIC, status NUMERIC, error TEXT);" &>/dev/null
+   sqlite3write "CREATE TABLE uploads(drive TEXT, filedir TEXT, filebase TEXT PRIMARY KEY, filesize TEXT, logfile TEXT, gdsa TEXT);" &>/dev/null
+   sqlite3write "CREATE TABLE completed_uploads(drive TEXT, filedir TEXT, filebase TEXT, filesize TEXT, gdsa TEXT, starttime NUMERIC, endtime NUMERIC, status NUMERIC, error TEXT);" &>/dev/null
    sqlite3write "CREATE INDEX idx_completed_endtime ON completed_uploads (endtime);" &>/dev/null
    sqlite3write "CREATE INDEX idx_queue_time ON upload_queue (time);" &>/dev/null
 fi
@@ -197,38 +233,11 @@ fi
 # UPDATE UPLOADER DATEBASE
 sqlite3write "CREATE TABLE IF NOT EXISTS upload_keys(time DATETIME DEFAULT (datetime('now','localtime')), key TEXT, used NUMERIC, active INTEGER);" &>/dev/null
 
-# Check and update metadata column in upload_queue
 DATABASEMETA=$(sqlite3read "PRAGMA table_info('upload_queue')" 2>/dev/null | $(which grep) -qE "metadata"  && echo true || echo false)
 if [[ "${DATABASEMETA}" == "false" ]]; then
    sqlite3write "DROP TABLE upload_queue" &>/dev/null
    sqlite3write "CREATE TABLE upload_queue(time DATETIME DEFAULT (datetime('now','localtime')), drive TEXT, filedir TEXT, filebase TEXT PRIMARY KEY, filesize TEXT, metadata INTEGER);" &>/dev/null
 fi
-
-# Check and add status field to uploads table if missing
-UPLOADSSTATUS=$(sqlite3read "PRAGMA table_info('uploads')" 2>/dev/null | $(which grep) -qE "status" && echo true || echo false)
-if [[ "${UPLOADSSTATUS}" == "false" ]]; then
-   sqlite3write "ALTER TABLE uploads ADD COLUMN status INTEGER DEFAULT 0;" &>/dev/null
-fi
-
-# Check and add filesize_bytes field to completed_uploads if missing
-FILESIZENUMERIC=$(sqlite3read "PRAGMA table_info('completed_uploads')" 2>/dev/null | $(which grep) -qE "filesize_bytes" && echo true || echo false)
-if [[ "${FILESIZENUMERIC}" == "false" ]]; then
-   sqlite3write "ALTER TABLE completed_uploads ADD COLUMN filesize_bytes INTEGER;" &>/dev/null
-   
-   # Update existing records with calculated sizes
-   # This converts size strings like "1.5 GiB" to bytes and stores them
-   log "**** updating filesize_bytes for existing records ****"
-   sqlite3write "CREATE TEMP TABLE size_conversion(unit TEXT, multiplier INTEGER);
-                INSERT INTO size_conversion VALUES ('B', 1), ('KB', 1024), ('MB', 1048576), ('GB', 1073741824), ('TB', 1099511627776);
-                UPDATE completed_uploads SET filesize_bytes = 
-                (SELECT CAST(REGEXP_REPLACE(filesize, '[^0-9.]', '') AS REAL) * multiplier
-                 FROM size_conversion WHERE UPPER(filesize) LIKE '%' || unit || '%' LIMIT 1)
-                WHERE filesize_bytes IS NULL AND filesize IS NOT NULL;" &>/dev/null
-fi
-
-# Ensure indexes for optimized queries
-sqlite3write "CREATE INDEX IF NOT EXISTS idx_completed_endtime ON completed_uploads (endtime);" &>/dev/null
-sqlite3write "CREATE INDEX IF NOT EXISTS idx_completed_status ON completed_uploads (status);" &>/dev/null
 
 # UPLOADER KEYS
 CHECKKEYS=$(sqlite3read "SELECT COUNT(*) FROM upload_keys;" 2>/dev/null)
@@ -322,26 +331,9 @@ fi
 sqlite3write "DELETE FROM upload_queue;" &>/dev/null
 sqlite3write "DELETE FROM uploads;" &>/dev/null
 
-# Create directories for new API endpoints if they don't exist
-log "**** setting up API endpoints ****"
-$(which mkdir) -p /var/www/html/srv/api/jobs /var/www/html/srv/api/system &>/dev/null
-
-# Create the CSS directory for the UI redesign
-$(which mkdir) -p /var/www/html/css /var/www/html/js &>/dev/null
-$(which touch) /var/www/html/css/styles.css &>/dev/null
-$(which touch) /var/www/html/js/utils.js &>/dev/null
-
-# Make sure pause file directory exists and is writable
-log "**** ensuring pause file directory is writable ****"
-$(which mkdir) -p "$(dirname "${PAUSE}")" &>/dev/null
-$(which touch) "${PAUSE}" &>/dev/null
-$(which rm) -f "${PAUSE}" &>/dev/null
-$(which chmod) 777 "$(dirname "${PAUSE}")" &>/dev/null
-$(which chown) -R abc:abc "$(dirname "${PAUSE}")" &>/dev/null
-
 log "**** set permissions ****"
-$(which chown) -cR abc:abc /root/.config /app /system/* /var/www/html/* &>/dev/null
-$(which chmod) -cR 755 /root/.config/rclone/ /app /system/* /var/www/html/* &>/dev/null
+$(which chown) -cR abc:abc /root/.config /app /system/* &>/dev/null
+$(which chmod) -cR 755 /root/.config/rclone/ /app /system/* &>/dev/null
 
 if [[ "${GOOGLE_IP}" == "" ]]; then
    GOOGLE_IP="null"

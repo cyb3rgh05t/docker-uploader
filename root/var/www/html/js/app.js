@@ -108,7 +108,8 @@ function setupEventListeners() {
 
     // Convert form data to a simple object
     formArray.forEach((item) => {
-      formData[item.name] = item.value;
+      // Convert form field names to uppercase as the backend expects them that way
+      formData[item.name.toUpperCase()] = item.value;
     });
 
     // Update environment file with new settings
@@ -181,7 +182,38 @@ function setTheme(theme) {
   $(`.theme-option[data-theme="${theme}"]`).addClass("active");
 
   // Update chart colors when theme changes
-  updateChartThemeColors();
+  if (typeof updateChartThemeColors === "function") {
+    updateChartThemeColors();
+  }
+}
+
+/**
+ * Save a user setting to localStorage
+ * @param {string} key - Setting key
+ * @param {any} value - Setting value
+ */
+function saveUserSetting(key, value) {
+  try {
+    localStorage.setItem(`uploader_${key}`, JSON.stringify(value));
+  } catch (e) {
+    console.warn("Failed to save setting to localStorage:", e);
+  }
+}
+
+/**
+ * Get a user setting from localStorage
+ * @param {string} key - Setting key
+ * @param {any} defaultValue - Default value if setting not found
+ * @returns {any} The setting value or default
+ */
+function getUserSetting(key, defaultValue) {
+  try {
+    const value = localStorage.getItem(`uploader_${key}`);
+    return value !== null ? JSON.parse(value) : defaultValue;
+  } catch (e) {
+    console.warn("Failed to get setting from localStorage:", e);
+    return defaultValue;
+  }
 }
 
 /**
@@ -255,25 +287,25 @@ function handleInProgressJobs() {
 
       // Create table row with responsive data attributes
       $tableBody.append(`
-          <tr>
-            <td data-title="Filename" class="truncate">${data.file_name}</td>
-            <td data-title="Folder" class="d-none d-lg-table-cell">${data.drive}</td>
-            <td data-title="Key" class="d-none d-lg-table-cell">${data.gdsa}</td>
-            <td data-title="Progress">
-              <div class="progress">
-                <div class="progress-bar ${progressClass}" role="progressbar"
-                     style="width: ${data.upload_percentage};" 
-                     aria-valuenow="${progress}" 
-                     aria-valuemin="0" 
-                     aria-valuemax="100">
-                  ${data.upload_percentage}
+            <tr>
+              <td data-title="Filename" class="truncate">${data.file_name}</td>
+              <td data-title="Folder" class="d-none d-lg-table-cell">${data.drive}</td>
+              <td data-title="Key" class="d-none d-lg-table-cell">${data.gdsa}</td>
+              <td data-title="Progress">
+                <div class="progress">
+                  <div class="progress-bar ${progressClass}" role="progressbar"
+                       style="width: ${data.upload_percentage};" 
+                       aria-valuenow="${progress}" 
+                       aria-valuemin="0" 
+                       aria-valuemax="100">
+                    ${data.upload_percentage}
+                  </div>
                 </div>
-              </div>
-            </td>
-            <td data-title="Filesize" class="d-none d-lg-table-cell">${data.file_size}</td>
-            <td data-title="Time Left" class="text-end">${data.upload_remainingtime} (with ${data.upload_speed})</td>
-          </tr>
-        `);
+              </td>
+              <td data-title="Filesize" class="d-none d-lg-table-cell">${data.file_size}</td>
+              <td data-title="Time Left" class="text-end">${data.upload_remainingtime} (with ${data.upload_speed})</td>
+            </tr>
+          `);
     });
 
     // Update the upload rate display
@@ -365,15 +397,15 @@ function handleCompletedJobList() {
         const rowClass = job.successful === true ? "" : "table-danger";
 
         $completedTableBody.append(`
-            <tr class="${rowClass}">
-              <td data-title="Filename" class="truncate">${job.file_name}</td>
-              <td data-title="Folder">${job.drive}</td>
-              <td data-title="Key">${job.gdsa}</td>
-              <td data-title="Filesize">${job.file_size}</td>
-              <td data-title="Time spent">${job.time_elapsed || "n/a"}</td>
-              <td data-title="Uploaded">${endTime}</td>
-            </tr>
-          `);
+              <tr class="${rowClass}">
+                <td data-title="Filename" class="truncate">${job.file_name}</td>
+                <td data-title="Folder">${job.drive}</td>
+                <td data-title="Key">${job.gdsa}</td>
+                <td data-title="Filesize">${job.file_size}</td>
+                <td data-title="Time spent">${job.time_elapsed || "n/a"}</td>
+                <td data-title="Uploaded">${endTime}</td>
+              </tr>
+            `);
       });
 
       // Fetch all completed uploads for today
@@ -519,7 +551,7 @@ function alignPauseControl(status) {
     $icon.removeClass("fa-pause").addClass("fa-play");
     $control.removeClass("bg-danger").addClass("bg-success");
     $control.attr("aria-label", "Pause uploads");
-    showStatusMessage("Uploader is running");
+    //showStatusMessage("Uploader is running");
   } else if (status === "STOPPED") {
     $icon.removeClass("fa-play").addClass("fa-pause");
     $control.removeClass("bg-success").addClass("bg-danger");
@@ -543,39 +575,123 @@ function updateRealTimeStats() {
   updateQueueStats();
 
   // Set the current max active transfers
-  const maxTransfers = $("#transfers").val() || "2";
+  const maxTransfers =
+    uploaderApp.envSettings.TRANSFERS || $("#transfers").val() || "2";
   $("#active-max").text(`Max: ${maxTransfers}`);
 
   // Set the bandwidth limit
-  const bandwidthLimit = $("#bandwidth_limit").val() || "30";
-  $("#rate-limit").text(`Limit per Transfer: ${bandwidthLimit} MB/s`);
+  const bandwidthLimit =
+    uploaderApp.envSettings.BANDWIDTH_LIMIT ||
+    $("#bandwidth_limit").val() ||
+    "30";
+  $("#rate-limit").text(`Limit per Transfer: ${bandwidthLimit}`);
 }
 
 /**
  * Load environment settings from the server
  */
 function loadEnvSettings() {
+  // First try the new API endpoint
+  $.getJSON("srv/api/settings/update.php")
+    .done(function (data) {
+      if (data && data.success && data.settings) {
+        uploaderApp.envSettings = data.settings;
+
+        // Populate form fields with loaded settings
+        populateFormFields(data.settings);
+
+        // Update UI elements that depend on settings
+        updateUIFromSettings(data.settings);
+      } else {
+        console.warn(
+          "New settings API returned invalid data, falling back to legacy endpoint"
+        );
+        loadEnvSettingsLegacy();
+      }
+    })
+    .fail(function () {
+      console.warn(
+        "New settings API not available, falling back to legacy endpoint"
+      );
+      loadEnvSettingsLegacy();
+    });
+}
+
+/**
+ * Legacy method to load environment settings
+ * This will be used if the new API is not available
+ */
+function loadEnvSettingsLegacy() {
   $.getJSON("srv/api/system/env_settings.php")
     .done(function (data) {
       if (data && typeof data === "object") {
         uploaderApp.envSettings = data;
 
         // Populate form fields with loaded settings
-        Object.entries(data).forEach(([key, value]) => {
-          const $field = $(`[name="${key}"]`);
-          if ($field.length) {
-            if ($field.is("select")) {
-              $field.val(value.toString());
-            } else {
-              $field.val(value);
-            }
-          }
-        });
+        populateFormFields(data);
+
+        // Update UI elements that depend on settings
+        updateUIFromSettings(data);
+      } else {
+        console.warn("Failed to load environment settings from legacy API");
       }
     })
     .fail(function () {
-      console.warn("Failed to load environment settings");
+      console.warn("Failed to load environment settings from any API");
+
+      // Use default values for essential settings
+      const defaultSettings = {
+        TRANSFERS: 2,
+        BANDWIDTH_LIMIT: "30M",
+        FOLDER_DEPTH: 1,
+        MIN_AGE_UPLOAD: 1,
+      };
+
+      uploaderApp.envSettings = defaultSettings;
+      populateFormFields(defaultSettings);
+      updateUIFromSettings(defaultSettings);
     });
+}
+
+/**
+ * Populate form fields with settings
+ * @param {Object} settings - Settings object
+ */
+function populateFormFields(settings) {
+  Object.entries(settings).forEach(([key, value]) => {
+    // Try to find the form field (case insensitive)
+    const $field = $(`[name="${key}"], [name="${key.toLowerCase()}"]`);
+
+    if ($field.length) {
+      if ($field.is("select")) {
+        $field.val(value.toString());
+      } else if ($field.is(":checkbox")) {
+        $field.prop("checked", value === true || value === "true");
+      } else {
+        $field.val(value);
+      }
+    }
+  });
+}
+
+/**
+ * Update UI elements based on loaded settings
+ * @param {Object} settings - Settings object
+ */
+function updateUIFromSettings(settings) {
+  // Update max transfers display
+  if (settings.TRANSFERS || settings.transfers) {
+    const transfers = settings.TRANSFERS || settings.transfers;
+    $("#active-max").text(`Max: ${transfers}`);
+  }
+
+  // Update bandwidth limit display
+  if (settings.BANDWIDTH_LIMIT || settings.bandwidth_limit) {
+    const bwLimit = settings.BANDWIDTH_LIMIT || settings.bandwidth_limit;
+    // Remove quotes if present
+    const cleanBwLimit = bwLimit.replace(/"/g, "");
+    $("#rate-limit").text(`Limit per Transfer: ${cleanBwLimit}`);
+  }
 }
 
 /**
@@ -594,10 +710,11 @@ function updateEnvSettings(formId, settings) {
 
   // Make actual API call to update env settings
   $.ajax({
-    url: "srv/api/system/update_env.php",
+    url: "srv/api/settings/update.php",
     type: "POST",
     data: JSON.stringify(settings),
     contentType: "application/json",
+    dataType: "json",
     success: function (response) {
       console.log("API response:", response);
 
@@ -611,40 +728,97 @@ function updateEnvSettings(formId, settings) {
         switch (formId) {
           case "transfer-form":
             // Update transfer settings UI
-            $("#active-max").text(`Max: ${settings.transfers || "2"}`);
+            $("#active-max").text(`Max: ${settings.TRANSFERS || "2"}`);
             $("#rate-limit").text(
-              `Limit per Transfer: ${settings.bandwidth_limit || "30"} MB/s`
+              `Limit per Transfer: ${settings.BANDWIDTH_LIMIT || "30M"}`
             );
             break;
 
           case "system-form":
-            // Update system settings UI
+            // Update system settings UI if needed
             break;
 
           case "notification-form":
-            // Update notification settings UI
+            // Update notification settings UI if needed
             break;
 
           case "security-form":
-            // Update security settings UI
+            // Update security settings UI if needed
             break;
         }
       } else {
-        showStatusMessage(
-          "Failed to update settings: " + (response.message || "Unknown error"),
-          true
-        );
-        console.error("Update failed:", response);
+        // Try legacy API if new one fails
+        updateEnvSettingsLegacy(formId, settings, function (success) {
+          if (!success) {
+            showStatusMessage(
+              "Failed to update settings: " +
+                (response.message || "Unknown error"),
+              true
+            );
+          }
+        });
       }
     },
     error: function (xhr, status, error) {
-      showStatusMessage("Failed to communicate with the server", true);
-      console.error("AJAX error:", status, error);
-      console.log("Response:", xhr.responseText);
+      console.error("Failed to use new settings API:", status, error);
+      // Try legacy API as fallback
+      updateEnvSettingsLegacy(formId, settings, function (success) {
+        if (!success) {
+          showStatusMessage("Failed to communicate with the server", true);
+          console.error("Response:", xhr.responseText);
+        }
+      });
     },
     complete: function () {
       // Restore button state
       $submitBtn.prop("disabled", false).text(originalText);
+    },
+  });
+}
+
+/**
+ * Legacy method to update environment settings
+ * @param {string} formId - Form ID
+ * @param {Object} settings - Settings object
+ * @param {Function} callback - Callback function
+ */
+function updateEnvSettingsLegacy(formId, settings, callback) {
+  // Convert settings keys to lowercase for legacy API
+  const legacySettings = {};
+  Object.keys(settings).forEach((key) => {
+    legacySettings[key.toLowerCase()] = settings[key];
+  });
+
+  $.ajax({
+    url: "srv/api/system/update_env.php",
+    type: "POST",
+    data: JSON.stringify(legacySettings),
+    contentType: "application/json",
+    dataType: "json",
+    success: function (response) {
+      if (response.success) {
+        showStatusMessage("Settings updated successfully!");
+
+        // Update local settings
+        Object.assign(uploaderApp.envSettings, settings);
+
+        // Update UI based on form ID
+        switch (formId) {
+          case "transfer-form":
+            $("#active-max").text(`Max: ${legacySettings.transfers || "2"}`);
+            $("#rate-limit").text(
+              `Limit per Transfer: ${legacySettings.bandwidth_limit || "30M"}`
+            );
+            break;
+        }
+
+        if (callback) callback(true);
+      } else {
+        if (callback) callback(false);
+      }
+    },
+    error: function () {
+      if (callback) callback(false);
     },
   });
 }
@@ -682,6 +856,36 @@ function estimateQueueStats() {
 
     $("#queue-total").text(`Total: ${formatFileSize(totalSize)}`);
   });
+}
+
+/**
+ * Display a status message to the user
+ * @param {string} message - Message to display
+ * @param {boolean} isError - Whether this is an error message
+ */
+function showStatusMessage(message, isError = false) {
+  const $statusMessage = $("#status-message");
+
+  if (!$statusMessage.length) {
+    console.error("Status message element not found");
+    console.log(message);
+    return;
+  }
+
+  $statusMessage.text(message);
+
+  if (isError) {
+    $statusMessage.addClass("error");
+  } else {
+    $statusMessage.removeClass("error");
+  }
+
+  $statusMessage.css("display", "block");
+
+  // Hide after 3 seconds
+  setTimeout(function () {
+    $statusMessage.css("display", "none");
+  }, 3000);
 }
 
 // File size formatter helper function
