@@ -794,6 +794,12 @@ function updateEnvSettings(formId, settings) {
   const originalText = $submitBtn.text();
   $submitBtn.prop("disabled", true).text("Saving...");
 
+  // Add a safety timeout to restore button state even if AJAX fails
+  const resetTimeout = setTimeout(() => {
+    $submitBtn.prop("disabled", false).text(originalText);
+    console.log("Button state restored by safety timeout");
+  }, 8000);
+
   // Special handling for BANDWIDTH_LIMIT
   if (
     settings.BANDWIDTH_LIMIT !== undefined &&
@@ -850,30 +856,45 @@ function updateEnvSettings(formId, settings) {
         }
       } else {
         // Try legacy API if new one fails
-        updateEnvSettingsLegacy(formId, settings, function (success) {
-          if (!success) {
-            showStatusMessage(
-              "Failed to update settings: " +
-                (response.message || "Unknown error"),
-              true
-            );
+        updateEnvSettingsLegacy(
+          formId,
+          settings,
+          $submitBtn,
+          originalText,
+          function (success) {
+            if (!success) {
+              showStatusMessage(
+                "Failed to update settings: " +
+                  (response.message || "Unknown error"),
+                true
+              );
+            }
           }
-        });
+        );
       }
     },
     error: function (xhr, status, error) {
       console.error("Failed to use new settings API:", status, error);
       // Try legacy API as fallback
-      updateEnvSettingsLegacy(formId, settings, function (success) {
-        if (!success) {
-          showStatusMessage("Failed to communicate with the server", true);
-          console.error("Response:", xhr.responseText);
+      updateEnvSettingsLegacy(
+        formId,
+        settings,
+        $submitBtn,
+        originalText,
+        function (success) {
+          if (!success) {
+            showStatusMessage("Failed to communicate with the server", true);
+            console.error("Response:", xhr.responseText);
+          }
         }
-      });
+      );
     },
     complete: function () {
+      // Clear the safety timeout
+      clearTimeout(resetTimeout);
       // Restore button state
       $submitBtn.prop("disabled", false).text(originalText);
+      console.log("Button state restored in complete callback");
     },
   });
 }
@@ -882,9 +903,17 @@ function updateEnvSettings(formId, settings) {
  * Legacy method to update environment settings
  * @param {string} formId - Form ID
  * @param {Object} settings - Settings object
+ * @param {jQuery} $submitBtn - Submit button jQuery object
+ * @param {string} originalText - Original button text
  * @param {Function} callback - Callback function
  */
-function updateEnvSettingsLegacy(formId, settings, callback) {
+function updateEnvSettingsLegacy(
+  formId,
+  settings,
+  $submitBtn,
+  originalText,
+  callback
+) {
   // Convert settings keys to lowercase for legacy API
   const legacySettings = {};
   Object.keys(settings).forEach((key) => {
@@ -921,6 +950,13 @@ function updateEnvSettingsLegacy(formId, settings, callback) {
     },
     error: function () {
       if (callback) callback(false);
+    },
+    complete: function () {
+      // Also restore button state in legacy handler
+      if ($submitBtn && originalText) {
+        $submitBtn.prop("disabled", false).text(originalText);
+        console.log("Button state restored in legacy complete callback");
+      }
     },
   });
 }
