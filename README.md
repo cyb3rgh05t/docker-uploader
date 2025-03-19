@@ -1,3 +1,5 @@
+<div align="center">
+
 ![Image of Uploader](/images/docker-uploader.png)
 
 # Uploader
@@ -6,6 +8,8 @@ New Automated Uploader with a new UI and ThemePark Themes. </br>
 
 ![Image of Uploader](/images/dashboard.png)
 ![Image of Uploader](/images/settings.png)
+
+</div>
 
 ### IMPORTANT
 

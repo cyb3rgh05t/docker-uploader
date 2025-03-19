@@ -49,7 +49,7 @@ jobs:
         id: prep
         run: |
           REPO=$CI_REPOSITORY_NAME
-          DOCKER_IMAGE=${{ github.repository_owner }}/${REPO}
+          DOCKER_IMAGE=ghcr.io/${{ github.repository_owner }}/${REPO}  # Explicitly add ghcr.io here
           RELEASE_VERSION=${{ env.RELEASE_VERSION }}
 
           if [[ "${{ github.event_name }}" == "workflow_dispatch" && -n "${{ github.event.inputs.tag }}" ]]; then
@@ -119,8 +119,7 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
-          tags: |
-            ghcr.io/${{ steps.prep.outputs.tags }}
+          tags: ${{ steps.prep.outputs.tags }}
           build-args: |
             COMMIT_TAG=${{ github.sha }}
             VERSION=${{ env.RELEASE_VERSION }}
@@ -203,7 +202,7 @@ jobs:
                 "url": "https://github.com/${{ github.repository_owner }}.png"
               },
               "footer": {
-                "text": "Built with ❤️ by cyb3rgh05t",
+                "text": "Built with ❤️ by cyb3rgh05t"
               },
               "timestamp": "'"$(date -u +'%Y-%m-%dT%H:%M:%SZ')"'"
             }]
