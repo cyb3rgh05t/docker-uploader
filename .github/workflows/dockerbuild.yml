@@ -12,15 +12,9 @@ on:
       - "LICENSE"
       - "**.md"
 
+  # Keep workflow_dispatch but make it work without required inputs
   workflow_dispatch:
-    inputs:
-      tag:
-        description: "Tag to build (e.g., v1.2.0)"
-        required: false
-      branch:
-        description: "Branch to build (main or dev)"
-        required: false
-        default: "main"
+    # No inputs needed, will use branch detection logic
 
 env:
   REGISTRY: ghcr.io
@@ -49,19 +43,11 @@ jobs:
         id: prep
         run: |
           REPO=$CI_REPOSITORY_NAME
-          DOCKER_IMAGE=ghcr.io/${{ github.repository_owner }}/${REPO}  # Explicitly add ghcr.io here
+          DOCKER_IMAGE=ghcr.io/${{ github.repository_owner }}/${REPO}
           RELEASE_VERSION=${{ env.RELEASE_VERSION }}
 
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" && -n "${{ github.event.inputs.tag }}" ]]; then
-            VERSION="${{ github.event.inputs.tag }}"
-            TAGS="${DOCKER_IMAGE}:${VERSION},${DOCKER_IMAGE}:latest"
-          elif [[ "${{ github.event_name }}" == "workflow_dispatch" && -n "${{ github.event.inputs.branch }}" ]]; then
-            if [[ "${{ github.event.inputs.branch }}" == "main" ]]; then
-              TAGS="${DOCKER_IMAGE}:${RELEASE_VERSION},${DOCKER_IMAGE}:latest"
-            else
-              TAGS="${DOCKER_IMAGE}:${{ github.event.inputs.branch }}"
-            fi
-          elif [[ "$GITHUB_REF" == refs/heads/main ]]; then
+          # Detect branch/tag automatically
+          if [[ "$GITHUB_REF" == refs/heads/main ]]; then
             # For main branch, use both the release version and latest
             TAGS="${DOCKER_IMAGE}:${RELEASE_VERSION},${DOCKER_IMAGE}:latest"
           elif [[ "$GITHUB_REF" == refs/heads/dev ]]; then
@@ -71,15 +57,16 @@ jobs:
             VERSION="${GITHUB_REF#refs/tags/}"
             TAGS="${DOCKER_IMAGE}:${VERSION},${DOCKER_IMAGE}:latest"
           else
-            VERSION="unknown"
-            TAGS="${DOCKER_IMAGE}:unknown"
+            # For any other branch, use branch name
+            BRANCH="${GITHUB_REF#refs/heads/}"
+            TAGS="${DOCKER_IMAGE}:${BRANCH}"
           fi
 
           CREATED=$(date +'%Y-%m-%dT%H:%M:%SZ')
 
           echo "::set-output name=tags::${TAGS}"
           echo "::set-output name=title::${GITHUB_REPOSITORY}"
-          echo "::set-output name=version::${VERSION}"
+          echo "::set-output name=version::${RELEASE_VERSION}"
           echo "::set-output name=created::${CREATED}"
           echo "DOCKER_TAGS=${TAGS}" >> $GITHUB_ENV
 
