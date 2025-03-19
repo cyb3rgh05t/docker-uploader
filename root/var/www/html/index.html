@@ -12,7 +12,7 @@
       referrerpolicy="no-referrer"
     />
     <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="stylesheet" href="css/styles.css?v=1.2.0" />
+    <link rel="stylesheet" href="css/styles.css?v=1.2.1" />
   </head>
   <body>
     <!-- Navbar -->
@@ -648,20 +648,52 @@
 
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="js/ui/pagination.js?v=1.2.0"></script>
-    <script src="js/utils.js?v=1.2.0"></script>
-    <script src="js/app.js?v=1.2.0"></script>
+    <script src="js/ui/pagination.js?v=1.2.1"></script>
+    <script src="js/utils.js?v=1.2.1"></script>
+    <script src="js/app.js?v=1.2.1"></script>
 
     <script>
       $(document).ready(function () {
-        // Initialize theme from saved preferences
-        initializeTheme();
+        // Direct approach to theme switching
+        $(".theme-option").on("click", function () {
+          // Get theme from data attribute
+          const theme = $(this).data("theme");
+          console.log("Applying theme:", theme);
 
-        // Set up theme selection event listeners
-        setupThemeEventListeners();
+          // Apply to both html and body elements
+          document.documentElement.setAttribute("data-theme", theme);
+          document.body.setAttribute("data-theme", theme);
 
-        // This ensures theme initialization is logged for troubleshooting
-        console.log("Theme initialization complete");
+          // Update active state
+          $(".theme-option").removeClass("active");
+          $(this).addClass("active");
+
+          // Save to localStorage
+          try {
+            localStorage.setItem("uploader_theme", JSON.stringify(theme));
+          } catch (error) {
+            console.error("Failed to save theme:", error);
+          }
+        });
+
+        // Load saved theme
+        try {
+          const savedTheme = localStorage.getItem("uploader_theme");
+          if (savedTheme) {
+            const theme = JSON.parse(savedTheme);
+            console.log("Loading saved theme:", theme);
+
+            // Apply theme
+            document.documentElement.setAttribute("data-theme", theme);
+            document.body.setAttribute("data-theme", theme);
+
+            // Update active state
+            $(".theme-option").removeClass("active");
+            $(`.theme-option[data-theme="${theme}"]`).addClass("active");
+          }
+        } catch (error) {
+          console.error("Error loading theme:", error);
+        }
       });
     </script>
   </body>
