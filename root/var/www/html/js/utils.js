@@ -401,14 +401,15 @@ function updateChartThemeColors() {
  * @param {string} theme - Theme name
  */
 function setTheme(theme) {
-  // Update both html and body elements to ensure background gradients work properly
+  console.log("Applying theme:", theme);
+
+  // Apply theme attributes
   document.documentElement.setAttribute("data-theme", theme);
   document.body.setAttribute("data-theme", theme);
 
-  // Update theme backgrounds
   updateThemeBackground(theme);
 
-  // Update active state in the theme options
+  // Update active visual state
   const themeOptions = document.querySelectorAll(".theme-option");
   themeOptions.forEach((option) => {
     if (option.dataset.theme === theme) {
@@ -418,31 +419,48 @@ function setTheme(theme) {
     }
   });
 
-  // Alternative jQuery implementation
-  // $(".theme-option").removeClass("active");
-  // $(`.theme-option[data-theme="${theme}"]`).addClass("active");
-
-  // Update chart colors when theme changes
   updateChartThemeColors();
+
+  // Save theme in a single place
+  saveUserSetting("theme", theme);
 }
+
+// Alternative jQuery implementation
+// $(".theme-option").removeClass("active");
+// $(`.theme-option[data-theme="${theme}"]`).addClass("active");
+
+// Update chart colors when theme changes
 
 /**
  * Ensure theme backgrounds apply correctly
  * @param {string} theme - Theme name
  */
 function updateThemeBackground(theme) {
-  // Themes with custom backgrounds
-  const themesWithBackgrounds = ["overseerr", "hotline", "maroon", "plex"];
+  // Complete list of themes with custom backgrounds
+  const themesWithBackgrounds = [
+    "overseerr",
+    "hotline",
+    "maroon",
+    "plex",
+    "aquamarine",
+    "dark",
+    "nord",
+    "dracula",
+  ];
 
-  // If switching to a theme with a custom background
+  // Clear any existing background properties
+  document.body.style.background = "";
+  document.body.style.backgroundImage = "none";
+  document.body.style.backgroundColor = "";
+
+  // Apply the theme data attribute which will activate the CSS rules
+  document.documentElement.setAttribute("data-theme", theme);
+  document.body.setAttribute("data-theme", theme);
+
+  // For themes with custom backgrounds, we need to ensure they get applied
   if (themesWithBackgrounds.includes(theme)) {
-    // Make sure the body has the theme's background
-    document.body.style.backgroundImage = "none"; // Clear any existing backgrounds
-    document.body.setAttribute("data-theme", theme); // Apply the theme
-  } else {
-    // For standard themes, just use the background color
-    document.body.style.backgroundImage = "none";
-    document.body.setAttribute("data-theme", theme);
+    // Force a repaint to ensure background styles apply correctly
+    void document.body.offsetWidth;
   }
 }
 
@@ -450,9 +468,27 @@ function updateThemeBackground(theme) {
  * Initialize theme on page load
  */
 function initializeTheme() {
-  // Load current theme from localStorage or use default
-  const savedTheme = getUserSetting("theme", "orange");
+  console.log("Initializing theme...");
+
+  // Try both storage methods for backward compatibility
+  let savedTheme;
+
+  try {
+    // First try direct localStorage (used in index.html)
+    const directTheme = localStorage.getItem("uploader_theme");
+    if (directTheme) {
+      savedTheme = JSON.parse(directTheme);
+    } else {
+      // Fallback to getUserSetting method
+      savedTheme = getUserSetting("theme", "orange");
+    }
+  } catch (error) {
+    console.warn("Error loading theme, using default:", error);
+    savedTheme = "orange";
+  }
+
   setTheme(savedTheme);
+  saveUserSetting("theme", savedTheme);
 }
 
 /**

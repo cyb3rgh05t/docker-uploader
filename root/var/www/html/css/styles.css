@@ -329,27 +329,26 @@
   --border-color: rgba(255, 255, 255, 0.1);
   --success: #27c24c;
   background: radial-gradient(
-      circle farthest-side at 0% 100%,
-      rgb(47, 47, 47) 0%,
-      rgba(47, 47, 47, 0) 100%
-    ),
-    radial-gradient(
-      circle farthest-side at 100% 100%,
-      rgb(63, 63, 63) 0%,
-      rgba(63, 63, 63, 0) 100%
-    ),
-    radial-gradient(
-      circle farthest-side at 100% 0%,
-      rgb(76, 76, 76) 0%,
-      rgba(76, 76, 76, 0) 100%
-    ),
-    radial-gradient(
-      circle farthest-side at 0% 0%,
-      rgb(58, 58, 58) 0%,
-      rgba(58, 58, 58, 0) 100%
-    ),
-    black center center/cover no-repeat fixed;
-}
+    circle farthest-side at 0% 100%,
+    rgb(47, 47, 47) 0%,
+    rgba(47, 47, 47, 0) 100%
+  ),
+  radial-gradient(
+    circle farthest-side at 100% 100%,
+    rgb(63, 63, 63) 0%,
+    rgba(63, 63, 63, 0) 100%
+  ),
+  radial-gradient(
+    circle farthest-side at 100% 0%,
+    rgb(76, 76, 76) 0%,
+    rgba(76, 76, 76, 0) 100%
+  ),
+  radial-gradient(
+    circle farthest-side at 0% 0%,
+    rgb(58, 58, 58) 0%,
+    rgba(58, 58, 58, 0) 100%
+  ),
+  black center center/cover no-repeat fixed;
 
 /* Placeholder styles */
 ::placeholder {

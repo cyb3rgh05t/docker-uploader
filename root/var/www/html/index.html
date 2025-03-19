@@ -12,7 +12,7 @@
       referrerpolicy="no-referrer"
     />
     <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="stylesheet" href="css/styles.css?v=1.1.0" />
+    <link rel="stylesheet" href="css/styles.css?v=1.2.0" />
   </head>
   <body>
     <!-- Navbar -->
@@ -648,57 +648,20 @@
 
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="js/ui/pagination.js?v=1.1.0"></script>
-    <script src="js/utils.js?v=1.1.0"></script>
-    <script src="js/app.js?v=1.1.0"></script>
+    <script src="js/ui/pagination.js?v=1.2.0"></script>
+    <script src="js/utils.js?v=1.2.0"></script>
+    <script src="js/app.js?v=1.2.0"></script>
 
-    <!-- Fixed Theme Selection Script -->
     <script>
       $(document).ready(function () {
-        // Direct theme option binding with jQuery for reliable theme switching
-        $(".theme-option").on("click", function () {
-          const theme = $(this).data("theme");
-          console.log("Theme selected:", theme);
+        // Initialize theme from saved preferences
+        initializeTheme();
 
-          // Set the theme on both html and body elements
-          document.documentElement.setAttribute("data-theme", theme);
-          document.body.setAttribute("data-theme", theme);
+        // Set up theme selection event listeners
+        setupThemeEventListeners();
 
-          // Update active state in the theme options
-          $(".theme-option").removeClass("active");
-          $(this).addClass("active");
-
-          // Save to localStorage
-          try {
-            localStorage.setItem("uploader_theme", JSON.stringify(theme));
-          } catch (error) {
-            console.error("Failed to save theme setting:", error);
-          }
-
-          // Update chart colors if applicable
-          if (typeof updateChartThemeColors === "function") {
-            updateChartThemeColors();
-          }
-        });
-
-        // Load saved theme on page load
-        try {
-          const savedTheme = localStorage.getItem("uploader_theme");
-          if (savedTheme) {
-            const theme = JSON.parse(savedTheme);
-            console.log("Loading saved theme:", theme);
-
-            // Set theme
-            document.documentElement.setAttribute("data-theme", theme);
-            document.body.setAttribute("data-theme", theme);
-
-            // Update active state
-            $(".theme-option").removeClass("active");
-            $(`.theme-option[data-theme="${theme}"]`).addClass("active");
-          }
-        } catch (error) {
-          console.error("Failed to load theme setting:", error);
-        }
+        // This ensures theme initialization is logged for troubleshooting
+        console.log("Theme initialization complete");
       });
     </script>
   </body>
