@@ -12,12 +12,44 @@ function checkStatus()
 
 function updateStatus($action)
 {
+    // Enable error logging
+    error_log("Status update requested: Action=$action");
+
     if ($action === 'pause') {
-        $pfile = fopen(PAUSE_FILE, 'w');
-        fwrite($pfile, '');
-        fclose($pfile);
-    } else {
-        unlink(PAUSE_FILE);
+        // Create pause file to pause uploads
+        error_log("Creating pause file: " . PAUSE_FILE);
+        $result = file_put_contents(PAUSE_FILE, '');
+        if ($result === false) {
+            error_log("Failed to create pause file. Check permissions.");
+            // Try to fix permissions
+            $dir = dirname(PAUSE_FILE);
+            if (!is_dir($dir)) {
+                mkdir($dir, 0777, true);
+                error_log("Created directory: $dir");
+            }
+            chmod($dir, 0777);
+            error_log("Set directory permissions: $dir");
+
+            // Try again
+            $result = file_put_contents(PAUSE_FILE, '');
+            error_log("Second attempt to create pause file: " . ($result !== false ? "success" : "failed"));
+        }
+    } else if ($action === 'continue') {
+        // Remove pause file to resume uploads
+        error_log("Removing pause file: " . PAUSE_FILE);
+        if (file_exists(PAUSE_FILE)) {
+            $result = unlink(PAUSE_FILE);
+            error_log("Unlink result: " . ($result ? "success" : "failed"));
+            if (!$result) {
+                error_log("Failed to remove pause file. Error: " . error_get_last()['message']);
+                // Try to fix permissions
+                chmod(PAUSE_FILE, 0666);
+                $result = unlink(PAUSE_FILE);
+                error_log("Second attempt: " . ($result ? "success" : "failed"));
+            }
+        } else {
+            error_log("Pause file doesn't exist, nothing to remove.");
+        }
     }
 }
 
@@ -26,6 +58,25 @@ header('Content-Type: application/json; charset=utf-8');
 
 $method = filter_input(\INPUT_SERVER, 'REQUEST_METHOD', \FILTER_SANITIZE_SPECIAL_CHARS);
 if ($method === 'POST') {
-    updateStatus($_POST["action"]);
+    // Get the action from POST data
+    if (isset($_POST["action"])) {
+        $action = $_POST["action"];
+        error_log("Received POST with action: $action");
+        updateStatus($action);
+    } else {
+        // Try to get data from JSON input if POST array is empty
+        $input = file_get_contents('php://input');
+        error_log("Received raw input: $input");
+
+        if (!empty($input)) {
+            $data = json_decode($input, true);
+            if (isset($data['action'])) {
+                $action = $data['action'];
+                error_log("Parsed action from JSON: $action");
+                updateStatus($action);
+            }
+        }
+    }
 }
+
 echo checkStatus();

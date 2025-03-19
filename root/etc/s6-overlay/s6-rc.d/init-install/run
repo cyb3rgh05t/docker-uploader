@@ -37,7 +37,80 @@ USEDDIR=/system/uploader/.keys
 JSONOLD=/system/uploader/json
 ARRAY=$($(which ls) -A "${JSONDIR}" | $(which wc) -l)
 
-   $(which cat) >> /etc/apk/repositories << EOF; $(echo)
+# Validate the environment file to ensure we don't lose settings
+function validate_env_file() {
+   local ENV_FILE="/system/uploader/uploader.env"
+   
+   if [ ! -f "$ENV_FILE" ]; then
+      log "Error: $ENV_FILE not found, will create default file"
+      return 1
+   fi
+   
+   # Check for essential variables
+   local MISSING=0
+   local ESSENTIAL_VARS=("PUID" "PGID" "TIMEZONE" "BANDWIDTH_LIMIT" "TRANSFERS" "FOLDER_DEPTH" "MIN_AGE_UPLOAD")
+   
+   for var in "${ESSENTIAL_VARS[@]}"; do
+      if ! grep -q "^${var}=" "$ENV_FILE"; then
+         log "Missing essential variable: $var"
+         MISSING=1
+      fi
+   done
+   
+   # If missing any essential variables, recreate the file
+   if [ "$MISSING" -eq 1 ]; then
+      log "Will recreate env file with missing variables"
+      return 1
+   fi
+   
+   # Check variable format for common issues
+   if grep -q "^BANDWIDTH_LIMIT=[^\"']" "$ENV_FILE"; then
+      log "BANDWIDTH_LIMIT is not properly quoted, fixing"
+      sed -i 's|^BANDWIDTH_LIMIT=\(.*\)|BANDWIDTH_LIMIT=\"\1\"|g' "$ENV_FILE"
+   fi
+   
+   return 0
+}
+
+# Update a single environment variable safely
+function update_env_var() {
+   # $1 = variable name (e.g., BANDWIDTH_LIMIT)
+   # $2 = new value (e.g., "30M")
+   local VAR_NAME="$1"
+   local NEW_VALUE="$2"
+   local ENV_FILE="/system/uploader/uploader.env"
+   
+   # Create a temporary file
+   local TEMP_FILE=$(mktemp)
+   
+   # Read line by line, update the specific variable
+   while IFS= read -r line; do
+      if [[ "$line" =~ ^$VAR_NAME= ]]; then
+         # Special handling for string vs numeric/boolean values
+         if [[ "$NEW_VALUE" == "true" || "$NEW_VALUE" == "false" || "$NEW_VALUE" == "null" || "$NEW_VALUE" =~ ^[0-9]+$ ]]; then
+            # Boolean, null, or numeric values don't need quotes
+            echo "${VAR_NAME}=${NEW_VALUE}" >> "$TEMP_FILE"
+         else
+            # String values should be quoted
+            echo "${VAR_NAME}=\"${NEW_VALUE}\"" >> "$TEMP_FILE"
+         fi
+      else
+         echo "$line" >> "$TEMP_FILE"
+      fi
+   done < "$ENV_FILE"
+   
+   # Replace original file
+   mv "$TEMP_FILE" "$ENV_FILE"
+   
+   # Set permissions
+   chmod 755 "$ENV_FILE"
+   chown abc:abc "$ENV_FILE"
+   
+   log "Updated ${VAR_NAME} to ${NEW_VALUE} in environment file"
+}
+
+# Setup repositories
+$(which cat) >> /etc/apk/repositories << EOF; $(echo)
 http://dl-cdn.alpinelinux.org/alpine/edge/testing
 EOF
 
@@ -83,8 +156,13 @@ $(which cp) -r /app/sample/crypt_multi_tdrive-example.csv /system/uploader/sampl
 $(which cp) -r /app/sample/uncrypt_multi_tdrive-example.csv /system/uploader/sample/uncrypt_multi_tdrive-example.csv
 
 if [[ -f "${ENVA}" ]]; then
-   source "${ENVA}"
+   # Validate the environment file
+   validate_env_file || {
+      log "Creating new environment file due to validation failure"
+      source "${SAMPLE}"
+   }
 else
+   log "Environment file not found, using sample"
    source "${SAMPLE}"
 fi
 
@@ -109,7 +187,10 @@ tubesync/
 EOF
 fi
 
-$(which echo) -e "#-------------------------------------------------------
+# Create the environment file if needed while preserving existing values
+if [[ ! -f "${ENVA}" ]]; then
+   log "Setting up environment variables"
+   $(which echo) -e "#-------------------------------------------------------
 #   UPLOADER ENVIROMENTS
 #-------------------------------------------------------
 ## USER VALUES
@@ -134,29 +215,29 @@ TRANSFERS=${TRANSFERS:-2}
 ## USER - SETTINGS
 DRIVEUSEDSPACE=${DRIVEUSEDSPACE:-null}
 FOLDER_DEPTH=${FOLDER_DEPTH:-1}
-FOLDER_PRIORITY=${FOLDER_PRIORITY:-null}
+FOLDER_PRIORITY=\"${FOLDER_PRIORITY:-null}\"
 MIN_AGE_UPLOAD=${MIN_AGE_UPLOAD:-1}
 
 ## VFS - SETTINGS
 VFS_REFRESH_ENABLE=${VFS_REFRESH_ENABLE:-true}
-MOUNT=${MOUNT:-mount:8554}
+MOUNT=\"${MOUNT:-mount:8554}\"
 
 ## LOG - SETTINGS
 LOG_ENTRY=${LOG_ENTRY:-1000}
 LOG_RETENTION_DAYS=${LOG_RETENTION_DAYS:-null}
 
 ## AUTOSCAN - SETTINGS
-AUTOSCAN_URL=${AUTOSCAN_URL:-null}
-AUTOSCAN_USER=${AUTOSCAN_USER:-null}
-AUTOSCAN_PASS=${AUTOSCAN_PASS:-null}
+AUTOSCAN_URL=\"${AUTOSCAN_URL:-null}\"
+AUTOSCAN_USER=\"${AUTOSCAN_USER:-null}\"
+AUTOSCAN_PASS=\"${AUTOSCAN_PASS:-null}\"
 
 ## NOTIFICATION - SETTINGS
-NOTIFICATION_URL=${NOTIFICATION_URL:-null}
+NOTIFICATION_URL=\"${NOTIFICATION_URL:-null}\"
 NOTIFICATION_LEVEL=${NOTIFICATION_LEVEL:-ALL}
-NOTIFICATION_SERVERNAME=${NOTIFICATION_SERVERNAME:-null}
+NOTIFICATION_SERVERNAME=\"${NOTIFICATION_SERVERNAME:-null}\"
 
 ## STRIPARR - SETTINGS
-STRIPARR_URL=${STRIPARR_URL:-null}
+STRIPARR_URL=\"${STRIPARR_URL:-null}\"
 
 ## LANGUAGE MESSAGES
 LANGUAGE=${LANGUAGE:-en}
@@ -164,6 +245,10 @@ LANGUAGE=${LANGUAGE:-en}
 #-------------------------------------------------------
 #   UPLOADER ENVIROMENTS
 #-------------------------------------------------------" > "${ENVA}"
+   log "Environment file created"
+else
+   log "Using existing environment file"
+fi
 
 if [[ -f "${ENDCONFIG}" ]]; then $(which rm) -f "${ENDCONFIG}"; fi
 if [[ -f "${PAUSE}" ]]; then $(which rm) -f "${PAUSE}"; fi
@@ -184,18 +269,36 @@ if [[ ! -f "${DATABASE}" ]]; then
    sqlite3write "CREATE TABLE upload_keys(time DATETIME DEFAULT (datetime('now','localtime')), key TEXT, used NUMERIC, active INTEGER);" &>/dev/null
    sqlite3write "CREATE TABLE upload_queue(time DATETIME DEFAULT (datetime('now','localtime')), drive TEXT, filedir TEXT, filebase TEXT PRIMARY KEY, filesize TEXT, metadata INTEGER);" &>/dev/null
    sqlite3write "CREATE TABLE uploads(drive TEXT, filedir TEXT, filebase TEXT PRIMARY KEY, filesize TEXT, logfile TEXT, gdsa TEXT);" &>/dev/null
-   sqlite3write "CREATE TABLE completed_uploads(drive TEXT, filedir TEXT, filebase TEXT, filesize TEXT, gdsa TEXT, starttime NUMERIC, endtime NUMERIC, status NUMERIC, error TEXT);" &>/dev/null
+   sqlite3write "CREATE TABLE completed_uploads(drive TEXT, filedir TEXT, filebase TEXT, filesize TEXT, filesize_bytes INTEGER, gdsa TEXT, starttime NUMERIC, endtime NUMERIC, status NUMERIC, error TEXT);" &>/dev/null
    sqlite3write "CREATE INDEX idx_completed_endtime ON completed_uploads (endtime);" &>/dev/null
    sqlite3write "CREATE INDEX idx_queue_time ON upload_queue (time);" &>/dev/null
+   log "Database created with all required tables"
 fi
 
-# UPDATE UPLOADER DATEBASE
+# UPDATE UPLOADER DATEBASE SCHEMA
 sqlite3write "CREATE TABLE IF NOT EXISTS upload_keys(time DATETIME DEFAULT (datetime('now','localtime')), key TEXT, used NUMERIC, active INTEGER);" &>/dev/null
 
+# Check if metadata column exists in upload_queue
 DATABASEMETA=$(sqlite3read "PRAGMA table_info('upload_queue')" 2>/dev/null | $(which grep) -qE "metadata"  && echo true || echo false)
 if [[ "${DATABASEMETA}" == "false" ]]; then
+   log "Adding metadata column to upload_queue table"
    sqlite3write "DROP TABLE upload_queue" &>/dev/null
    sqlite3write "CREATE TABLE upload_queue(time DATETIME DEFAULT (datetime('now','localtime')), drive TEXT, filedir TEXT, filebase TEXT PRIMARY KEY, filesize TEXT, metadata INTEGER);" &>/dev/null
+fi
+
+# Check if filesize_bytes column exists in completed_uploads
+DATABASEBYTES=$(sqlite3read "PRAGMA table_info('completed_uploads')" 2>/dev/null | $(which grep) -qE "filesize_bytes"  && echo true || echo false)
+if [[ "${DATABASEBYTES}" == "false" ]]; then
+   log "Adding filesize_bytes column to completed_uploads table"
+   sqlite3write "ALTER TABLE completed_uploads ADD COLUMN filesize_bytes INTEGER;" &>/dev/null
+   # Update existing records with estimated size in bytes
+   sqlite3write "UPDATE completed_uploads SET filesize_bytes = (CASE 
+      WHEN filesize LIKE '%B' THEN CAST(REPLACE(filesize, 'B', '') AS INTEGER)
+      WHEN filesize LIKE '%KB' OR filesize LIKE '%KiB' THEN CAST(REPLACE(REPLACE(REPLACE(filesize, 'KB', ''), 'KiB', ''), ' ', '') AS FLOAT) * 1024
+      WHEN filesize LIKE '%MB' OR filesize LIKE '%MiB' THEN CAST(REPLACE(REPLACE(REPLACE(filesize, 'MB', ''), 'MiB', ''), ' ', '') AS FLOAT) * 1024 * 1024
+      WHEN filesize LIKE '%GB' OR filesize LIKE '%GiB' THEN CAST(REPLACE(REPLACE(REPLACE(filesize, 'GB', ''), 'GiB', ''), ' ', '') AS FLOAT) * 1024 * 1024 * 1024
+      WHEN filesize LIKE '%TB' OR filesize LIKE '%TiB' THEN CAST(REPLACE(REPLACE(REPLACE(filesize, 'TB', ''), 'TiB', ''), ' ', '') AS FLOAT) * 1024 * 1024 * 1024 * 1024
+      ELSE 0 END);" &>/dev/null
 fi
 
 # UPLOADER KEYS
