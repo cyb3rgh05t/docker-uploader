@@ -50,12 +50,54 @@ $(document).ready(function () {
 function initializeApp() {
   // Load environment settings
   loadEnvSettings();
-
+  loadAppVersion();
   // Initial data fetching
   handleInProgressJobs();
   handleCompletedJobList();
   checkStatus();
   updateRealTimeStats();
+}
+
+/**
+ * Load the application version from release.json
+ */
+function loadAppVersion() {
+  // First try via version.php (the most reliable method)
+  fetch("version.php")
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Version API not available");
+      }
+      return response.json();
+    })
+    .then((data) => {
+      if (data && data.version) {
+        document.getElementById("app-version").textContent = "v" + data.version;
+      }
+    })
+    .catch((error) => {
+      console.log("Fallback to direct release.json fetch");
+
+      // Fallback to direct release.json fetch
+      fetch("release.json")
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("release.json not available");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (data && data.newversion) {
+            document.getElementById("app-version").textContent =
+              "v" + data.newversion;
+          }
+        })
+        .catch((fallbackError) => {
+          console.log("Using default version");
+          // Set a default version if all else fails
+          document.getElementById("app-version").textContent = "v4.0.0";
+        });
+    });
 }
 
 /**
