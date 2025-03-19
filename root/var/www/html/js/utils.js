@@ -436,7 +436,6 @@ function setTheme(theme) {
  * @param {string} theme - Theme name
  */
 function updateThemeBackground(theme) {
-  // Complete list of themes with custom backgrounds
   const themesWithBackgrounds = [
     "overseerr",
     "hotline",
@@ -446,6 +445,8 @@ function updateThemeBackground(theme) {
     "dark",
     "nord",
     "dracula",
+    "space-gray",
+    "hotpink",
   ];
 
   // Clear any existing background properties
