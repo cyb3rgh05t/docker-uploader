@@ -131,6 +131,10 @@ jobs:
           # Get short SHA - fix the variable capture
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
 
+          # Create commit link properly formatted for the Discord notification
+          COMMIT_LINK="\`${SHORT_SHA}\`"
+          COMMIT_URL="https://github.com/${{ github.repository }}/commit/${{ github.sha }}"
+
           # Determine branch and tags info - we need to use string values for colors
           if [[ "$GITHUB_REF" == refs/heads/main ]]; then
             BRANCH="main"
@@ -150,61 +154,51 @@ jobs:
             IMAGE_TAGS="${{ env.DOCKER_TAGS }}"
           fi
 
-          # Use jq to construct the JSON (this is a much more reliable approach)
-          jq -n \
-            --arg title "🚀 Docker Build Success: ${{ github.repository }}" \
-            --arg desc "A new Docker image has been built and pushed to the container registry." \
-            --arg version "${{ env.RELEASE_VERSION }}" \
-            --arg branch "$BRANCH" \
-            --arg commit_sha "$SHORT_SHA" \
-            --arg commit_url "https://github.com/${{ github.repository }}/commit/${{ github.sha }}" \
-            --arg image_url "ghcr.io/${{ github.repository_owner }}/docker-uploader" \
-            --arg tags "$IMAGE_TAGS" \
-            --arg thumbnail_url "https://github.com/${{ github.repository_owner }}.png" \
-            --arg footer_text "Built with ❤️ by DockServer" \
-            --arg timestamp "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
-            --argjson color "$BRANCH_COLOR" \
-          '{
+          # Create a simpler JSON payload with less string manipulation in jq
+          cat > discord-payload.json << EOF
+          {
             "embeds": [{
-              "title": $title,
-              "color": $color,
-              "description": $desc,
+              "title": "🚀 Docker Build Success: ${{ github.repository }}",
+              "color": $BRANCH_COLOR,
+              "description": "A new Docker image has been built and pushed to the container registry.",
               "fields": [
                 {
                   "name": "🏷️ Version",
-                  "value": $version,
+                  "value": "${{ env.RELEASE_VERSION }}",
                   "inline": true
                 },
                 {
                   "name": "🔖 Branch/Tag",
-                  "value": $branch,
+                  "value": "$BRANCH",
                   "inline": true
                 },
                 {
                   "name": "🧠 Commit",
-                  "value": "[`"+$commit_sha+"`]("+$commit_url+")",
+                  "value": "[\`$SHORT_SHA\`]($COMMIT_URL)",
                   "inline": true
                 },
                 {
                   "name": "🏙️ Image",
-                  "value": $image_url,
+                  "value": "ghcr.io/${{ github.repository_owner }}/docker-uploader",
                   "inline": false
                 },
                 {
                   "name": "📋 Tags",
-                  "value": $tags,
+                  "value": "$IMAGE_TAGS",
                   "inline": false
                 }
               ],
               "thumbnail": {
-                "url": $thumbnail_url
+                "url": "https://github.com/${{ github.repository_owner }}.png"
               },
               "footer": {
-                "text": $footer_text
+                "text": "Built with ❤️ by DockServer",
+                "icon_url": "https://github.com/dockserver.png"
               },
-              "timestamp": $timestamp
+              "timestamp": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
             }]
-          }' > discord-payload.json
+          }
+          EOF
 
           # Send the webhook
           curl -X POST ${{ secrets.DISCORD_WEBHOOK }} \
