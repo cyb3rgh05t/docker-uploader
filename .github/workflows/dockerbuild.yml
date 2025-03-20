@@ -134,29 +134,28 @@ jobs:
           # Determine branch and tags info
           if [[ "$GITHUB_REF" == refs/heads/main ]]; then
             BRANCH="main"
-            BRANCH_COLOR="0x4CAF50" # Green
+            BRANCH_COLOR=4CAF50  # Green - no 0x prefix for this method
             IMAGE_TAGS="${{ env.RELEASE_VERSION }}, latest"
           elif [[ "$GITHUB_REF" == refs/heads/dev ]]; then
             BRANCH="dev"
-            BRANCH_COLOR="0xFF9800" # Orange
+            BRANCH_COLOR=FF9800  # Orange
             IMAGE_TAGS="dev"
           elif [[ "$GITHUB_REF" == refs/tags/* ]]; then
             BRANCH="${GITHUB_REF#refs/tags/}"
-            BRANCH_COLOR="0x2196F3" # Blue
+            BRANCH_COLOR=2196F3  # Blue
             IMAGE_TAGS="${BRANCH}, latest"
           else
             BRANCH="${GITHUB_REF#refs/heads/}"
-            BRANCH_COLOR="0x9C27B0" # Purple
+            BRANCH_COLOR=9C27B0  # Purple
             IMAGE_TAGS="${{ env.DOCKER_TAGS }}"
           fi
 
-          # Create and send the webhook
-          curl -X POST ${{ secrets.DISCORD_WEBHOOK }} \
-          -H "Content-Type: application/json" \
-          -d '{
+          # Create JSON payload in a file to avoid shell escaping issues
+          cat > discord-payload.json << EOF
+          {
             "embeds": [{
               "title": "🚀 Docker Build Success: ${{ github.repository }}",
-              "color": '"${BRANCH_COLOR}"',
+              "color": $BRANCH_COLOR,
               "description": "A new Docker image has been built and pushed to the container registry.",
               "fields": [
                 {
@@ -166,12 +165,12 @@ jobs:
                 },
                 {
                   "name": "🔖 Branch/Tag",
-                  "value": "'"${BRANCH}"'",
+                  "value": "$BRANCH",
                   "inline": true
                 },
                 {
                   "name": "🧠 Commit",
-                  "value": "[`'"${SHORT_SHA}"'](https://github.com/${{ github.repository }}/commit/${{ github.sha }})",
+                  "value": "[`$SHORT_SHA`](https://github.com/${{ github.repository }}/commit/${{ github.sha }})",
                   "inline": true
                 },
                 {
@@ -181,7 +180,7 @@ jobs:
                 },
                 {
                   "name": "📋 Tags",
-                  "value": "'"${IMAGE_TAGS}"'",
+                  "value": "$IMAGE_TAGS",
                   "inline": false
                 }
               ],
@@ -189,8 +188,18 @@ jobs:
                 "url": "https://github.com/${{ github.repository_owner }}.png"
               },
               "footer": {
-                "text": "Built with ❤️ by cyb3rgh05t"
+                "text": "Built with ❤️ by DockServer",
+                "icon_url": "https://github.com/dockserver.png"
               },
-              "timestamp": "'"$(date -u +'%Y-%m-%dT%H:%M:%SZ')"'"
+              "timestamp": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
             }]
-          }'
+          }
+          EOF
+
+          # Validate JSON before sending
+          cat discord-payload.json | jq . > /dev/null
+
+          # Send the webhook
+          curl -X POST ${{ secrets.DISCORD_WEBHOOK }} \
+            -H "Content-Type: application/json" \
+            -d @discord-payload.json
