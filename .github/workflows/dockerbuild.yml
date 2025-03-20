@@ -179,7 +179,7 @@ jobs:
                 },
                 {
                   "name": "🏙️ Image",
-                  "value": "ghcr.io/${{ github.repository_owner }}/docker-uploader",
+                  "value": "ghcr.io/${{ github.repository }}",
                   "inline": false
                 },
                 {
@@ -189,11 +189,11 @@ jobs:
                 }
               ],
               "thumbnail": {
-                "url": "https://github.com/${{ github.repository_owner }}.png"
+                "url": "https://github.com/${{ github.repository }}/images/docker-uploader.png"
               },
               "footer": {
                 "text": "Built with ❤️ by DockServer",
-                "icon_url": "https://github.com/dockserver.png"
+                "icon_url": "https://github.com/${{ github.repository_owner }}.png"
               },
               "timestamp": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
             }]
