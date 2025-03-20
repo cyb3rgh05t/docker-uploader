@@ -189,7 +189,7 @@ jobs:
                 }
               ],
               "thumbnail": {
-                "url": "https://github.com/${{ github.repository }}/images/docker-uploader.png"
+                "url": "https://github.com/cyb3rgh05t/docker-uploader/blob/main/images/docker-uploader.png"
               },
               "footer": {
                 "text": "Built with ❤️ by DockServer",
