@@ -189,10 +189,10 @@ jobs:
                 }
               ],
               "thumbnail": {
-                "url": "https://github.com/cyb3rgh05t/docker-uploader/blob/main/images/docker-uploader.png"
+                "url": "https://github.com/cyb3rgh05t/docker-uploader/blob/main/images/docker-uploader.png?raw=true"
               },
               "footer": {
-                "text": "Built with ❤️ by DockServer",
+                "text": "Built with ❤️ by cyb3rgh05t",
                 "icon_url": "https://github.com/${{ github.repository_owner }}.png"
               },
               "timestamp": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
