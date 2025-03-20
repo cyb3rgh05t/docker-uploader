@@ -12,9 +12,7 @@ on:
       - "LICENSE"
       - "**.md"
 
-  # Keep workflow_dispatch but make it work without required inputs
   workflow_dispatch:
-    # No inputs needed, will use branch detection logic
 
 env:
   REGISTRY: ghcr.io
