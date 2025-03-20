@@ -50,12 +50,48 @@ $(document).ready(function () {
 function initializeApp() {
   // Load environment settings
   loadEnvSettings();
-
+  loadAppVersion();
   // Initial data fetching
   handleInProgressJobs();
   handleCompletedJobList();
   checkStatus();
   updateRealTimeStats();
+}
+
+/**
+ * Load the application version
+ */
+function loadAppVersion() {
+  // Try dedicated API endpoint first
+  fetch("srv/api/system/version.php")
+    .then((response) => response.json())
+    .then((data) => {
+      if (data && data.version) {
+        document.getElementById("app-version").textContent = "v" + data.version;
+        console.log("Version loaded from API:", data.version);
+      }
+    })
+    .catch((error) => {
+      console.log("API version fetch failed, trying direct file");
+
+      // Fallback to direct file access
+      fetch("release.json")
+        .then((response) => response.json())
+        .then((data) => {
+          if (data && data.newversion) {
+            document.getElementById("app-version").textContent =
+              "v" + data.newversion;
+            console.log("Version loaded from file:", data.newversion);
+          } else {
+            throw new Error("Invalid release.json format");
+          }
+        })
+        .catch((fallbackError) => {
+          console.error("Version fetch failed:", fallbackError);
+          // Set a hardcoded version as last resort
+          document.getElementById("app-version").textContent = "v4.0.0";
+        });
+    });
 }
 
 /**

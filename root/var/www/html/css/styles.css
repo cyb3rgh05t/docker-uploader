@@ -1649,3 +1649,27 @@ a:hover {
 .table tbody tr.table-danger:hover {
   background-color: rgba(244, 67, 54, 0.3) !important;
 }
+
+/* Version Badge */
+.version-badge {
+  font-size: 0.65rem;
+  font-weight: 500;
+  background-color: var(--accent-color);
+  color: white;
+  padding: 3px 6px;
+  border-radius: 10px;
+  margin-left: 8px;
+  vertical-align: middle;
+  display: inline-block;
+  letter-spacing: 0.5px;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  top: -2px;
+}
+
+/* Add hover effect */
+.navbar-brand:hover .version-badge {
+  background-color: var(--accent-light);
+  transform: translateY(-1px);
+  transition: all var(--transition-speed) ease;
+}
