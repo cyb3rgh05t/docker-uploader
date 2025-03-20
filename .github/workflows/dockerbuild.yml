@@ -128,76 +128,83 @@ jobs:
       - name: Send Enhanced Discord Notification
         if: success()
         run: |
-          # Get short SHA
-          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+          # Get short SHA - fix the variable capture
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
 
-          # Determine branch and tags info
+          # Determine branch and tags info - we need to use string values for colors
           if [[ "$GITHUB_REF" == refs/heads/main ]]; then
             BRANCH="main"
-            BRANCH_COLOR=4CAF50  # Green - no 0x prefix for this method
+            BRANCH_COLOR="4885929"  # Decimal for Green
             IMAGE_TAGS="${{ env.RELEASE_VERSION }}, latest"
           elif [[ "$GITHUB_REF" == refs/heads/dev ]]; then
             BRANCH="dev"
-            BRANCH_COLOR=FF9800  # Orange
+            BRANCH_COLOR="16753920"  # Decimal for Orange
             IMAGE_TAGS="dev"
           elif [[ "$GITHUB_REF" == refs/tags/* ]]; then
             BRANCH="${GITHUB_REF#refs/tags/}"
-            BRANCH_COLOR=2196F3  # Blue
+            BRANCH_COLOR="2201331"   # Decimal for Blue
             IMAGE_TAGS="${BRANCH}, latest"
           else
             BRANCH="${GITHUB_REF#refs/heads/}"
-            BRANCH_COLOR=9C27B0  # Purple
+            BRANCH_COLOR="10233776"  # Decimal for Purple
             IMAGE_TAGS="${{ env.DOCKER_TAGS }}"
           fi
 
-          # Create JSON payload in a file to avoid shell escaping issues
-          cat > discord-payload.json << EOF
-          {
+          # Use jq to construct the JSON (this is a much more reliable approach)
+          jq -n \
+            --arg title "🚀 Docker Build Success: ${{ github.repository }}" \
+            --arg desc "A new Docker image has been built and pushed to the container registry." \
+            --arg version "${{ env.RELEASE_VERSION }}" \
+            --arg branch "$BRANCH" \
+            --arg commit_sha "$SHORT_SHA" \
+            --arg commit_url "https://github.com/${{ github.repository }}/commit/${{ github.sha }}" \
+            --arg image_url "ghcr.io/${{ github.repository_owner }}/docker-uploader" \
+            --arg tags "$IMAGE_TAGS" \
+            --arg thumbnail_url "https://github.com/${{ github.repository_owner }}.png" \
+            --arg footer_text "Built with ❤️ by DockServer" \
+            --arg timestamp "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
+            --argjson color "$BRANCH_COLOR" \
+          '{
             "embeds": [{
-              "title": "🚀 Docker Build Success: ${{ github.repository }}",
-              "color": $BRANCH_COLOR,
-              "description": "A new Docker image has been built and pushed to the container registry.",
+              "title": $title,
+              "color": $color,
+              "description": $desc,
               "fields": [
                 {
                   "name": "🏷️ Version",
-                  "value": "${{ env.RELEASE_VERSION }}",
+                  "value": $version,
                   "inline": true
                 },
                 {
                   "name": "🔖 Branch/Tag",
-                  "value": "$BRANCH",
+                  "value": $branch,
                   "inline": true
                 },
                 {
                   "name": "🧠 Commit",
-                  "value": "[`$SHORT_SHA`](https://github.com/${{ github.repository }}/commit/${{ github.sha }})",
+                  "value": "[`"+$commit_sha+"`]("+$commit_url+")",
                   "inline": true
                 },
                 {
                   "name": "🏙️ Image",
-                  "value": "ghcr.io/${{ github.repository_owner }}/docker-uploader",
+                  "value": $image_url,
                   "inline": false
                 },
                 {
                   "name": "📋 Tags",
-                  "value": "$IMAGE_TAGS",
+                  "value": $tags,
                   "inline": false
                 }
               ],
               "thumbnail": {
-                "url": "https://github.com/${{ github.repository_owner }}.png"
+                "url": $thumbnail_url
               },
               "footer": {
-                "text": "Built with ❤️ by DockServer",
-                "icon_url": "https://github.com/dockserver.png"
+                "text": $footer_text
               },
-              "timestamp": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+              "timestamp": $timestamp
             }]
-          }
-          EOF
-
-          # Validate JSON before sending
-          cat discord-payload.json | jq . > /dev/null
+          }' > discord-payload.json
 
           # Send the webhook
           curl -X POST ${{ secrets.DISCORD_WEBHOOK }} \
