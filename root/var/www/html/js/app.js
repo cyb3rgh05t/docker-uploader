@@ -59,42 +59,36 @@ function initializeApp() {
 }
 
 /**
- * Load the application version from release.json
+ * Load the application version
  */
 function loadAppVersion() {
-  // First try via version.php (the most reliable method)
-  fetch("version.php")
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Version API not available");
-      }
-      return response.json();
-    })
+  // Try dedicated API endpoint first
+  fetch("srv/api/system/version.php")
+    .then((response) => response.json())
     .then((data) => {
       if (data && data.version) {
         document.getElementById("app-version").textContent = "v" + data.version;
+        console.log("Version loaded from API:", data.version);
       }
     })
     .catch((error) => {
-      console.log("Fallback to direct release.json fetch");
+      console.log("API version fetch failed, trying direct file");
 
-      // Fallback to direct release.json fetch
+      // Fallback to direct file access
       fetch("release.json")
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("release.json not available");
-          }
-          return response.json();
-        })
+        .then((response) => response.json())
         .then((data) => {
           if (data && data.newversion) {
             document.getElementById("app-version").textContent =
               "v" + data.newversion;
+            console.log("Version loaded from file:", data.newversion);
+          } else {
+            throw new Error("Invalid release.json format");
           }
         })
         .catch((fallbackError) => {
-          console.log("Using default version");
-          // Set a default version if all else fails
+          console.error("Version fetch failed:", fallbackError);
+          // Set a hardcoded version as last resort
           document.getElementById("app-version").textContent = "v4.0.0";
         });
     });
