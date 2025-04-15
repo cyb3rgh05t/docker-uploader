@@ -1,8 +1,6 @@
 /**
  * Main application JavaScript for the Uploader Dashboard
- *
- * This updated version includes modern UI interactions and animations
- * while maintaining full compatibility with existing functionality
+ * Enhanced with modern animations and UI improvements
  */
 
 // Store global data
@@ -18,18 +16,19 @@ const uploaderApp = {
     inProgress: null,
     completed: null,
     stats: null,
+    status: null,
   },
-  // Animation states
+  // Animation settings
   animations: {
-    cardEntrance: true,
-    tableRowEffects: true,
+    enabled: false,
+    duration: 300,
   },
 };
 
-// Update the document ready function with enhanced initializations
+// Update the document ready function
 $(document).ready(function () {
-  // Apply entrance animations for stat cards
-  animateStatsCards();
+  // Hide the upload history card as it's not needed
+  $(".card:has(#upload-history-chart)").hide();
 
   // Initialize the app
   initializeApp();
@@ -48,48 +47,79 @@ $(document).ready(function () {
     $("#prettyEndTime").prop("checked", false);
   }
 
-  // Apply shimmer effect to empty tables
-  applyEmptyStateEffects();
+  // Apply initial animations
+  setTimeout(() => {
+    // Animate stat cards on load
+    animateStatsOnLoad();
+  }, 100);
 });
 
 /**
- * Apply entrance animations to stat cards
+ * Animation functions for enhanced UI
  */
-function animateStatsCards() {
-  // Add animation class to each stat card with increasing delay
-  $(".stat-card").each(function (index) {
-    $(this).css({
-      opacity: "0",
-      transform: "translateY(20px)",
-    });
 
+// Add fade-in animation to elements
+function addFadeInAnimation(elements, delay = 50) {
+  if (!elements || elements.length === 0 || !uploaderApp.animations.enabled)
+    return;
+
+  Array.from(elements).forEach((el, index) => {
     setTimeout(() => {
-      $(this).css({
-        opacity: "1",
-        transform: "translateY(0)",
-        transition: "opacity 0.5s ease, transform 0.5s ease",
-      });
-    }, 100 * (index + 1));
+      el.style.opacity = "0";
+      el.style.transform = "translateY(10px)";
+      el.style.transition = "opacity 0.3s ease, transform 0.3s ease";
+
+      // Trigger reflow
+      void el.offsetWidth;
+
+      el.style.opacity = "1";
+      el.style.transform = "translateY(0)";
+    }, delay * index);
   });
 }
 
-/**
- * Apply effects to empty state tables
- */
-function applyEmptyStateEffects() {
-  $(".empty-state").each(function () {
-    $(this).css({
-      opacity: "0",
-      transform: "scale(0.9)",
-    });
+// Counter animation helper
+function animateCounter(element, start, end, duration) {
+  if (!uploaderApp.animations.enabled) {
+    element.textContent = end;
+    return;
+  }
+
+  let startTimestamp = null;
+  const step = (timestamp) => {
+    if (!startTimestamp) startTimestamp = timestamp;
+    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+    const currentValue = Math.floor(progress * (end - start) + start);
+
+    element.textContent = currentValue.toString();
+
+    if (progress < 1) {
+      window.requestAnimationFrame(step);
+    } else {
+      element.textContent = end.toString();
+    }
+  };
+
+  window.requestAnimationFrame(step);
+}
+
+// Animate stat cards on initial load
+function animateStatsOnLoad() {
+  if (!uploaderApp.animations.enabled) return;
+
+  const statCards = document.querySelectorAll(".stat-card");
+  addFadeInAnimation(statCards, 100);
+
+  // Add subtle entrance animation for cards
+  document.querySelectorAll(".card").forEach((card, index) => {
+    card.style.opacity = "0";
+    card.style.transform = "translateY(20px)";
+    card.style.transition = "opacity 0.5s ease, transform 0.5s ease";
 
     setTimeout(() => {
-      $(this).css({
-        opacity: "1",
-        transform: "scale(1)",
-        transition: "opacity 0.5s ease, transform 0.5s ease",
-      });
-    }, 300);
+      card.style.opacity = "1";
+      card.style.transform = "translateY(0)";
+    }, 150 + index * 100);
   });
 }
 
@@ -97,46 +127,26 @@ function applyEmptyStateEffects() {
  * Initialize the application
  */
 function initializeApp() {
-  // Add loading state to cards
-  $(".card").addClass("loading");
-  $(".card-body").append(
-    '<div class="loading-overlay"><div class="loading-spinner"></div></div>'
-  );
-
   // Load environment settings
   loadEnvSettings();
   loadAppVersion();
-
   // Initial data fetching
   handleInProgressJobs();
   handleCompletedJobList();
   checkStatus();
   updateRealTimeStats();
-
-  // Remove loading state after 1 second (simulated loading time)
-  setTimeout(() => {
-    $(".card").removeClass("loading");
-    $(".loading-overlay").fadeOut(300, function () {
-      $(this).remove();
-    });
-  }, 800);
 }
 
 /**
- * Load the application version with visual feedback
+ * Load the application version
  */
 function loadAppVersion() {
-  const versionBadge = document.getElementById("app-version");
-  versionBadge.classList.add("loading");
-
   // Try dedicated API endpoint first
   fetch("srv/api/system/version.php")
     .then((response) => response.json())
     .then((data) => {
       if (data && data.version) {
-        versionBadge.textContent = "v" + data.version;
-        versionBadge.classList.remove("loading");
-        versionBadge.classList.add("loaded");
+        document.getElementById("app-version").textContent = "v" + data.version;
         console.log("Version loaded from API:", data.version);
       }
     })
@@ -148,9 +158,8 @@ function loadAppVersion() {
         .then((response) => response.json())
         .then((data) => {
           if (data && data.newversion) {
-            versionBadge.textContent = "v" + data.newversion;
-            versionBadge.classList.remove("loading");
-            versionBadge.classList.add("loaded");
+            document.getElementById("app-version").textContent =
+              "v" + data.newversion;
             console.log("Version loaded from file:", data.newversion);
           } else {
             throw new Error("Invalid release.json format");
@@ -159,60 +168,24 @@ function loadAppVersion() {
         .catch((fallbackError) => {
           console.error("Version fetch failed:", fallbackError);
           // Set a hardcoded version as last resort
-          versionBadge.textContent = "v4.0.0";
-          versionBadge.classList.remove("loading");
-          versionBadge.classList.add("loaded");
+          document.getElementById("app-version").textContent = "v4.0.0";
         });
     });
 }
 
 /**
- * Set up all event listeners with enhanced interactions
+ * Set up all event listeners
  */
 function setupEventListeners() {
-  // Settings modal toggle with effects
-  $("#settings-toggle").on("click", function () {
-    $("#settings-modal").addClass("active");
-    $("#modal-overlay").addClass("active");
-
-    // Animate modal entrance
-    $(".modal-content").css({
-      transform: "translateY(20px) scale(0.98)",
-      opacity: "0",
-    });
-
-    setTimeout(() => {
-      $(".modal-content").css({
-        transform: "translateY(0) scale(1)",
-        opacity: "1",
-        transition: "transform 0.4s ease, opacity 0.4s ease",
-      });
-    }, 50);
+  // Sidebar toggle
+  $("#sidebar-toggle").on("click", function () {
+    $("#sidebar").addClass("active");
+    $("#overlay").addClass("active");
   });
 
-  // Modal close with animation
-  $("#modal-close, #modal-overlay").on("click", function (e) {
-    if (e.target === this) {
-      $(".modal-content").css({
-        transform: "translateY(10px) scale(0.98)",
-        opacity: "0",
-        transition: "transform 0.3s ease, opacity 0.3s ease",
-      });
-
-      setTimeout(() => {
-        $("#settings-modal").removeClass("active");
-        $("#modal-overlay").removeClass("active");
-
-        // Reset the modal content styling for next open
-        setTimeout(() => {
-          $(".modal-content").css({
-            transform: "",
-            opacity: "",
-            transition: "",
-          });
-        }, 300);
-      }, 280);
-    }
+  $("#sidebar-close, #overlay").on("click", function () {
+    $("#sidebar").removeClass("active");
+    $("#overlay").removeClass("active");
   });
 
   setupSettingsModal();
@@ -220,7 +193,7 @@ function setupEventListeners() {
   // Theme selection - uses function from utils.js
   setupThemeEventListeners();
 
-  // Sidebar accordion toggles - keeping for backwards compatibility
+  // Sidebar accordion toggles
   $(".sidebar-section-header").on("click", function () {
     const targetId = $(this).data("target");
     const $content = $("#" + targetId);
@@ -244,22 +217,16 @@ function setupEventListeners() {
   // Fix notification form issues
   fixNotificationForm();
 
-  // Play/Pause button with enhanced effects
+  // Play/Pause button with enhanced feedback
   $("#control > span").on("click", function () {
-    // Add click effect
-    $(this).css({
-      transform: "scale(0.85)",
-      transition: "transform 0.1s ease",
-    });
-
-    setTimeout(() => {
-      $(this).css({
-        transform: "scale(1)",
-        transition: "transform 0.2s ease",
-      });
-    }, 100);
-
     const action = $(this).find("i").hasClass("fa-play") ? "pause" : "continue";
+
+    // Visual feedback while processing
+    const $button = $(this);
+    $button.css("opacity", "0.6").css("pointer-events", "none");
+
+    // Add subtle pulse animation
+    $button.css("animation", "pulse 0.5s infinite alternate");
 
     $.ajax({
       type: "POST",
@@ -270,61 +237,50 @@ function setupEventListeners() {
       success: function (data) {
         alignPauseControl(data.status);
       },
+      complete: function () {
+        // Reset visual state
+        $button.css("opacity", "1").css("pointer-events", "auto");
+        $button.css("animation", "");
+      },
     });
   });
 
   // Setup pause control
   setupPauseControl();
 
-  // Clear history button with enhanced effects
+  // Clear history button
   $("#clnHist").on("click", function () {
-    // Confirm clearing history
-    if (confirm("Are you sure you want to clear the upload history?")) {
-      // Visual feedback for button click
-      $(this).addClass("btn-processing");
-
-      $.ajax({
-        type: "POST",
-        url: "srv/api/system/clean_history.php",
-        success: function () {
-          handleCompletedJobList();
-          showStatusMessage("Upload history cleared successfully");
-          $("#clnHist").removeClass("btn-processing");
-        },
-        error: function () {
-          showStatusMessage("Failed to clear upload history", true);
-          $("#clnHist").removeClass("btn-processing");
-        },
-      });
-    }
-  });
-
-  // Toggle time format with animation
-  $(".toggle-time-format").on("click", function () {
-    $(this).addClass("rotating");
-
-    setTimeout(() => {
-      $(this).removeClass("rotating");
-    }, 500);
-
-    $("#prettyEndTime").click();
-  });
-
-  // Page size selection with feedback
-  $("#pageSize > li.page-item").on("click", function () {
     // Visual feedback
-    $(this).css({
-      transform: "scale(0.9)",
-      transition: "transform 0.1s ease",
+    const $button = $(this);
+    const originalText = $button.html();
+    $button.html('<i class="fas fa-spinner fa-spin"></i> Clearing...');
+    $button.css("pointer-events", "none");
+
+    $.ajax({
+      type: "POST",
+      url: "srv/api/system/clean_history.php",
+      success: function () {
+        handleCompletedJobList();
+        showStatusMessage("Upload history cleared successfully");
+      },
+      error: function () {
+        showStatusMessage("Failed to clear upload history", true);
+      },
+      complete: function () {
+        // Reset button
+        $button.html(originalText);
+        $button.css("pointer-events", "auto");
+      },
     });
+  });
 
-    setTimeout(() => {
-      $(this).css({
-        transform: "scale(1)",
-        transition: "transform 0.2s ease",
-      });
-    }, 100);
+  // Toggle time format
+  $("#prettyEndTime").on("click", function () {
+    handleCompletedJobList();
+  });
 
+  // Page size selection
+  $("#pageSize > li.page-item").on("click", function () {
     $("#pageSize > li.page-item.active").removeClass("active");
     $(this).addClass("active");
     uploaderApp.pageSize = parseInt($(this).find("a").text());
@@ -332,40 +288,23 @@ function setupEventListeners() {
     handleCompletedJobList();
   });
 
-  // Enable password toggle in forms
-  $(".password-toggle").on("click", function () {
-    const input = $(this).siblings("input");
-    const icon = $(this).find("i");
-
-    if (input.attr("type") === "password") {
-      input.attr("type", "text");
-      icon.removeClass("fa-eye").addClass("fa-eye-slash");
-    } else {
-      input.attr("type", "password");
-      icon.removeClass("fa-eye-slash").addClass("fa-eye");
-    }
+  // Chart time range selector
+  $("#chart-timerange").on("change", function () {
+    const timeRange = $(this).val();
+    createMockUploadChart("upload-history-chart", timeRange);
+    saveUserSetting("chartTimeRange", timeRange);
   });
 
-  // Table rows hover effects - add delegated handler for dynamic content
+  // Add hover effects to table rows
   $(document)
     .on("mouseenter", "table tbody tr", function () {
-      if (!uploaderApp.animations.tableRowEffects) return;
-
-      // Only animate if it's not a no-data row
-      if (!$(this).find("td[colspan]").length) {
-        $(this).siblings().css({
-          opacity: "0.7",
-          transition: "opacity 0.3s ease",
-        });
+      if (uploaderApp.animations.enabled) {
+        $(this).css("transition", "transform 0.2s ease");
+        $(this).css("transform", "translateX(3px)");
       }
     })
     .on("mouseleave", "table tbody tr", function () {
-      if (!uploaderApp.animations.tableRowEffects) return;
-
-      $(this).siblings().css({
-        opacity: "1",
-        transition: "opacity 0.3s ease",
-      });
+      $(this).css("transform", "translateX(0)");
     });
 }
 
@@ -373,47 +312,72 @@ function setupEventListeners() {
  * Settings Modal and Tabbed Interface Functionality
  */
 function setupSettingsModal() {
-  // Tab switching with enhanced transitions
+  // Modal open/close
+  $("#settings-toggle").on("click", function () {
+    $("#settings-modal").addClass("active");
+    $("#modal-overlay").addClass("active");
+
+    // Animate tabs on open
+    if (uploaderApp.animations.enabled) {
+      const tabs = document.querySelectorAll(".tab-button");
+      addFadeInAnimation(tabs, 50);
+    }
+  });
+
+  $("#modal-close, #modal-overlay").on("click", function () {
+    $("#settings-modal").removeClass("active");
+    $("#modal-overlay").removeClass("active");
+  });
+
+  // Close modal when clicking outside of it
+  $(document).on("click", function (event) {
+    if (
+      $("#settings-modal").hasClass("active") &&
+      !$(event.target).closest(".modal-content").length &&
+      !$(event.target).closest("#settings-toggle").length
+    ) {
+      $("#settings-modal").removeClass("active");
+      $("#modal-overlay").removeClass("active");
+    }
+  });
+
+  // Prevent closing when clicking inside modal content
+  $(".modal-content").on("click", function (event) {
+    event.stopPropagation();
+  });
+
+  // Tab switching with enhanced animation
   $(".tab-button").on("click", function () {
     const targetId = $(this).data("target");
-    const $targetContent = $("#" + targetId);
-
-    // Skip if already active
-    if ($(this).hasClass("active")) return;
 
     // Update active state for buttons
     $(".tab-button").removeClass("active");
     $(this).addClass("active");
 
-    // Fade out current content
-    $(".tab-content.active").css({
-      opacity: "0",
-      transform: "translateX(-10px)",
-      transition: "opacity 0.2s ease, transform 0.2s ease",
-    });
-
-    // After short delay, swap content and fade in new content
-    setTimeout(() => {
-      $(".tab-content").removeClass("active").css({
-        opacity: "",
-        transform: "",
-        transition: "",
-      });
-
-      $targetContent.addClass("active").css({
+    // Prepare for animation - hide all content first
+    if (uploaderApp.animations.enabled) {
+      $(".tab-content").css({
         opacity: "0",
-        transform: "translateX(10px)",
+        transform: "translateY(10px)",
+        transition: "none",
       });
+    }
 
-      // Force reflow
-      void $targetContent[0].offsetWidth;
+    // Update active state for content
+    $(".tab-content").removeClass("active");
+    const $activeContent = $("#" + targetId);
+    $activeContent.addClass("active");
 
-      $targetContent.css({
-        opacity: "1",
-        transform: "translateX(0)",
-        transition: "opacity 0.3s ease, transform 0.3s ease",
-      });
-    }, 200);
+    // Animate the new content in
+    if (uploaderApp.animations.enabled) {
+      setTimeout(() => {
+        $activeContent.css({
+          transition: "opacity 0.3s ease, transform 0.3s ease",
+          opacity: "1",
+          transform: "translateY(0)",
+        });
+      }, 50);
+    }
   });
 
   // Submit handling for forms in tabs
@@ -442,7 +406,7 @@ function setupSettingsModal() {
  * Special handling for form submissions
  */
 function setupFormSubmissions() {
-  // Form submissions with feedback animation
+  // Form submissions
   $(".settings-form").on("submit", function (e) {
     e.preventDefault();
 
@@ -453,10 +417,6 @@ function setupFormSubmissions() {
     if (formId === "notification-form") {
       return;
     }
-
-    // Add visual feedback - button animation
-    const $submitBtn = $(this).find('button[type="submit"]');
-    $submitBtn.addClass("btn-processing");
 
     // Serialize form data
     const formData = {};
@@ -486,10 +446,6 @@ function fixNotificationForm() {
   // Ensure both fields get submitted separately
   $("#notification-form").on("submit", function (e) {
     e.preventDefault();
-
-    // Add visual feedback
-    const $submitBtn = $(this).find('button[type="submit"]');
-    $submitBtn.addClass("btn-processing");
 
     const serverName = $("#notification_servername").val();
     const notificationUrl = $("#notification_url").val();
@@ -532,40 +488,21 @@ function stopPeriodicUpdates() {
 }
 
 /**
- * Handle in-progress uploads display with improved animations
+ * Handle in-progress uploads display
  */
 function handleInProgressJobs() {
   $.getJSON("srv/api/jobs/inprogress.php", function (json) {
     const $tableBody = $("#uploadsTable > tbody");
     let totalUploadRate = 0;
 
-    // Create a flag to check if we're transitioning from empty to having data
-    const wasEmpty = $tableBody.find(".empty-state").length > 0;
-
     $tableBody.empty();
 
     if (!json.jobs || json.jobs.length === 0) {
-      $tableBody.html(`
-        <tr>
-          <td colspan="6" class="text-center">
-            <div class="empty-state">
-              <i class="fas fa-cloud-upload-alt"></i>
-              <p>No uploads in progress</p>
-            </div>
-          </td>
-        </tr>
-      `);
-
-      // Apply empty state animation
-      applyEmptyStateEffects();
-
+      $tableBody.append(
+        '<tr><td colspan="6" class="text-center">No uploads in progress</td></tr>'
+      );
       $("#download_rate").text("0.00");
       return;
-    }
-
-    // If we're transitioning from empty to having data, add animation
-    if (wasEmpty) {
-      $tableBody.css("opacity", "0");
     }
 
     // Process and display each job
@@ -586,31 +523,22 @@ function handleInProgressJobs() {
       }
 
       // Calculate progress bar class based on percentage
-      let progressClass = "bg-secondary";
+      let progressClass = "bg-success"; // Always use orange (success) to match screenshot
       const progress = parseFloat(data.upload_percentage);
 
-      if (progress < 30) {
-        progressClass = "bg-danger";
-      } else if (progress < 70) {
-        progressClass = "bg-warning";
-      } else {
-        progressClass = "bg-success";
-      }
-
-      // Create table row with responsive data attributes and animation delay
-      const $row = $(`
-        <tr style="opacity: 0; transform: translateX(20px);">
-          <td data-title="Filename" class="truncate">${data.file_name}</td>
+      // Create table row with responsive data attributes and updated progress bar without text
+      $tableBody.append(`
+        <tr>
+          <td data-title="Filename" class="">${data.file_name}</td>
           <td data-title="Folder" class="d-none d-lg-table-cell">${data.drive}</td>
           <td data-title="Key" class="d-none d-lg-table-cell">${data.gdsa}</td>
           <td data-title="Progress">
             <div class="progress">
               <div class="progress-bar ${progressClass}" role="progressbar"
-                  style="width: ${data.upload_percentage};" 
-                  aria-valuenow="${progress}" 
-                  aria-valuemin="0" 
-                  aria-valuemax="100">
-                ${data.upload_percentage}
+                   style="width: ${data.upload_percentage};" 
+                   aria-valuenow="${progress}" 
+                   aria-valuemin="0" 
+                   aria-valuemax="100">
               </div>
             </div>
           </td>
@@ -618,45 +546,37 @@ function handleInProgressJobs() {
           <td data-title="Time Left" class="text-end">${data.upload_remainingtime} (with ${data.upload_speed})</td>
         </tr>
       `);
-
-      $tableBody.append($row);
-
-      // Animate row entrance with staggered delay
-      setTimeout(() => {
-        $row.css({
-          opacity: "1",
-          transform: "translateX(0)",
-          transition: "opacity 0.5s ease, transform 0.5s ease",
-        });
-      }, 50 * index);
     });
 
-    // If transitioning from empty, fade in the table
-    if (wasEmpty) {
-      setTimeout(() => {
-        $tableBody.css({
-          opacity: "1",
-          transition: "opacity 0.5s ease",
-        });
-      }, 50);
+    // Animate newly created table rows if this isn't the first load
+    if (uploaderApp.animations.enabled) {
+      const newRows = document.querySelectorAll("#uploadsTable > tbody > tr");
+      newRows.forEach((row, index) => {
+        row.style.opacity = "0";
+        row.style.transform = "translateY(5px)";
+
+        setTimeout(() => {
+          row.style.transition = "opacity 0.3s ease, transform 0.3s ease";
+          row.style.opacity = "1";
+          row.style.transform = "translateY(0)";
+        }, 50 * index);
+      });
     }
 
     // Update the upload rate display
     totalUploadRate = totalUploadRate.toFixed(2);
-    $("#download_rate").text(totalUploadRate);
 
     // Animate the rate change
-    $("#download_rate").css({
-      transform: "scale(1.2)",
-      transition: "transform 0.2s ease",
-    });
+    const rateElement = document.getElementById("download_rate");
+    const oldRate = parseFloat(rateElement.textContent) || 0;
 
-    setTimeout(() => {
-      $("#download_rate").css({
-        transform: "scale(1)",
-        transition: "transform 0.2s ease",
-      });
-    }, 200);
+    if (Math.abs(oldRate - totalUploadRate) > 0.1) {
+      if (uploaderApp.animations.enabled && oldRate > 0) {
+        animateCounter(rateElement, oldRate, totalUploadRate, 500);
+      } else {
+        rateElement.textContent = totalUploadRate;
+      }
+    }
 
     // Color-code the upload rate based on speed
     if (totalUploadRate < 5) {
@@ -675,14 +595,9 @@ function handleInProgressJobs() {
   });
 }
 
-// Update handleCompletedJobList to use relative date by default and add animations
+// Update handleCompletedJobList to use relative date by default
 function handleCompletedJobList() {
   const $completedTableBody = $("#completedTable > tbody");
-
-  // Add loading indicator
-  $completedTableBody.html(
-    '<tr><td colspan="6" class="text-center"><div class="loading-spinner"></div></td></tr>'
-  );
 
   // Get previously saved page size or use default
   const savedPageSize = getUserSetting("pageSize", 10);
@@ -716,19 +631,10 @@ function handleCompletedJobList() {
         clearInterval(uploaderApp.intervals.completed);
         uploaderApp.intervals.completed = null;
       }
-
-      // Add loading effect
-      $completedTableBody.css("opacity", "0.6");
     },
     afterPaging: function () {
       // After page changes, fetch complete upload stats for today
       fetchCompletedTodayStats();
-
-      // Restore opacity
-      $completedTableBody.css({
-        opacity: "1",
-        transition: "opacity 0.3s ease",
-      });
     },
     callback: function (data, pagination) {
       // Add Bootstrap classes to pagination links
@@ -738,27 +644,17 @@ function handleCompletedJobList() {
       $completedTableBody.empty();
 
       if (!data || data.length === 0) {
-        $completedTableBody.html(`
-          <tr>
-            <td colspan="6" class="text-center">
-              <div class="empty-state">
-                <i class="fas fa-history"></i>
-                <p>No completed uploads</p>
-              </div>
-            </td>
-          </tr>
-        `);
-
-        // Apply empty state animation
-        applyEmptyStateEffects();
-
+        $completedTableBody.append(
+          '<tr><td colspan="6" class="text-center">No completed uploads</td></tr>'
+        );
         $("#clnHist").hide();
         return;
       }
 
       $("#clnHist").show();
 
-      // Process and display each completed job with staggered animation
+      // Process and display each completed job
+      // Note: We've flipped the display format - now we show relative time by default
       $.each(data, function (index, job) {
         // Use time_end_clean (relative time) by default, only switch if prettyEndTime is checked
         const endTime = $("#prettyEndTime").is(":checked")
@@ -766,9 +662,9 @@ function handleCompletedJobList() {
           : job.time_end_clean;
         const rowClass = job.successful === true ? "" : "table-danger";
 
-        const $row = $(`
-          <tr class="${rowClass}" style="opacity: 0; transform: translateX(20px);">
-            <td data-title="Filename" class="truncate">${job.file_name}</td>
+        $completedTableBody.append(`
+          <tr class="${rowClass}">
+            <td data-title="Filename" class="">${job.file_name}</td>
             <td data-title="Folder">${job.drive}</td>
             <td data-title="Key">${job.gdsa}</td>
             <td data-title="Filesize">${job.file_size}</td>
@@ -776,18 +672,15 @@ function handleCompletedJobList() {
             <td data-title="Uploaded">${endTime}</td>
           </tr>
         `);
-
-        $completedTableBody.append($row);
-
-        // Staggered animation
-        setTimeout(() => {
-          $row.css({
-            opacity: "1",
-            transform: "translateX(0)",
-            transition: "opacity 0.5s ease, transform 0.5s ease",
-          });
-        }, 30 * index);
       });
+
+      // Animate newly created table rows
+      if (uploaderApp.animations.enabled) {
+        const newRows = document.querySelectorAll(
+          "#completedTable > tbody > tr"
+        );
+        addFadeInAnimation(newRows, 50);
+      }
 
       // Fetch all completed uploads for today
       fetchCompletedTodayStats();
@@ -802,65 +695,30 @@ function fetchCompletedTodayStats() {
   $.getJSON("srv/api/jobs/completed_today_stats.php", function (data) {
     if (data && data.count !== undefined) {
       // Check if values have changed
-      const countChanged = uploaderApp.completedTodayCount !== data.count;
-      const sizeChanged = uploaderApp.completedTodaySize !== data.total_size;
+      const oldCount = uploaderApp.completedTodayCount;
+      const oldSize = uploaderApp.completedTodaySize;
 
       uploaderApp.completedTodayCount = data.count;
       uploaderApp.completedTodaySize = data.total_size || 0;
 
-      // Update the stats display with animation if changed
-      if (countChanged) {
-        updateWithAnimation("#completed-count", data.count);
-      } else {
-        $("#completed-count").text(data.count);
+      // Animate count change if needed
+      if (oldCount !== data.count) {
+        const countElement = document.getElementById("completed-count");
+        if (uploaderApp.animations.enabled && oldCount > 0) {
+          animateCounter(countElement, oldCount, data.count, 600);
+        } else {
+          countElement.textContent = data.count;
+        }
       }
 
-      if (sizeChanged) {
-        updateWithAnimation(
-          "#completed-total",
-          `Total: ${formatFileSize(data.total_size)}`
-        );
-      } else {
-        $("#completed-total").text(`Total: ${formatFileSize(data.total_size)}`);
-      }
+      // Update the total size display
+      $("#completed-total").text(`Total: ${formatFileSize(data.total_size)}`);
     }
   }).fail(function () {
     // If the API doesn't exist yet, fall back to counting visible rows
     // This is a temporary solution until the API endpoint is implemented
     calculateCompletedTodayStats();
   });
-}
-
-/**
- * Helper function to update text with animation
- */
-function updateWithAnimation(selector, newValue) {
-  const $element = $(selector);
-
-  // Animate out
-  $element.css({
-    transform: "scale(0.8)",
-    opacity: "0.5",
-    transition: "transform 0.2s ease, opacity 0.2s ease",
-  });
-
-  // Update value and animate in
-  setTimeout(() => {
-    $element.text(newValue);
-    $element.css({
-      transform: "scale(1.1)",
-      opacity: "1",
-      transition: "transform 0.2s ease, opacity 0.2s ease",
-    });
-
-    // Reset to normal
-    setTimeout(() => {
-      $element.css({
-        transform: "scale(1)",
-        transition: "transform 0.2s ease",
-      });
-    }, 200);
-  }, 200);
 }
 
 /**
@@ -892,46 +750,36 @@ function calculateCompletedTodayStats() {
     });
 
   // Check if values have changed
-  const countChanged = uploaderApp.completedTodayCount !== completedToday;
-  const sizeChanged = uploaderApp.completedTodaySize !== totalSize;
+  const oldCount = uploaderApp.completedTodayCount;
 
-  // Update the stats with animation if changed
-  if (countChanged) {
-    updateWithAnimation("#completed-count", completedToday);
+  // Animate count change if needed
+  if (oldCount !== completedToday) {
+    const countElement = document.getElementById("completed-count");
+    if (uploaderApp.animations.enabled && oldCount > 0) {
+      animateCounter(countElement, oldCount, completedToday, 600);
+    } else {
+      countElement.textContent = completedToday;
+    }
   } else {
+    // Just update directly if no change
     $("#completed-count").text(completedToday);
   }
 
-  if (sizeChanged) {
-    updateWithAnimation(
-      "#completed-total",
-      `Total: ${formatFileSize(totalSize)}`
-    );
-  } else {
-    $("#completed-total").text(`Total: ${formatFileSize(totalSize)}`);
-  }
+  // Update the total size display
+  $("#completed-total").text(`Total: ${formatFileSize(totalSize)}`);
 
   // Save to app state
   uploaderApp.completedTodayCount = completedToday;
   uploaderApp.completedTodaySize = totalSize;
 }
 
-// Enhanced status check function with visual feedback
+// Enhanced status check function
 function checkStatus() {
   console.log("Checking uploader status");
-
-  // Add subtle visual indicator that status is being checked
-  $("#control > span").css({
-    opacity: "0.8",
-    transition: "opacity 0.3s ease",
-  });
 
   $.getJSON("srv/api/system/status.php")
     .done(function (json) {
       console.log("Status response:", json);
-
-      // Restore control opacity
-      $("#control > span").css("opacity", "1");
 
       if (json === undefined || json.status === "UNKNOWN") {
         console.warn("Unable to check status");
@@ -943,54 +791,50 @@ function checkStatus() {
     })
     .fail(function (jqXHR, textStatus, errorThrown) {
       console.error("Failed to check status:", textStatus, errorThrown);
-
-      // Restore control opacity
-      $("#control > span").css("opacity", "1");
     });
 }
 
-// Play/Pause button handler with enhanced animation
+// Play/Pause button handler with enhanced feedback
 function alignPauseControl(status, fromUserAction = false) {
   console.log("Aligning pause control to status:", status);
 
   const $control = $("#control > span");
   const $icon = $control.find("i");
 
-  // Start transition animation
-  $control.css({
-    transform: "scale(0.9)",
-    opacity: "0.7",
-    transition:
-      "transform 0.2s ease, opacity 0.2s ease, background-color 0.3s ease",
-  });
+  // Add a smooth transition
+  $control.css("transition", "all 0.3s ease");
 
-  setTimeout(() => {
-    if (status === "STARTED") {
-      // If uploader is RUNNING, show PAUSE icon (so user can pause it)
-      $icon.removeClass("fa-play").addClass("fa-pause");
-      $control.removeClass("bg-danger").addClass("bg-success");
-      $control.attr("aria-label", "Pause uploads");
+  if (status === "STARTED") {
+    // If uploader is RUNNING, show PAUSE icon (so user can pause it)
+    $icon.removeClass("fa-play").addClass("fa-pause");
+    $control.removeClass("bg-danger").addClass("bg-success");
+    $control.attr("aria-label", "Pause uploads");
 
-      if (fromUserAction) {
-        showStatusMessage("Uploader is running");
-      }
-    } else if (status === "STOPPED") {
-      // If uploader is STOPPED, show PLAY icon (so user can resume it)
-      $icon.removeClass("fa-pause").addClass("fa-play");
-      $control.removeClass("bg-success").addClass("bg-danger");
-      $control.attr("aria-label", "Resume uploads");
+    if (fromUserAction) {
+      // Add a subtle animation for visual feedback
+      $control.css("transform", "scale(1.1)");
+      setTimeout(() => {
+        $control.css("transform", "scale(1)");
+      }, 300);
 
-      if (fromUserAction) {
-        showStatusMessage("Uploader is paused");
-      }
+      showStatusMessage("Uploader is running");
     }
+  } else if (status === "STOPPED") {
+    // If uploader is STOPPED, show PLAY icon (so user can resume it)
+    $icon.removeClass("fa-pause").addClass("fa-play");
+    $control.removeClass("bg-success").addClass("bg-danger");
+    $control.attr("aria-label", "Resume uploads");
 
-    // Complete transition animation
-    $control.css({
-      transform: "scale(1)",
-      opacity: "1",
-    });
-  }, 200);
+    if (fromUserAction) {
+      // Add a subtle animation for visual feedback
+      $control.css("transform", "scale(1.1)");
+      setTimeout(() => {
+        $control.css("transform", "scale(1)");
+      }, 300);
+
+      showStatusMessage("Uploader is paused");
+    }
+  }
 }
 
 /**
@@ -1011,12 +855,10 @@ function setupPauseControl() {
 
     // Visual feedback while processing
     const $button = $(this);
-    $button.css({
-      transform: "scale(0.9)",
-      opacity: "0.7",
-      "pointer-events": "none",
-      transition: "transform 0.2s ease, opacity 0.2s ease",
-    });
+    $button.css("opacity", "0.6").css("pointer-events", "none");
+
+    // Add subtle pulse animation
+    $button.css("animation", "pulse 0.5s infinite alternate");
 
     // Send request to API
     $.ajax({
@@ -1042,11 +884,8 @@ function setupPauseControl() {
       },
       complete: function () {
         // Reset button appearance
-        $button.css({
-          opacity: "1",
-          "pointer-events": "auto",
-          transform: "scale(1)",
-        });
+        $button.css("opacity", "1").css("pointer-events", "auto");
+        $button.css("animation", "");
       },
     });
   });
@@ -1056,19 +895,21 @@ function setupPauseControl() {
 function updateRealTimeStats() {
   // Get current upload rate
   const currentRate = $("#download_rate").text() || "0.00";
-
-  // Only update if changed
-  if ($("#current-rate").text() !== `${currentRate} MB/s`) {
-    updateWithAnimation("#current-rate", `${currentRate} MB/s`);
-  }
+  $("#current-rate").text(`${currentRate} MB/s`);
 
   // Get active uploads count
   const activeUploads =
     $("#uploadsTable tbody tr").not(':contains("No uploads")').length || 0;
 
-  // Only update if changed
-  if ($("#active-count").text() !== activeUploads.toString()) {
-    updateWithAnimation("#active-count", activeUploads);
+  // Animate count change if needed
+  const oldCount = parseInt($("#active-count").text()) || 0;
+  if (oldCount !== activeUploads) {
+    const countElement = document.getElementById("active-count");
+    if (uploaderApp.animations.enabled && oldCount > 0) {
+      animateCounter(countElement, oldCount, activeUploads, 500);
+    } else {
+      countElement.textContent = activeUploads;
+    }
   }
 
   // Update queue stats separately - don't use active uploads count
@@ -1088,12 +929,9 @@ function updateRealTimeStats() {
 }
 
 /**
- * Load environment settings from the server with visual feedback
+ * Load environment settings from the server
  */
 function loadEnvSettings() {
-  // Add loading indicator to settings forms
-  $(".settings-form").addClass("loading");
-
   // First try the new API endpoint
   $.getJSON("srv/api/settings/update.php")
     .done(function (data) {
@@ -1105,9 +943,6 @@ function loadEnvSettings() {
 
         // Update UI elements that depend on settings
         updateUIFromSettings(data.settings);
-
-        // Remove loading state
-        $(".settings-form").removeClass("loading");
       } else {
         console.warn(
           "New settings API returned invalid data, falling back to legacy endpoint"
@@ -1138,13 +973,8 @@ function loadEnvSettingsLegacy() {
 
         // Update UI elements that depend on settings
         updateUIFromSettings(data);
-
-        // Remove loading state
-        $(".settings-form").removeClass("loading");
       } else {
         console.warn("Failed to load environment settings from legacy API");
-        // Remove loading state
-        $(".settings-form").removeClass("loading");
       }
     })
     .fail(function () {
@@ -1161,9 +991,6 @@ function loadEnvSettingsLegacy() {
       uploaderApp.envSettings = defaultSettings;
       populateFormFields(defaultSettings);
       updateUIFromSettings(defaultSettings);
-
-      // Remove loading state
-      $(".settings-form").removeClass("loading");
     });
 }
 
@@ -1184,12 +1011,6 @@ function populateFormFields(settings) {
       } else {
         $field.val(value);
       }
-
-      // Add a subtle highlight effect to filled fields
-      $field.addClass("field-populated");
-      setTimeout(() => {
-        $field.removeClass("field-populated");
-      }, 500);
     }
   });
 }
@@ -1215,7 +1036,7 @@ function updateUIFromSettings(settings) {
 }
 
 /**
- * Update environment settings with enhanced visual feedback
+ * Update environment settings with enhanced user feedback
  * @param {string} formId - Form ID that was submitted
  * @param {Object} settings - Settings to update
  */
@@ -1227,16 +1048,14 @@ function updateEnvSettings(formId, settings) {
   const $submitBtn = $form.find('button[type="submit"]');
   const originalText = $submitBtn.text();
 
-  // Add processing class for styles
-  $submitBtn.addClass("btn-processing");
+  // Show loading state
   $submitBtn
     .prop("disabled", true)
     .html('<i class="fas fa-spinner fa-spin"></i> Saving...');
 
   // Add a safety timeout to restore button state even if AJAX fails
   const resetTimeout = setTimeout(() => {
-    $submitBtn.removeClass("btn-processing");
-    $submitBtn.prop("disabled", false).html(originalText);
+    $submitBtn.prop("disabled", false).text(originalText);
     console.log("Button state restored by safety timeout");
   }, 8000);
 
@@ -1263,11 +1082,18 @@ function updateEnvSettings(formId, settings) {
       console.log("API response:", response);
 
       if (response.success) {
+        // Show success message with animation
         showStatusMessage("Settings updated successfully!");
 
-        // Success animation for button
-        $submitBtn.removeClass("btn-processing").addClass("btn-success");
-        $submitBtn.html('<i class="fas fa-check"></i> Saved!');
+        // Success animation
+        if (uploaderApp.animations.enabled) {
+          $submitBtn.html('<i class="fas fa-check"></i> Saved');
+          setTimeout(() => {
+            $submitBtn.html(originalText);
+          }, 1500);
+        } else {
+          $submitBtn.html(originalText);
+        }
 
         // Update local settings
         Object.assign(uploaderApp.envSettings, settings);
@@ -1276,12 +1102,8 @@ function updateEnvSettings(formId, settings) {
         switch (formId) {
           case "transfer-form":
             // Update transfer settings UI
-            updateWithAnimation(
-              "#active-max",
-              `Max: ${settings.TRANSFERS || "2"}`
-            );
-            updateWithAnimation(
-              "#rate-limit",
+            $("#active-max").text(`Max: ${settings.TRANSFERS || "2"}`);
+            $("#rate-limit").text(
               `Limit per Transfer: ${settings.BANDWIDTH_LIMIT || "30M"}`
             );
             break;
@@ -1302,12 +1124,6 @@ function updateEnvSettings(formId, settings) {
             // Update security settings UI if needed
             break;
         }
-
-        // Reset button after delay
-        setTimeout(() => {
-          $submitBtn.removeClass("btn-success");
-          $submitBtn.prop("disabled", false).html(originalText);
-        }, 1500);
       } else {
         // Try legacy API if new one fails
         updateEnvSettingsLegacy(
@@ -1317,22 +1133,24 @@ function updateEnvSettings(formId, settings) {
           originalText,
           function (success) {
             if (!success) {
-              $submitBtn.removeClass("btn-processing").addClass("btn-danger");
-              $submitBtn.html(
-                '<i class="fas fa-exclamation-triangle"></i> Error'
-              );
-
+              // Show error message
               showStatusMessage(
                 "Failed to update settings: " +
                   (response.message || "Unknown error"),
                 true
               );
 
-              // Reset button after delay
-              setTimeout(() => {
-                $submitBtn.removeClass("btn-danger");
-                $submitBtn.prop("disabled", false).html(originalText);
-              }, 1500);
+              // Error animation
+              if (uploaderApp.animations.enabled) {
+                $submitBtn.html(
+                  '<i class="fas fa-exclamation-triangle"></i> Failed'
+                );
+                setTimeout(() => {
+                  $submitBtn.html(originalText);
+                }, 1500);
+              } else {
+                $submitBtn.html(originalText);
+              }
             }
           }
         );
@@ -1348,19 +1166,20 @@ function updateEnvSettings(formId, settings) {
         originalText,
         function (success) {
           if (!success) {
-            $submitBtn.removeClass("btn-processing").addClass("btn-danger");
-            $submitBtn.html(
-              '<i class="fas fa-exclamation-triangle"></i> Error'
-            );
-
             showStatusMessage("Failed to communicate with the server", true);
             console.error("Response:", xhr.responseText);
 
-            // Reset button after delay
-            setTimeout(() => {
-              $submitBtn.removeClass("btn-danger");
-              $submitBtn.prop("disabled", false).html(originalText);
-            }, 1500);
+            // Error animation
+            if (uploaderApp.animations.enabled) {
+              $submitBtn.html(
+                '<i class="fas fa-exclamation-triangle"></i> Failed'
+              );
+              setTimeout(() => {
+                $submitBtn.html(originalText);
+              }, 1500);
+            } else {
+              $submitBtn.html(originalText);
+            }
           }
         }
       );
@@ -1368,6 +1187,13 @@ function updateEnvSettings(formId, settings) {
     complete: function () {
       // Clear the safety timeout
       clearTimeout(resetTimeout);
+      // Restore button state if not already done by animation
+      if (!uploaderApp.animations.enabled) {
+        $submitBtn.prop("disabled", false).text(originalText);
+      } else {
+        $submitBtn.prop("disabled", false);
+      }
+      console.log("Button state restored in complete callback");
     },
   });
 }
@@ -1401,10 +1227,17 @@ function updateEnvSettingsLegacy(
     dataType: "json",
     success: function (response) {
       if (response.success) {
-        $submitBtn.removeClass("btn-processing").addClass("btn-success");
-        $submitBtn.html('<i class="fas fa-check"></i> Saved!');
-
         showStatusMessage("Settings updated successfully!");
+
+        // Success animation
+        if (uploaderApp.animations.enabled) {
+          $submitBtn.html('<i class="fas fa-check"></i> Saved');
+          setTimeout(() => {
+            $submitBtn.html(originalText);
+          }, 1500);
+        } else {
+          $submitBtn.html(originalText);
+        }
 
         // Update local settings
         Object.assign(uploaderApp.envSettings, settings);
@@ -1412,38 +1245,49 @@ function updateEnvSettingsLegacy(
         // Update UI based on form ID
         switch (formId) {
           case "transfer-form":
-            updateWithAnimation(
-              "#active-max",
-              `Max: ${legacySettings.transfers || "2"}`
-            );
-            updateWithAnimation(
-              "#rate-limit",
+            $("#active-max").text(`Max: ${legacySettings.transfers || "2"}`);
+            $("#rate-limit").text(
               `Limit per Transfer: ${legacySettings.bandwidth_limit || "30M"}`
             );
             break;
         }
 
-        // Reset button after delay
-        setTimeout(() => {
-          $submitBtn.removeClass("btn-success");
-          $submitBtn.prop("disabled", false).html(originalText);
-        }, 1500);
-
         if (callback) callback(true);
       } else {
+        // Error animation
+        if (uploaderApp.animations.enabled) {
+          $submitBtn.html('<i class="fas fa-exclamation-triangle"></i> Failed');
+          setTimeout(() => {
+            $submitBtn.html(originalText);
+          }, 1500);
+        } else {
+          $submitBtn.html(originalText);
+        }
+
         if (callback) callback(false);
       }
     },
     error: function () {
+      // Error animation
+      if (uploaderApp.animations.enabled) {
+        $submitBtn.html('<i class="fas fa-exclamation-triangle"></i> Failed');
+        setTimeout(() => {
+          $submitBtn.html(originalText);
+        }, 1500);
+      } else {
+        $submitBtn.html(originalText);
+      }
+
       if (callback) callback(false);
     },
     complete: function () {
-      // Also restore button state in legacy handler if not already handled
-      if ($submitBtn.hasClass("btn-processing")) {
-        $submitBtn.removeClass("btn-processing");
-        $submitBtn.prop("disabled", false).html(originalText);
-        console.log("Button state restored in legacy complete callback");
+      // Also restore button state in legacy handler if not handled by animation
+      if (!uploaderApp.animations.enabled) {
+        $submitBtn.prop("disabled", false).text(originalText);
+      } else {
+        $submitBtn.prop("disabled", false);
       }
+      console.log("Button state restored in legacy complete callback");
     },
   });
 }
@@ -1451,19 +1295,23 @@ function updateEnvSettingsLegacy(
 function updateQueueStats() {
   $.getJSON("srv/api/jobs/queue_stats.php", function (data) {
     if (data && typeof data === "object") {
-      // Update the queue count with animation if changed
-      const currentCount = $("#queue-count").text();
-      if (currentCount !== (data.count || 0).toString()) {
-        updateWithAnimation("#queue-count", data.count || 0);
+      // Check if queue count has changed
+      const oldCount = parseInt($("#queue-count").text()) || 0;
+      const newCount = data.count || 0;
+
+      // Animate count change if needed
+      if (oldCount !== newCount) {
+        const countElement = document.getElementById("queue-count");
+        if (uploaderApp.animations.enabled && oldCount > 0) {
+          animateCounter(countElement, oldCount, newCount, 500);
+        } else {
+          countElement.textContent = newCount;
+        }
       }
 
       // Format the total size nicely
       const totalSize = formatFileSize(data.total_size || 0);
-      const currentTotal = $("#queue-total").text().replace("Total: ", "");
-
-      if (currentTotal !== totalSize) {
-        updateWithAnimation("#queue-total", `Total: ${totalSize}`);
-      }
+      $("#queue-total").text(`Total: ${totalSize}`);
     }
   }).fail(function () {
     // Fallback if API doesn't exist yet
@@ -1478,9 +1326,17 @@ function estimateQueueStats() {
   $.getJSON("srv/api/jobs/inprogress.php", function (data) {
     const queueCount = data.jobs ? data.jobs.length : 0;
 
-    const currentCount = $("#queue-count").text();
-    if (currentCount !== queueCount.toString()) {
-      updateWithAnimation("#queue-count", queueCount);
+    // Check if queue count has changed
+    const oldCount = parseInt($("#queue-count").text()) || 0;
+
+    // Animate count change if needed
+    if (oldCount !== queueCount) {
+      const countElement = document.getElementById("queue-count");
+      if (uploaderApp.animations.enabled && oldCount > 0) {
+        animateCounter(countElement, oldCount, queueCount, 500);
+      } else {
+        countElement.textContent = queueCount;
+      }
     }
 
     let totalSize = 0;
@@ -1490,122 +1346,70 @@ function estimateQueueStats() {
       });
     }
 
-    const formattedSize = formatFileSize(totalSize);
-    const currentTotal = $("#queue-total").text().replace("Total: ", "");
-
-    if (currentTotal !== formattedSize) {
-      updateWithAnimation("#queue-total", `Total: ${formattedSize}`);
-    }
+    $("#queue-total").text(`Total: ${formatFileSize(totalSize)}`);
   });
 }
 
-/**
- * CSS class for button processing state
- * Adds a dynamic pulse effect to buttons while processing
- */
-// Add CSS class definitions for processing and success states
-if (!document.getElementById("dynamic-button-styles")) {
-  const style = document.createElement("style");
-  style.id = "dynamic-button-styles";
-  style.textContent = `
-    .btn-processing {
-      position: relative;
-      overflow: hidden;
-      pointer-events: none;
-    }
-    
-    .btn-processing::after {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 300%;
-      height: 100%;
-      background: linear-gradient(
-        90deg,
-        transparent 0%,
-        rgba(255, 255, 255, 0.2) 50%,
-        transparent 100%
-      );
-      animation: shimmer 2s infinite;
-    }
-    
-    .field-populated {
-      animation: highlight 1s ease;
-    }
+// Enhanced status message with animation
+function showStatusMessage(message, isError = false) {
+  const statusMessage = document.getElementById("status-message");
+  if (!statusMessage) {
+    console.error("Status message element not found");
+    console.log(message);
+    return;
+  }
 
-    @keyframes shimmer {
-      0% { left: -100%; }
-      100% { left: 100%; }
-    }
-    
-    @keyframes highlight {
-      0% { background-color: var(--accent-transparent); }
-      100% { background-color: transparent; }
-    }
-    
-    .rotating {
-      animation: rotate 0.5s ease;
-    }
-    
-    @keyframes rotate {
-      0% { transform: rotate(0); }
-      100% { transform: rotate(360deg); }
-    }
-    
-    .loading-spinner {
-      width: 40px;
-      height: 40px;
-      margin: 20px auto;
-      border: 3px solid rgba(255, 255, 255, 0.3);
-      border-radius: 50%;
-      border-top-color: var(--accent-color);
-      animation: spin 1s ease-in-out infinite;
-    }
-    
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    
-    .loading-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: var(--transparency-dark-70);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 10;
-      backdrop-filter: blur(3px);
-    }
-    
-    .card.loading {
-      position: relative;
-      min-height: 200px;
-    }
-    
-    #app-version.loading {
-      animation: pulse 1.5s infinite;
-    }
-    
-    #app-version.loaded {
-      animation: bounce 0.5s ease;
-    }
-    
-    @keyframes bounce {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.2); }
-    }
-    
-    .btn-success {
-      background-color: var(--success) !important;
-    }
-    
-    .btn-danger {
-      background-color: var(--danger) !important;
+  statusMessage.textContent = message;
+
+  if (isError) {
+    statusMessage.classList.add("error");
+  } else {
+    statusMessage.classList.remove("error");
+  }
+
+  // Clear any existing timeouts
+  if (statusMessage._hideTimeout) {
+    clearTimeout(statusMessage._hideTimeout);
+  }
+
+  // Add entrance animation
+  statusMessage.style.display = "block";
+  statusMessage.style.opacity = "0";
+  statusMessage.style.transform = "translateX(20px)";
+
+  // Force reflow
+  void statusMessage.offsetWidth;
+
+  // Animate in
+  statusMessage.style.transition = "opacity 0.3s ease, transform 0.3s ease";
+  statusMessage.style.opacity = "1";
+  statusMessage.style.transform = "translateX(0)";
+
+  // Set timeout to hide
+  statusMessage._hideTimeout = setTimeout(() => {
+    // Animate out
+    statusMessage.style.opacity = "0";
+    statusMessage.style.transform = "translateY(-10px)";
+
+    // Actually hide after animation completes
+    setTimeout(() => {
+      statusMessage.style.display = "none";
+    }, 300);
+  }, 3000);
+}
+
+// Add keyframes for pulse animation - append to document
+(function addKeyframes() {
+  const style = document.createElement("style");
+  style.textContent = `
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+      }
+      100% {
+        transform: scale(1.05);
+      }
     }
   `;
   document.head.appendChild(style);
-}
+})();

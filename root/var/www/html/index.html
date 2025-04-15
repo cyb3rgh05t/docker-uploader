@@ -11,33 +11,43 @@
       crossorigin="anonymous"
       referrerpolicy="no-referrer"
     />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="stylesheet" href="css/styles.css?v=1.3.0" />
+    <link rel="stylesheet" href="css/modern-styles.css?v=1.2.7" />
   </head>
   <body>
     <!-- Navbar -->
     <nav class="navbar">
-      <a href="#" class="navbar-brand">
-        <i class="fas fa-cloud-upload-alt"></i>
-        <span class="brand-text">Uploader Dashboard</span>
-        <span class="version-badge" id="app-version">loading...</span>
-      </a>
+      <div class="navbar-container">
+        <a href="#" class="navbar-brand">
+          <i class="fas fa-cloud-upload-alt"></i>
+          <span>Uploader Dashboard</span>
+          <div class="version-badge" id="app-version">loading...</div>
+        </a>
 
-      <div class="navbar-controls">
-        <div class="badge-container">
-          <div class="badge-with-icon">
-            <i class="fas fa-tachometer-alt"></i>
-            <div id="download_rate" class="badge">0.00</div>
+        <div class="navbar-controls">
+          <div class="upload-rate">
+            <div class="rate-icon">
+              <i class="fas fa-tachometer-alt"></i>
+            </div>
+            <div id="download_rate" class="rate-value">0.00</div>
+            <span class="rate-unit">MB/s</span>
           </div>
+
+          <button
+            id="settings-toggle"
+            class="settings-btn"
+            aria-label="Open settings"
+          >
+            <i class="fa-solid fa-gear"></i>
+            <span>Settings</span>
+          </button>
         </div>
-        <button
-          id="settings-toggle"
-          class="settings-btn"
-          aria-label="Open settings"
-        >
-          <i class="fa-solid fa-gear"></i>
-          <span>Settings</span>
-        </button>
       </div>
     </nav>
 
@@ -45,7 +55,7 @@
     <div id="settings-modal" class="modal">
       <div class="modal-content">
         <div class="modal-header">
-          <h2><i class="fas fa-sliders-h"></i> Settings</h2>
+          <h2><i class="fas fa-sliders-h"></i> Dashboard Settings</h2>
           <button
             id="modal-close"
             class="modal-close"
@@ -90,7 +100,7 @@
               <form class="settings-form" id="transfer-form">
                 <div class="form-group">
                   <label for="bandwidth_limit">
-                    <i class="fas fa-tachometer-alt"></i> Bandwidth Limit (MB/s)
+                    <i class="fas fa-gauge-high"></i> Bandwidth Limit (MB/s)
                   </label>
                   <input
                     type="text"
@@ -102,7 +112,7 @@
                 </div>
                 <div class="form-group">
                   <label for="transfers">
-                    <i class="fas fa-exchange-alt"></i> Max Transfers
+                    <i class="fas fa-clone"></i> Max Transfers
                   </label>
                   <input
                     type="number"
@@ -140,7 +150,7 @@
                     min="1"
                   />
                 </div>
-                <button type="submit" class="btn btn-primary">
+                <button type="submit" class="btn">
                   <i class="fas fa-save"></i> Save Changes
                 </button>
               </form>
@@ -187,7 +197,7 @@
                     placeholder="discord://webhook-url"
                   />
                 </div>
-                <button type="submit" class="btn btn-primary">
+                <button type="submit" class="btn">
                   <i class="fas fa-save"></i> Save Changes
                 </button>
               </form>
@@ -198,7 +208,7 @@
               <form class="settings-form" id="system-form">
                 <div class="form-group">
                   <label for="log_level">
-                    <i class="fas fa-list-ol"></i> Log Level
+                    <i class="fas fa-list"></i> Log Level
                   </label>
                   <select id="log_level" name="log_level" class="form-control">
                     <option value="INFO" selected>INFO</option>
@@ -209,7 +219,7 @@
                 </div>
                 <div class="form-group">
                   <label for="log_entry">
-                    <i class="fas fa-list"></i> Log Entry Count
+                    <i class="fas fa-history"></i> Log Entry Count
                   </label>
                   <input
                     type="number"
@@ -242,7 +252,7 @@
                     <option value="de">German</option>
                   </select>
                 </div>
-                <button type="submit" class="btn btn-primary">
+                <button type="submit" class="btn">
                   <i class="fas fa-save"></i> Save Changes
                 </button>
               </form>
@@ -253,7 +263,7 @@
               <form class="settings-form" id="autoscan-form">
                 <div class="form-group">
                   <label for="autoscan_url">
-                    <i class="fas fa-link"></i> AutoScan URL
+                    <i class="fas fa-globe"></i> AutoScan URL
                   </label>
                   <input
                     type="text"
@@ -279,20 +289,15 @@
                   <label for="autoscan_pass">
                     <i class="fas fa-key"></i> AutoScan Password
                   </label>
-                  <div class="password-input-container">
-                    <input
-                      type="password"
-                      id="autoscan_pass"
-                      name="autoscan_pass"
-                      class="form-control"
-                      placeholder="password (leave empty for none)"
-                    />
-                    <button type="button" class="password-toggle">
-                      <i class="fas fa-eye"></i>
-                    </button>
-                  </div>
+                  <input
+                    type="password"
+                    id="autoscan_pass"
+                    name="autoscan_pass"
+                    class="form-control"
+                    placeholder="password (leave empty for none)"
+                  />
                 </div>
-                <button type="submit" class="btn btn-primary">
+                <button type="submit" class="btn">
                   <i class="fas fa-save"></i> Save Changes
                 </button>
               </form>
@@ -303,7 +308,7 @@
               <form class="settings-form" id="security-form">
                 <div class="form-group">
                   <label for="hashpassword">
-                    <i class="fas fa-hashtag"></i> Hash Password
+                    <i class="fas fa-lock"></i> Hash Password
                   </label>
                   <select
                     id="hashpassword"
@@ -347,7 +352,7 @@
                     <option value="false">Disabled</option>
                   </select>
                 </div>
-                <button type="submit" class="btn btn-primary">
+                <button type="submit" class="btn">
                   <i class="fas fa-save"></i> Save Changes
                 </button>
               </form>
@@ -357,7 +362,7 @@
             <div id="theme-tab" class="tab-content">
               <!-- Accent Colors Section -->
               <div class="theme-section">
-                <h3><i class="fas fa-brush"></i> Accent Colors</h3>
+                <h3>Accent Colors</h3>
                 <p>
                   Choose a simple color accent for your dashboard while
                   maintaining the default dark style.
@@ -385,17 +390,12 @@
                     <div class="theme-dot red"></div>
                     <span>Red</span>
                   </div>
-                  <!-- New Modern Theme -->
-                  <div class="theme-option" data-theme="modern">
-                    <div class="theme-dot modern"></div>
-                    <span>Modern</span>
-                  </div>
                 </div>
               </div>
 
               <!-- Full Themes Section -->
-              <div class="theme-section" style="margin-top: 20px">
-                <h3><i class="fas fa-paint-roller"></i> Complete Themes</h3>
+              <div class="theme-section">
+                <h3>Complete Themes</h3>
                 <p>
                   Select a comprehensive theme with custom colors, backgrounds,
                   and styling effects.
@@ -451,15 +451,6 @@
                     <div class="theme-dot hotpink"></div>
                     <span>Hot Pink</span>
                   </div>
-                  <!-- New Themes -->
-                  <div class="theme-option" data-theme="cyberpunk">
-                    <div class="theme-dot cyberpunk"></div>
-                    <span>Cyberpunk</span>
-                  </div>
-                  <div class="theme-option" data-theme="forest">
-                    <div class="theme-dot forest"></div>
-                    <span>Forest</span>
-                  </div>
                 </div>
               </div>
             </div>
@@ -482,15 +473,19 @@
     <!-- Main Content -->
     <div class="main-content">
       <div class="container">
+        <!-- Stats Row -->
         <div class="stats-row">
+          <!-- Current Upload Rate -->
           <div class="stat-card">
-            <div class="stat-icon">
-              <i class="fas fa-tachometer-alt"></i>
+            <div class="stat-card-header">
+              <div class="stat-icon">
+                <i class="fas fa-tachometer-alt"></i>
+              </div>
+              <h2 class="stat-title">Current Upload Rate</h2>
             </div>
-            <div class="stat-content">
-              <div class="stat-title">Current Upload Rate</div>
+            <div class="stat-card-body">
               <div class="stat-value-row">
-                <div id="current-rate">0.00 MB/s</div>
+                <div id="current-rate" class="stat-value">0.00 MB/s</div>
                 <div id="control" class="control-wrapper">
                   <span
                     class="control-button bg-success"
@@ -506,45 +501,55 @@
             </div>
           </div>
 
+          <!-- Files in Queue -->
           <div class="stat-card">
-            <div class="stat-icon">
-              <i class="fas fa-list"></i>
+            <div class="stat-card-header">
+              <div class="stat-icon">
+                <i class="fas fa-list"></i>
+              </div>
+              <h2 class="stat-title">Files in Queue</h2>
             </div>
-            <div class="stat-content">
-              <div class="stat-title">Files in Queue</div>
-              <div class="stat-value" id="queue-count">0</div>
-              <div class="stat-subtitle" id="queue-total">Total: 0 GB</div>
+            <div class="stat-card-body">
+              <div id="queue-count" class="stat-value">0</div>
+              <div id="queue-total" class="stat-subtitle">Total: 0 GB</div>
             </div>
           </div>
 
+          <!-- Active Transfers -->
           <div class="stat-card">
-            <div class="stat-icon">
-              <i class="fas fa-exchange-alt"></i>
+            <div class="stat-card-header">
+              <div class="stat-icon">
+                <i class="fas fa-exchange-alt"></i>
+              </div>
+              <h2 class="stat-title">Active Transfers</h2>
             </div>
-            <div class="stat-content">
-              <div class="stat-title">Active Transfers</div>
-              <div class="stat-value" id="active-count">0</div>
-              <div class="stat-subtitle" id="active-max">Max: 2</div>
+            <div class="stat-card-body">
+              <div id="active-count" class="stat-value">0</div>
+              <div id="active-max" class="stat-subtitle">Max: 2</div>
             </div>
           </div>
 
+          <!-- Completed Today -->
           <div class="stat-card">
-            <div class="stat-icon">
-              <i class="fas fa-check-circle"></i>
+            <div class="stat-card-header">
+              <div class="stat-icon">
+                <i class="fas fa-check-circle"></i>
+              </div>
+              <h2 class="stat-title">Completed Today</h2>
             </div>
-            <div class="stat-content">
-              <div class="stat-title">Completed Today</div>
-              <div class="stat-value" id="completed-count">0</div>
-              <div class="stat-subtitle" id="completed-total">Total: 0 GB</div>
+            <div class="stat-card-body">
+              <div id="completed-count" class="stat-value">0</div>
+              <div id="completed-total" class="stat-subtitle">Total: 0 GB</div>
             </div>
           </div>
         </div>
 
-        <div class="card">
+        <!-- In Progress Uploads -->
+        <div class="card uploads-card">
           <div class="card-header">
             <div class="card-title">
               <i class="fas fa-sync-alt"></i>
-              In Progress
+              <span>In Progress</span>
             </div>
           </div>
           <div class="card-body">
@@ -553,38 +558,17 @@
                 <thead>
                   <tr>
                     <th scope="col" data-title="Filename">Filename</th>
-                    <th
-                      scope="col"
-                      data-title="Folder"
-                      class="d-none d-lg-table-cell"
-                    >
-                      Folder
-                    </th>
-                    <th
-                      scope="col"
-                      data-title="Key"
-                      class="d-none d-lg-table-cell"
-                    >
-                      Key
-                    </th>
+                    <th scope="col" data-title="Folder">Folder</th>
+                    <th scope="col" data-title="Key">Key</th>
                     <th scope="col" data-title="Progress">Progress</th>
-                    <th
-                      scope="col"
-                      data-title="Filesize"
-                      class="d-none d-lg-table-cell"
-                    >
-                      Filesize
-                    </th>
+                    <th scope="col" data-title="Filesize">Filesize</th>
                     <th scope="col" data-title="Time Left">Time Left</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
                     <td colspan="6" class="text-center">
-                      <div class="empty-state">
-                        <i class="fas fa-cloud-upload-alt"></i>
-                        <p>No uploads in progress</p>
-                      </div>
+                      No uploads in progress
                     </td>
                   </tr>
                 </tbody>
@@ -593,17 +577,18 @@
           </div>
         </div>
 
-        <div class="card">
+        <!-- Completed Uploads -->
+        <div class="card completed-card">
           <div class="card-header">
             <div class="card-title">
               <i class="fas fa-check-circle"></i>
-              Completed
+              <span>Completed</span>
             </div>
             <div class="card-actions">
-              <span id="clnHist" class="action-button">
+              <button id="clnHist" class="action-button">
                 <i class="fas fa-trash-alt"></i>
-                Clear History
-              </span>
+                <span>Clear History</span>
+              </button>
             </div>
           </div>
           <div class="card-body">
@@ -624,22 +609,20 @@
                     <th scope="col" data-title="Time spent">Time spent</th>
                     <th scope="col" data-title="Uploaded">
                       Uploaded
-                      <i
-                        class="fa-solid fa-hourglass-end toggle-time-format"
-                        title="Toggle time format"
-                        aria-label="Toggle time format"
+                      <button
+                        class="toggle-time-format"
                         onclick="$('#prettyEndTime').click();"
-                      ></i>
+                        aria-label="Toggle time format"
+                      >
+                        <i class="fa-solid fa-hourglass-end"></i>
+                      </button>
                     </th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
                     <td colspan="6" class="text-center">
-                      <div class="empty-state">
-                        <i class="fas fa-history"></i>
-                        <p>No completed uploads</p>
-                      </div>
+                      No completed uploads
                     </td>
                   </tr>
                 </tbody>
@@ -693,6 +676,7 @@
           </div>
         </div>
 
+        <!-- Footer -->
         <div class="footer">
           <p>
             <i class="fa-brands fa-github"></i>
@@ -719,11 +703,8 @@
               document.write(" - " + new Date().getFullYear());
             </script>
             Developed with
-            <i
-              class="fas fa-heart pulse"
-              style="color: var(--accent-color)"
-            ></i>
-            by dockserver.io
+            <i class="fas fa-heart" style="color: var(--accent-color)"></i> by
+            dockserver.io
           </p>
         </div>
       </div>
@@ -731,9 +712,9 @@
 
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="js/ui/pagination.js?v=1.3.0"></script>
-    <script src="js/utils.js?v=1.3.0"></script>
-    <script src="js/app.js?v=1.3.0"></script>
+    <script src="js/ui/pagination.js?v=1.2.7"></script>
+    <script src="js/utils.js?v=1.2.7"></script>
+    <script src="js/app.js?v=1.2.8"></script>
 
     <script>
       $(document).ready(function () {
@@ -777,20 +758,6 @@
         } catch (error) {
           console.error("Error loading theme:", error);
         }
-
-        // Password visibility toggle
-        $(".password-toggle").on("click", function () {
-          const input = $(this).siblings("input");
-          const icon = $(this).find("i");
-
-          if (input.attr("type") === "password") {
-            input.attr("type", "text");
-            icon.removeClass("fa-eye").addClass("fa-eye-slash");
-          } else {
-            input.attr("type", "password");
-            icon.removeClass("fa-eye-slash").addClass("fa-eye");
-          }
-        });
       });
     </script>
   </body>
