@@ -1,6 +1,8 @@
 /**
  * Main application JavaScript for the Uploader Dashboard
- * Enhanced with modern animations and UI improvements
+ *
+ * Note: Common utility functions have been moved to utils.js
+ * This file now focuses on application-specific functionality
  */
 
 // Store global data
@@ -16,16 +18,10 @@ const uploaderApp = {
     inProgress: null,
     completed: null,
     stats: null,
-    status: null,
-  },
-  // Animation settings
-  animations: {
-    enabled: false,
-    duration: 300,
   },
 };
 
-// Update the document ready function
+// Update the document ready function to hide the upload history chart
 $(document).ready(function () {
   // Hide the upload history card as it's not needed
   $(".card:has(#upload-history-chart)").hide();
@@ -46,82 +42,7 @@ $(document).ready(function () {
   if ($("#prettyEndTime").is(":checked")) {
     $("#prettyEndTime").prop("checked", false);
   }
-
-  // Apply initial animations
-  setTimeout(() => {
-    // Animate stat cards on load
-    animateStatsOnLoad();
-  }, 100);
 });
-
-/**
- * Animation functions for enhanced UI
- */
-
-// Add fade-in animation to elements
-function addFadeInAnimation(elements, delay = 50) {
-  if (!elements || elements.length === 0 || !uploaderApp.animations.enabled)
-    return;
-
-  Array.from(elements).forEach((el, index) => {
-    setTimeout(() => {
-      el.style.opacity = "0";
-      el.style.transform = "translateY(10px)";
-      el.style.transition = "opacity 0.3s ease, transform 0.3s ease";
-
-      // Trigger reflow
-      void el.offsetWidth;
-
-      el.style.opacity = "1";
-      el.style.transform = "translateY(0)";
-    }, delay * index);
-  });
-}
-
-// Counter animation helper
-function animateCounter(element, start, end, duration) {
-  if (!uploaderApp.animations.enabled) {
-    element.textContent = end;
-    return;
-  }
-
-  let startTimestamp = null;
-  const step = (timestamp) => {
-    if (!startTimestamp) startTimestamp = timestamp;
-    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-    const currentValue = Math.floor(progress * (end - start) + start);
-
-    element.textContent = currentValue.toString();
-
-    if (progress < 1) {
-      window.requestAnimationFrame(step);
-    } else {
-      element.textContent = end.toString();
-    }
-  };
-
-  window.requestAnimationFrame(step);
-}
-
-// Animate stat cards on initial load
-function animateStatsOnLoad() {
-  if (!uploaderApp.animations.enabled) return;
-
-  const statCards = document.querySelectorAll(".stat-card");
-  addFadeInAnimation(statCards, 100);
-
-  // Add subtle entrance animation for cards
-  document.querySelectorAll(".card").forEach((card, index) => {
-    card.style.opacity = "0";
-    card.style.transform = "translateY(20px)";
-    card.style.transition = "opacity 0.5s ease, transform 0.5s ease";
-
-    setTimeout(() => {
-      card.style.opacity = "1";
-      card.style.transform = "translateY(0)";
-    }, 150 + index * 100);
-  });
-}
 
 /**
  * Initialize the application
@@ -217,16 +138,9 @@ function setupEventListeners() {
   // Fix notification form issues
   fixNotificationForm();
 
-  // Play/Pause button with enhanced feedback
+  // Play/Pause button
   $("#control > span").on("click", function () {
     const action = $(this).find("i").hasClass("fa-play") ? "pause" : "continue";
-
-    // Visual feedback while processing
-    const $button = $(this);
-    $button.css("opacity", "0.6").css("pointer-events", "none");
-
-    // Add subtle pulse animation
-    $button.css("animation", "pulse 0.5s infinite alternate");
 
     $.ajax({
       type: "POST",
@@ -237,11 +151,6 @@ function setupEventListeners() {
       success: function (data) {
         alignPauseControl(data.status);
       },
-      complete: function () {
-        // Reset visual state
-        $button.css("opacity", "1").css("pointer-events", "auto");
-        $button.css("animation", "");
-      },
     });
   });
 
@@ -250,12 +159,6 @@ function setupEventListeners() {
 
   // Clear history button
   $("#clnHist").on("click", function () {
-    // Visual feedback
-    const $button = $(this);
-    const originalText = $button.html();
-    $button.html('<i class="fas fa-spinner fa-spin"></i> Clearing...');
-    $button.css("pointer-events", "none");
-
     $.ajax({
       type: "POST",
       url: "srv/api/system/clean_history.php",
@@ -265,11 +168,6 @@ function setupEventListeners() {
       },
       error: function () {
         showStatusMessage("Failed to clear upload history", true);
-      },
-      complete: function () {
-        // Reset button
-        $button.html(originalText);
-        $button.css("pointer-events", "auto");
       },
     });
   });
@@ -294,18 +192,6 @@ function setupEventListeners() {
     createMockUploadChart("upload-history-chart", timeRange);
     saveUserSetting("chartTimeRange", timeRange);
   });
-
-  // Add hover effects to table rows
-  $(document)
-    .on("mouseenter", "table tbody tr", function () {
-      if (uploaderApp.animations.enabled) {
-        $(this).css("transition", "transform 0.2s ease");
-        $(this).css("transform", "translateX(3px)");
-      }
-    })
-    .on("mouseleave", "table tbody tr", function () {
-      $(this).css("transform", "translateX(0)");
-    });
 }
 
 /**
@@ -316,12 +202,6 @@ function setupSettingsModal() {
   $("#settings-toggle").on("click", function () {
     $("#settings-modal").addClass("active");
     $("#modal-overlay").addClass("active");
-
-    // Animate tabs on open
-    if (uploaderApp.animations.enabled) {
-      const tabs = document.querySelectorAll(".tab-button");
-      addFadeInAnimation(tabs, 50);
-    }
   });
 
   $("#modal-close, #modal-overlay").on("click", function () {
@@ -346,7 +226,7 @@ function setupSettingsModal() {
     event.stopPropagation();
   });
 
-  // Tab switching with enhanced animation
+  // Tab switching
   $(".tab-button").on("click", function () {
     const targetId = $(this).data("target");
 
@@ -354,30 +234,9 @@ function setupSettingsModal() {
     $(".tab-button").removeClass("active");
     $(this).addClass("active");
 
-    // Prepare for animation - hide all content first
-    if (uploaderApp.animations.enabled) {
-      $(".tab-content").css({
-        opacity: "0",
-        transform: "translateY(10px)",
-        transition: "none",
-      });
-    }
-
     // Update active state for content
     $(".tab-content").removeClass("active");
-    const $activeContent = $("#" + targetId);
-    $activeContent.addClass("active");
-
-    // Animate the new content in
-    if (uploaderApp.animations.enabled) {
-      setTimeout(() => {
-        $activeContent.css({
-          transition: "opacity 0.3s ease, transform 0.3s ease",
-          opacity: "1",
-          transform: "translateY(0)",
-        });
-      }, 50);
-    }
+    $("#" + targetId).addClass("active");
   });
 
   // Submit handling for forms in tabs
@@ -523,60 +382,43 @@ function handleInProgressJobs() {
       }
 
       // Calculate progress bar class based on percentage
-      let progressClass = "bg-success"; // Always use orange (success) to match screenshot
+      let progressClass = "bg-secondary";
       const progress = parseFloat(data.upload_percentage);
 
-      // Create table row with responsive data attributes and updated progress bar without text
+      if (progress < 30) {
+        progressClass = "bg-danger";
+      } else if (progress < 70) {
+        progressClass = "bg-warning";
+      } else {
+        progressClass = "bg-success";
+      }
+
+      // Create table row with responsive data attributes
       $tableBody.append(`
-        <tr>
-          <td data-title="Filename" class="">${data.file_name}</td>
-          <td data-title="Folder" class="d-none d-lg-table-cell">${data.drive}</td>
-          <td data-title="Key" class="d-none d-lg-table-cell">${data.gdsa}</td>
-          <td data-title="Progress">
-            <div class="progress">
-              <div class="progress-bar ${progressClass}" role="progressbar"
-                   style="width: ${data.upload_percentage};" 
-                   aria-valuenow="${progress}" 
-                   aria-valuemin="0" 
-                   aria-valuemax="100">
-              </div>
-            </div>
-          </td>
-          <td data-title="Filesize" class="d-none d-lg-table-cell">${data.file_size}</td>
-          <td data-title="Time Left" class="text-end">${data.upload_remainingtime} (with ${data.upload_speed})</td>
-        </tr>
-      `);
+                <tr>
+                  <td data-title="Filename" class="truncate">${data.file_name}</td>
+                  <td data-title="Folder" class="d-none d-lg-table-cell">${data.drive}</td>
+                  <td data-title="Key" class="d-none d-lg-table-cell">${data.gdsa}</td>
+                  <td data-title="Progress">
+                    <div class="progress">
+                      <div class="progress-bar ${progressClass}" role="progressbar"
+                           style="width: ${data.upload_percentage};" 
+                           aria-valuenow="${progress}" 
+                           aria-valuemin="0" 
+                           aria-valuemax="100">
+                        ${data.upload_percentage}
+                      </div>
+                    </div>
+                  </td>
+                  <td data-title="Filesize" class="d-none d-lg-table-cell">${data.file_size}</td>
+                  <td data-title="Time Left" class="text-end">${data.upload_remainingtime} (with ${data.upload_speed})</td>
+                </tr>
+              `);
     });
-
-    // Animate newly created table rows if this isn't the first load
-    if (uploaderApp.animations.enabled) {
-      const newRows = document.querySelectorAll("#uploadsTable > tbody > tr");
-      newRows.forEach((row, index) => {
-        row.style.opacity = "0";
-        row.style.transform = "translateY(5px)";
-
-        setTimeout(() => {
-          row.style.transition = "opacity 0.3s ease, transform 0.3s ease";
-          row.style.opacity = "1";
-          row.style.transform = "translateY(0)";
-        }, 50 * index);
-      });
-    }
 
     // Update the upload rate display
     totalUploadRate = totalUploadRate.toFixed(2);
-
-    // Animate the rate change
-    const rateElement = document.getElementById("download_rate");
-    const oldRate = parseFloat(rateElement.textContent) || 0;
-
-    if (Math.abs(oldRate - totalUploadRate) > 0.1) {
-      if (uploaderApp.animations.enabled && oldRate > 0) {
-        animateCounter(rateElement, oldRate, totalUploadRate, 500);
-      } else {
-        rateElement.textContent = totalUploadRate;
-      }
-    }
+    $("#download_rate").text(totalUploadRate);
 
     // Color-code the upload rate based on speed
     if (totalUploadRate < 5) {
@@ -663,24 +505,20 @@ function handleCompletedJobList() {
         const rowClass = job.successful === true ? "" : "table-danger";
 
         $completedTableBody.append(`
-          <tr class="${rowClass}">
-            <td data-title="Filename" class="">${job.file_name}</td>
-            <td data-title="Folder">${job.drive}</td>
-            <td data-title="Key">${job.gdsa}</td>
-            <td data-title="Filesize">${job.file_size}</td>
-            <td data-title="Time spent">${job.time_elapsed || "n/a"}</td>
-            <td data-title="Uploaded">${endTime}</td>
-          </tr>
-        `);
+                  <tr class="${rowClass}">
+                    <td data-title="Filename" class="truncate">${
+                      job.file_name
+                    }</td>
+                    <td data-title="Folder">${job.drive}</td>
+                    <td data-title="Key">${job.gdsa}</td>
+                    <td data-title="Filesize">${job.file_size}</td>
+                    <td data-title="Time spent">${
+                      job.time_elapsed || "n/a"
+                    }</td>
+                    <td data-title="Uploaded">${endTime}</td>
+                  </tr>
+                `);
       });
-
-      // Animate newly created table rows
-      if (uploaderApp.animations.enabled) {
-        const newRows = document.querySelectorAll(
-          "#completedTable > tbody > tr"
-        );
-        addFadeInAnimation(newRows, 50);
-      }
 
       // Fetch all completed uploads for today
       fetchCompletedTodayStats();
@@ -694,24 +532,11 @@ function handleCompletedJobList() {
 function fetchCompletedTodayStats() {
   $.getJSON("srv/api/jobs/completed_today_stats.php", function (data) {
     if (data && data.count !== undefined) {
-      // Check if values have changed
-      const oldCount = uploaderApp.completedTodayCount;
-      const oldSize = uploaderApp.completedTodaySize;
-
       uploaderApp.completedTodayCount = data.count;
       uploaderApp.completedTodaySize = data.total_size || 0;
 
-      // Animate count change if needed
-      if (oldCount !== data.count) {
-        const countElement = document.getElementById("completed-count");
-        if (uploaderApp.animations.enabled && oldCount > 0) {
-          animateCounter(countElement, oldCount, data.count, 600);
-        } else {
-          countElement.textContent = data.count;
-        }
-      }
-
-      // Update the total size display
+      // Update the stats display
+      $("#completed-count").text(data.count);
       $("#completed-total").text(`Total: ${formatFileSize(data.total_size)}`);
     }
   }).fail(function () {
@@ -749,23 +574,8 @@ function calculateCompletedTodayStats() {
       }
     });
 
-  // Check if values have changed
-  const oldCount = uploaderApp.completedTodayCount;
-
-  // Animate count change if needed
-  if (oldCount !== completedToday) {
-    const countElement = document.getElementById("completed-count");
-    if (uploaderApp.animations.enabled && oldCount > 0) {
-      animateCounter(countElement, oldCount, completedToday, 600);
-    } else {
-      countElement.textContent = completedToday;
-    }
-  } else {
-    // Just update directly if no change
-    $("#completed-count").text(completedToday);
-  }
-
-  // Update the total size display
+  // Update the stats
+  $("#completed-count").text(completedToday);
   $("#completed-total").text(`Total: ${formatFileSize(totalSize)}`);
 
   // Save to app state
@@ -794,15 +604,12 @@ function checkStatus() {
     });
 }
 
-// Play/Pause button handler with enhanced feedback
+// Play/Pause button handler
 function alignPauseControl(status, fromUserAction = false) {
   console.log("Aligning pause control to status:", status);
 
   const $control = $("#control > span");
   const $icon = $control.find("i");
-
-  // Add a smooth transition
-  $control.css("transition", "all 0.3s ease");
 
   if (status === "STARTED") {
     // If uploader is RUNNING, show PAUSE icon (so user can pause it)
@@ -811,12 +618,6 @@ function alignPauseControl(status, fromUserAction = false) {
     $control.attr("aria-label", "Pause uploads");
 
     if (fromUserAction) {
-      // Add a subtle animation for visual feedback
-      $control.css("transform", "scale(1.1)");
-      setTimeout(() => {
-        $control.css("transform", "scale(1)");
-      }, 300);
-
       showStatusMessage("Uploader is running");
     }
   } else if (status === "STOPPED") {
@@ -826,12 +627,6 @@ function alignPauseControl(status, fromUserAction = false) {
     $control.attr("aria-label", "Resume uploads");
 
     if (fromUserAction) {
-      // Add a subtle animation for visual feedback
-      $control.css("transform", "scale(1.1)");
-      setTimeout(() => {
-        $control.css("transform", "scale(1)");
-      }, 300);
-
       showStatusMessage("Uploader is paused");
     }
   }
@@ -855,10 +650,7 @@ function setupPauseControl() {
 
     // Visual feedback while processing
     const $button = $(this);
-    $button.css("opacity", "0.6").css("pointer-events", "none");
-
-    // Add subtle pulse animation
-    $button.css("animation", "pulse 0.5s infinite alternate");
+    $button.css("opacity", "0.5").css("pointer-events", "none");
 
     // Send request to API
     $.ajax({
@@ -885,13 +677,12 @@ function setupPauseControl() {
       complete: function () {
         // Reset button appearance
         $button.css("opacity", "1").css("pointer-events", "auto");
-        $button.css("animation", "");
       },
     });
   });
 }
 
-// Update the updateRealTimeStats function with animations
+// Update the updateRealTimeStats function
 function updateRealTimeStats() {
   // Get current upload rate
   const currentRate = $("#download_rate").text() || "0.00";
@@ -900,17 +691,7 @@ function updateRealTimeStats() {
   // Get active uploads count
   const activeUploads =
     $("#uploadsTable tbody tr").not(':contains("No uploads")').length || 0;
-
-  // Animate count change if needed
-  const oldCount = parseInt($("#active-count").text()) || 0;
-  if (oldCount !== activeUploads) {
-    const countElement = document.getElementById("active-count");
-    if (uploaderApp.animations.enabled && oldCount > 0) {
-      animateCounter(countElement, oldCount, activeUploads, 500);
-    } else {
-      countElement.textContent = activeUploads;
-    }
-  }
+  $("#active-count").text(activeUploads);
 
   // Update queue stats separately - don't use active uploads count
   updateQueueStats();
@@ -1036,7 +817,7 @@ function updateUIFromSettings(settings) {
 }
 
 /**
- * Update environment settings with enhanced user feedback
+ * Update environment settings
  * @param {string} formId - Form ID that was submitted
  * @param {Object} settings - Settings to update
  */
@@ -1047,11 +828,7 @@ function updateEnvSettings(formId, settings) {
   const $form = $(`#${formId}`);
   const $submitBtn = $form.find('button[type="submit"]');
   const originalText = $submitBtn.text();
-
-  // Show loading state
-  $submitBtn
-    .prop("disabled", true)
-    .html('<i class="fas fa-spinner fa-spin"></i> Saving...');
+  $submitBtn.prop("disabled", true).text("Saving...");
 
   // Add a safety timeout to restore button state even if AJAX fails
   const resetTimeout = setTimeout(() => {
@@ -1082,18 +859,7 @@ function updateEnvSettings(formId, settings) {
       console.log("API response:", response);
 
       if (response.success) {
-        // Show success message with animation
         showStatusMessage("Settings updated successfully!");
-
-        // Success animation
-        if (uploaderApp.animations.enabled) {
-          $submitBtn.html('<i class="fas fa-check"></i> Saved');
-          setTimeout(() => {
-            $submitBtn.html(originalText);
-          }, 1500);
-        } else {
-          $submitBtn.html(originalText);
-        }
 
         // Update local settings
         Object.assign(uploaderApp.envSettings, settings);
@@ -1133,24 +899,11 @@ function updateEnvSettings(formId, settings) {
           originalText,
           function (success) {
             if (!success) {
-              // Show error message
               showStatusMessage(
                 "Failed to update settings: " +
                   (response.message || "Unknown error"),
                 true
               );
-
-              // Error animation
-              if (uploaderApp.animations.enabled) {
-                $submitBtn.html(
-                  '<i class="fas fa-exclamation-triangle"></i> Failed'
-                );
-                setTimeout(() => {
-                  $submitBtn.html(originalText);
-                }, 1500);
-              } else {
-                $submitBtn.html(originalText);
-              }
             }
           }
         );
@@ -1168,18 +921,6 @@ function updateEnvSettings(formId, settings) {
           if (!success) {
             showStatusMessage("Failed to communicate with the server", true);
             console.error("Response:", xhr.responseText);
-
-            // Error animation
-            if (uploaderApp.animations.enabled) {
-              $submitBtn.html(
-                '<i class="fas fa-exclamation-triangle"></i> Failed'
-              );
-              setTimeout(() => {
-                $submitBtn.html(originalText);
-              }, 1500);
-            } else {
-              $submitBtn.html(originalText);
-            }
           }
         }
       );
@@ -1187,12 +928,8 @@ function updateEnvSettings(formId, settings) {
     complete: function () {
       // Clear the safety timeout
       clearTimeout(resetTimeout);
-      // Restore button state if not already done by animation
-      if (!uploaderApp.animations.enabled) {
-        $submitBtn.prop("disabled", false).text(originalText);
-      } else {
-        $submitBtn.prop("disabled", false);
-      }
+      // Restore button state
+      $submitBtn.prop("disabled", false).text(originalText);
       console.log("Button state restored in complete callback");
     },
   });
@@ -1229,16 +966,6 @@ function updateEnvSettingsLegacy(
       if (response.success) {
         showStatusMessage("Settings updated successfully!");
 
-        // Success animation
-        if (uploaderApp.animations.enabled) {
-          $submitBtn.html('<i class="fas fa-check"></i> Saved');
-          setTimeout(() => {
-            $submitBtn.html(originalText);
-          }, 1500);
-        } else {
-          $submitBtn.html(originalText);
-        }
-
         // Update local settings
         Object.assign(uploaderApp.envSettings, settings);
 
@@ -1254,40 +981,18 @@ function updateEnvSettingsLegacy(
 
         if (callback) callback(true);
       } else {
-        // Error animation
-        if (uploaderApp.animations.enabled) {
-          $submitBtn.html('<i class="fas fa-exclamation-triangle"></i> Failed');
-          setTimeout(() => {
-            $submitBtn.html(originalText);
-          }, 1500);
-        } else {
-          $submitBtn.html(originalText);
-        }
-
         if (callback) callback(false);
       }
     },
     error: function () {
-      // Error animation
-      if (uploaderApp.animations.enabled) {
-        $submitBtn.html('<i class="fas fa-exclamation-triangle"></i> Failed');
-        setTimeout(() => {
-          $submitBtn.html(originalText);
-        }, 1500);
-      } else {
-        $submitBtn.html(originalText);
-      }
-
       if (callback) callback(false);
     },
     complete: function () {
-      // Also restore button state in legacy handler if not handled by animation
-      if (!uploaderApp.animations.enabled) {
+      // Also restore button state in legacy handler
+      if ($submitBtn && originalText) {
         $submitBtn.prop("disabled", false).text(originalText);
-      } else {
-        $submitBtn.prop("disabled", false);
+        console.log("Button state restored in legacy complete callback");
       }
-      console.log("Button state restored in legacy complete callback");
     },
   });
 }
@@ -1295,19 +1000,8 @@ function updateEnvSettingsLegacy(
 function updateQueueStats() {
   $.getJSON("srv/api/jobs/queue_stats.php", function (data) {
     if (data && typeof data === "object") {
-      // Check if queue count has changed
-      const oldCount = parseInt($("#queue-count").text()) || 0;
-      const newCount = data.count || 0;
-
-      // Animate count change if needed
-      if (oldCount !== newCount) {
-        const countElement = document.getElementById("queue-count");
-        if (uploaderApp.animations.enabled && oldCount > 0) {
-          animateCounter(countElement, oldCount, newCount, 500);
-        } else {
-          countElement.textContent = newCount;
-        }
-      }
+      // Update the queue count
+      $("#queue-count").text(data.count || 0);
 
       // Format the total size nicely
       const totalSize = formatFileSize(data.total_size || 0);
@@ -1325,19 +1019,7 @@ function estimateQueueStats() {
   // Use the uploads table as a fallback
   $.getJSON("srv/api/jobs/inprogress.php", function (data) {
     const queueCount = data.jobs ? data.jobs.length : 0;
-
-    // Check if queue count has changed
-    const oldCount = parseInt($("#queue-count").text()) || 0;
-
-    // Animate count change if needed
-    if (oldCount !== queueCount) {
-      const countElement = document.getElementById("queue-count");
-      if (uploaderApp.animations.enabled && oldCount > 0) {
-        animateCounter(countElement, oldCount, queueCount, 500);
-      } else {
-        countElement.textContent = queueCount;
-      }
-    }
+    $("#queue-count").text(queueCount);
 
     let totalSize = 0;
     if (data.jobs && data.jobs.length > 0) {
@@ -1349,67 +1031,3 @@ function estimateQueueStats() {
     $("#queue-total").text(`Total: ${formatFileSize(totalSize)}`);
   });
 }
-
-// Enhanced status message with animation
-function showStatusMessage(message, isError = false) {
-  const statusMessage = document.getElementById("status-message");
-  if (!statusMessage) {
-    console.error("Status message element not found");
-    console.log(message);
-    return;
-  }
-
-  statusMessage.textContent = message;
-
-  if (isError) {
-    statusMessage.classList.add("error");
-  } else {
-    statusMessage.classList.remove("error");
-  }
-
-  // Clear any existing timeouts
-  if (statusMessage._hideTimeout) {
-    clearTimeout(statusMessage._hideTimeout);
-  }
-
-  // Add entrance animation
-  statusMessage.style.display = "block";
-  statusMessage.style.opacity = "0";
-  statusMessage.style.transform = "translateX(20px)";
-
-  // Force reflow
-  void statusMessage.offsetWidth;
-
-  // Animate in
-  statusMessage.style.transition = "opacity 0.3s ease, transform 0.3s ease";
-  statusMessage.style.opacity = "1";
-  statusMessage.style.transform = "translateX(0)";
-
-  // Set timeout to hide
-  statusMessage._hideTimeout = setTimeout(() => {
-    // Animate out
-    statusMessage.style.opacity = "0";
-    statusMessage.style.transform = "translateY(-10px)";
-
-    // Actually hide after animation completes
-    setTimeout(() => {
-      statusMessage.style.display = "none";
-    }, 300);
-  }, 3000);
-}
-
-// Add keyframes for pulse animation - append to document
-(function addKeyframes() {
-  const style = document.createElement("style");
-  style.textContent = `
-    @keyframes pulse {
-      0% {
-        transform: scale(1);
-      }
-      100% {
-        transform: scale(1.05);
-      }
-    }
-  `;
-  document.head.appendChild(style);
-})();
