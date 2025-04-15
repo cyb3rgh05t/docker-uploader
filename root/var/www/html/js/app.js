@@ -523,34 +523,23 @@ function handleInProgressJobs() {
       }
 
       // Calculate progress bar class based on percentage
-      let progressClass = "bg-secondary";
+      let progressClass = "bg-success"; // Always use orange (success) to match screenshot
       const progress = parseFloat(data.upload_percentage);
 
-      if (progress < 30) {
-        progressClass = "bg-danger";
-      } else if (progress < 70) {
-        progressClass = "bg-warning";
-      } else {
-        progressClass = "bg-success";
-      }
-
-      // Create table row with responsive data attributes and enhanced progress bar
+      // Create table row with responsive data attributes and updated progress bar without text
       $tableBody.append(`
         <tr>
           <td data-title="Filename" class="truncate">${data.file_name}</td>
           <td data-title="Folder" class="d-none d-lg-table-cell">${data.drive}</td>
           <td data-title="Key" class="d-none d-lg-table-cell">${data.gdsa}</td>
           <td data-title="Progress">
-            <div class="progress-container">
-              <div class="progress">
-                <div class="progress-bar ${progressClass}" role="progressbar"
-                     style="width: ${data.upload_percentage};" 
-                     aria-valuenow="${progress}" 
-                     aria-valuemin="0" 
-                     aria-valuemax="100">
-                </div>
+            <div class="progress">
+              <div class="progress-bar ${progressClass}" role="progressbar"
+                   style="width: ${data.upload_percentage};" 
+                   aria-valuenow="${progress}" 
+                   aria-valuemin="0" 
+                   aria-valuemax="100">
               </div>
-              <div class="progress-text">${data.upload_percentage}</div>
             </div>
           </td>
           <td data-title="Filesize" class="d-none d-lg-table-cell">${data.file_size}</td>
