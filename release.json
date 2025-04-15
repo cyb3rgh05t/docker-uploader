@@ -2,7 +2,7 @@
   "appname": "docker-uploader",
   "apppic": "./images/docker-uploader.png",
   "appfolder": "./",
-  "newversion": "4.0.0",
+  "newversion": "4.1.0",
   "baseimage": "ghcr.io/linuxserver/baseimage-alpine",
   "baseversion": "3.18-bd2a5b02-ls10",
   "body": "Upgrading docker-uploader to ",
