@@ -965,9 +965,9 @@ a:hover {
   border-bottom: none;
 }
 
-/* Show more of the filename - increase max width */
+/* Update the truncate class to show more of the filename */
 .truncate {
-  max-width: 650px; /* Increased from 450px */
+  max-width: 650px; /* Increased from 450px/600px */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -999,6 +999,12 @@ a:hover {
   width: 16%; /* Time left column */
   text-align: right;
   padding-right: 1.5rem;
+}
+
+/* Apply similar changes to the completed table */
+#completedTable th:first-child,
+#completedTable td:first-child {
+  width: 35%; /* Give filename column more width */
 }
 
 .text-center {

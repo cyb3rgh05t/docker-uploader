@@ -20,7 +20,7 @@ const uploaderApp = {
   },
   // Animation settings
   animations: {
-    enabled: true,
+    enabled: false,
     duration: 300,
   },
 };
