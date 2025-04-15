@@ -529,7 +529,7 @@ function handleInProgressJobs() {
       // Create table row with responsive data attributes and updated progress bar without text
       $tableBody.append(`
         <tr>
-          <td data-title="Filename" class="truncate">${data.file_name}</td>
+          <td data-title="Filename" class="">${data.file_name}</td>
           <td data-title="Folder" class="d-none d-lg-table-cell">${data.drive}</td>
           <td data-title="Key" class="d-none d-lg-table-cell">${data.gdsa}</td>
           <td data-title="Progress">
@@ -664,7 +664,7 @@ function handleCompletedJobList() {
 
         $completedTableBody.append(`
           <tr class="${rowClass}">
-            <td data-title="Filename" class="truncate">${job.file_name}</td>
+            <td data-title="Filename" class="">${job.file_name}</td>
             <td data-title="Folder">${job.drive}</td>
             <td data-title="Key">${job.gdsa}</td>
             <td data-title="Filesize">${job.file_size}</td>
