@@ -358,15 +358,17 @@ function handleInProgressJobs() {
 
     if (!json.jobs || json.jobs.length === 0) {
       $tableBody.append(
-        '<tr><td colspan="6" class="text-center">No uploads in progress</td></tr>'
+        '<tr><td colspan="6" class="no-uploads-message">No uploads in progress</td></tr>'
       );
       $("#download_rate").text("0.00");
+      $("#active-count-badge").text("0");
       return;
     }
 
     // Process and display each job
     $.each(json.jobs, function (index, data) {
       // Parse upload speed
+      let uploadRateNumeric = 0;
       if (data.upload_speed) {
         const rateMatches = data.upload_speed.match(/([0-9+\.]+)([MKG])/);
         if (rateMatches) {
@@ -378,6 +380,7 @@ function handleInProgressJobs() {
             rate = rate * 1024;
           }
           totalUploadRate += rate;
+          uploadRateNumeric = rate;
         }
       }
 
@@ -393,32 +396,62 @@ function handleInProgressJobs() {
         progressClass = "bg-success";
       }
 
-      // Create table row with responsive data attributes
-      $tableBody.append(`
-                <tr>
-                  <td data-title="Filename" class="truncate">${data.file_name}</td>
-                  <td data-title="Folder" class="d-none d-lg-table-cell">${data.drive}</td>
-                  <td data-title="Key" class="d-none d-lg-table-cell">${data.gdsa}</td>
-                  <td data-title="Progress">
-                    <div class="progress">
-                      <div class="progress-bar ${progressClass}" role="progressbar"
-                           style="width: ${data.upload_percentage};" 
-                           aria-valuenow="${progress}" 
-                           aria-valuemin="0" 
-                           aria-valuemax="100">
-                        ${data.upload_percentage}
-                      </div>
-                    </div>
-                  </td>
-                  <td data-title="Filesize" class="d-none d-lg-table-cell">${data.file_size}</td>
-                  <td data-title="Time Left" class="text-end">${data.upload_remainingtime} (with ${data.upload_speed})</td>
-                </tr>
-              `);
+      // Create a new row based on the template
+      const template = document.getElementById("upload-row-template");
+      if (!template) {
+        console.error("Upload row template not found");
+        return;
+      }
+
+      // Clone the template content
+      const rowNode = template.content.cloneNode(true);
+
+      // Fill in the data
+      rowNode.querySelector(".file-name").textContent = data.file_name;
+      rowNode.querySelector(".folder-name").textContent = data.drive;
+      rowNode.querySelector(".key-name").textContent = data.gdsa;
+      rowNode.querySelector(".progress-percentage").textContent =
+        data.upload_percentage;
+      rowNode.querySelector(".progress-bar").style.width =
+        data.upload_percentage;
+      rowNode
+        .querySelector(".progress-bar")
+        .classList.remove(
+          "bg-success",
+          "bg-warning",
+          "bg-danger",
+          "bg-secondary"
+        );
+      rowNode.querySelector(".progress-bar").classList.add(progressClass);
+      rowNode
+        .querySelector(".progress-bar")
+        .setAttribute("aria-valuenow", progress);
+      rowNode.querySelector(".file-size").textContent = data.file_size;
+
+      // Format the time remaining and speed
+      const timeRemainingEl = rowNode.querySelector(".time-remaining");
+      const uploadSpeedEl = rowNode.querySelector(".upload-speed");
+
+      timeRemainingEl.textContent = data.upload_remainingtime;
+      uploadSpeedEl.innerHTML = `<i class="fas fa-tachometer-alt"></i> ${data.upload_speed}`;
+
+      // Add a color class based on upload speed
+      if (uploadRateNumeric < 5) {
+        uploadSpeedEl.classList.add("speed-low");
+      } else if (uploadRateNumeric < 20) {
+        uploadSpeedEl.classList.add("speed-medium");
+      } else {
+        uploadSpeedEl.classList.add("speed-high");
+      }
+
+      // Append the row to the table
+      $tableBody.append(rowNode);
     });
 
     // Update the upload rate display
     totalUploadRate = totalUploadRate.toFixed(2);
     $("#download_rate").text(totalUploadRate);
+    $("#active-count-badge").text(json.jobs.length);
 
     // Color-code the upload rate based on speed
     if (totalUploadRate < 5) {
