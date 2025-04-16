@@ -12,7 +12,7 @@
       referrerpolicy="no-referrer"
     />
     <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="stylesheet" href="css/styles.css?v=1.2.4" />
+    <link rel="stylesheet" href="css/styles.css?v=4.2.0" />
   </head>
   <body>
     <!-- Navbar -->
@@ -475,11 +475,17 @@
           </div>
         </div>
 
-        <div class="card">
+        <div class="card uploads-card">
           <div class="card-header">
             <div class="card-title">
-              <i class="fas fa-sync-alt"></i>
+              <i class="fas fa-sync-alt fa-spin-pulse"></i>
               In Progress
+            </div>
+            <div class="card-actions">
+              <span class="active-uploads-badge">
+                <i class="fas fa-arrow-up"></i>
+                <span id="active-count-badge">0</span> active
+              </span>
             </div>
           </div>
           <div class="card-body">
@@ -515,7 +521,7 @@
                 </thead>
                 <tbody>
                   <tr>
-                    <td colspan="6" class="text-center">
+                    <td colspan="6" class="no-uploads-message">
                       No uploads in progress
                     </td>
                   </tr>
@@ -524,6 +530,46 @@
             </div>
           </div>
         </div>
+
+        <template id="upload-row-template">
+          <tr>
+            <td data-title="Filename" class="truncate file-name">
+              filename.mkv
+            </td>
+            <td data-title="Folder" class="d-none d-lg-table-cell folder-name">
+              movies
+            </td>
+            <td data-title="Key" class="d-none d-lg-table-cell key-name">
+              GDSA1
+            </td>
+            <td data-title="Progress">
+              <div class="progress-container">
+                <div class="progress-info">
+                  <span class="progress-percentage">45%</span>
+                </div>
+                <div class="progress">
+                  <div
+                    class="progress-bar bg-success"
+                    role="progressbar"
+                    style="width: 45%"
+                    aria-valuenow="45"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                  ></div>
+                </div>
+              </div>
+            </td>
+            <td data-title="Filesize" class="d-none d-lg-table-cell file-size">
+              4.7 GB
+            </td>
+            <td data-title="Time Left" class="text-end">
+              <span class="time-remaining">3m 24s</span>
+              <span class="upload-speed"
+                ><i class="fas fa-tachometer-alt"></i> 24MB/s</span
+              >
+            </td>
+          </tr>
+        </template>
 
         <div class="card">
           <div class="card-header">
@@ -657,9 +703,9 @@
 
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="js/ui/pagination.js?v=1.2.4"></script>
-    <script src="js/utils.js?v=1.2.4"></script>
-    <script src="js/app.js?v=1.2.4"></script>
+    <script src="js/ui/pagination.js?v=4.2.0"></script>
+    <script src="js/utils.js?v=4.2.0"></script>
+    <script src="js/app.js?v=4.2.0"></script>
 
     <script>
       $(document).ready(function () {

@@ -156,7 +156,7 @@ jobs:
           cat > discord-payload.json << EOF
           {
             "embeds": [{
-              "title": "🚀 Docker Build Success: ${{ github.repository }}",
+              "title": "🚀 New Docker-Uploader Release",
               "color": $BRANCH_COLOR,
               "description": "A new Docker image has been built and pushed to the container registry.",
               "fields": [
