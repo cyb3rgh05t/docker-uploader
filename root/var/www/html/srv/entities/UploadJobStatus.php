@@ -9,12 +9,7 @@ class UploadJobStatus
     public $upload_speed;
     public $upload_remainingtime;
     public $gdsa;
-    public $drive;
     public $time_start;
     public $time_end;
     public $time_elapsed;
-    public $time_end_clean;
-    public $job_last_update_timestamp;
-    public $job_name;
-    public $successful;
 }

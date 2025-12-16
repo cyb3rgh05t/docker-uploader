@@ -51,8 +51,9 @@ function initializeApp() {
   // Load environment settings
   loadEnvSettings();
   loadAppVersion();
-  // Initial data fetching - only load global data
-  // View-specific data (like completed jobs) is loaded by the router views
+  // Initial data fetching
+  handleInProgressJobs();
+  handleCompletedJobList();
   checkStatus();
   updateRealTimeStats();
 }
@@ -61,14 +62,12 @@ function initializeApp() {
  * Load the application version
  */
 function loadAppVersion() {
-  const versionElement = document.getElementById("sidebar-version");
-
   // Try dedicated API endpoint first
   fetch("srv/api/system/version.php")
     .then((response) => response.json())
     .then((data) => {
-      if (data && data.version && versionElement) {
-        versionElement.textContent = "v" + data.version;
+      if (data && data.version) {
+        document.getElementById("app-version").textContent = "v" + data.version;
         console.log("Version loaded from API:", data.version);
       }
     })
@@ -79,8 +78,9 @@ function loadAppVersion() {
       fetch("release.json")
         .then((response) => response.json())
         .then((data) => {
-          if (data && data.newversion && versionElement) {
-            versionElement.textContent = "v" + data.newversion;
+          if (data && data.newversion) {
+            document.getElementById("app-version").textContent =
+              "v" + data.newversion;
             console.log("Version loaded from file:", data.newversion);
           } else {
             throw new Error("Invalid release.json format");
@@ -89,9 +89,7 @@ function loadAppVersion() {
         .catch((fallbackError) => {
           console.error("Version fetch failed:", fallbackError);
           // Set a hardcoded version as last resort
-          if (versionElement) {
-            versionElement.textContent = "v5.0.0";
-          }
+          document.getElementById("app-version").textContent = "v4.0.0";
         });
     });
 }
@@ -352,14 +350,8 @@ function stopPeriodicUpdates() {
  * Handle in-progress uploads display
  */
 function handleInProgressJobs() {
-  const $tableBody = $("#uploadsTable > tbody");
-
-  // Skip if table doesn't exist (view not active)
-  if (!$tableBody.length) {
-    return;
-  }
-
   $.getJSON("srv/api/jobs/inprogress.php", function (json) {
+    const $tableBody = $("#uploadsTable > tbody");
     let totalUploadRate = 0;
 
     $tableBody.empty();
@@ -407,7 +399,7 @@ function handleInProgressJobs() {
       // Create a new row based on the template
       const template = document.getElementById("upload-row-template");
       if (!template) {
-        // Silently skip if template not available (view not loaded)
+        console.error("Upload row template not found");
         return;
       }
 
@@ -481,12 +473,6 @@ function handleInProgressJobs() {
 // Update handleCompletedJobList to use relative date by default
 function handleCompletedJobList() {
   const $completedTableBody = $("#completedTable > tbody");
-  const $pagination = $("#page");
-
-  // Check if table exists - silently return if not available (view not loaded)
-  if (!$completedTableBody.length || !$pagination.length) {
-    return;
-  }
 
   // Get previously saved page size or use default
   const savedPageSize = getUserSetting("pageSize", 10);
@@ -495,13 +481,8 @@ function handleCompletedJobList() {
   $("#pageSize > li.page-item").removeClass("active");
   $(`#pageSize > li.page-item:contains("${savedPageSize}")`).addClass("active");
 
-  // Destroy existing pagination if it exists
-  if ($pagination.data("pagination")) {
-    $pagination.pagination("destroy");
-  }
-
   // Initialize pagination
-  $pagination.pagination({
+  $("#page").pagination({
     dataSource: "srv/api/jobs/completed.php",
     locator: "jobs",
     ulClassName: "pagination pagination-sm",
@@ -528,7 +509,7 @@ function handleCompletedJobList() {
     },
     afterPaging: function () {
       // After page changes, fetch complete upload stats for today
-      updateCompletedTodayStats();
+      fetchCompletedTodayStats();
     },
     callback: function (data, pagination) {
       // Add Bootstrap classes to pagination links
@@ -573,13 +554,34 @@ function handleCompletedJobList() {
       });
 
       // Fetch all completed uploads for today
-      updateCompletedTodayStats();
+      fetchCompletedTodayStats();
     },
   });
 }
+
+/**
+ * Fetch statistics for all uploads completed today
+ */
+function fetchCompletedTodayStats() {
+  $.getJSON("srv/api/jobs/completed_today_stats.php", function (data) {
+    if (data && data.count !== undefined) {
+      uploaderApp.completedTodayCount = data.count;
+      uploaderApp.completedTodaySize = data.total_size || 0;
+
+      // Update the stats display
+      $("#completed-count").text(data.count);
+      $("#completed-total").text(`Total: ${formatFileSize(data.total_size)}`);
+    }
+  }).fail(function () {
+    // If the API doesn't exist yet, fall back to counting visible rows
+    // This is a temporary solution until the API endpoint is implemented
+    calculateCompletedTodayStats();
+  });
+}
+
 /**
  * Calculate statistics for today's completed uploads from visible table rows
- * This is a fallback method used if needed
+ * This is a fallback method used until the API endpoint is implemented
  */
 function calculateCompletedTodayStats() {
   let completedToday = 0;
@@ -715,28 +717,17 @@ function setupPauseControl() {
 
 // Update the updateRealTimeStats function
 function updateRealTimeStats() {
-  // Get current upload rate from the hidden element that's updated by handleInProgressJobs
+  // Get current upload rate
   const currentRate = $("#download_rate").text() || "0.00";
-
-  // Update both possible upload rate elements (for different views)
-  $("#upload-rate").text(`${currentRate} MB/s`);
   $("#current-rate").text(`${currentRate} MB/s`);
 
   // Get active uploads count
   const activeUploads =
-    $("#uploadsTable tbody tr")
-      .not(':contains("No Active Uploads")')
-      .not(':contains("No uploads")').length || 0;
-
-  // Update both possible active upload elements
-  $("#active-uploads").text(activeUploads);
+    $("#uploadsTable tbody tr").not(':contains("No uploads")').length || 0;
   $("#active-count").text(activeUploads);
 
-  // Update queue stats separately
+  // Update queue stats separately - don't use active uploads count
   updateQueueStats();
-
-  // Update completed today stats
-  updateCompletedTodayStats();
 
   // Set the current max active transfers
   const maxTransfers =
@@ -749,25 +740,6 @@ function updateRealTimeStats() {
     $("#bandwidth_limit").val() ||
     "30";
   $("#rate-limit").text(`Limit per Transfer: ${bandwidthLimit}`);
-}
-
-/**
- * Update completed today stats
- */
-function updateCompletedTodayStats() {
-  $.getJSON("srv/api/jobs/completed_today_stats.php", function (data) {
-    if (data && data.count !== undefined) {
-      uploaderApp.completedTodayCount = data.count;
-      uploaderApp.completedTodaySize = data.total_size || 0;
-
-      // Update all possible completed today elements
-      $("#completed-today").text(data.count);
-      $("#completed-count").text(data.count);
-      $("#completed-total").text(`Total: ${formatFileSize(data.total_size)}`);
-    }
-  }).fail(function (error) {
-    console.error("Failed to fetch completed today stats:", error);
-  });
 }
 
 /**
@@ -1061,9 +1033,8 @@ function updateEnvSettingsLegacy(
 function updateQueueStats() {
   $.getJSON("srv/api/jobs/queue_stats.php", function (data) {
     if (data && typeof data === "object") {
-      // Update both queue count elements (dashboard and queue page)
+      // Update the queue count
       $("#queue-count").text(data.count || 0);
-      $("#queue-count-display").text(data.count || 0);
 
       // Format the total size nicely
       const totalSize = formatFileSize(data.total_size || 0);
@@ -1092,38 +1063,4 @@ function estimateQueueStats() {
 
     $("#queue-total").text(`Total: ${formatFileSize(totalSize)}`);
   });
-}
-
-/**
- * Wrapper function for handleCompletedJobList to match the naming convention used in views
- */
-function handleCompletedJobs() {
-  return handleCompletedJobList();
-}
-
-/**
- * Load and display queued jobs
- * Note: Currently there's no dedicated queue API, so this displays a message
- */
-function handleQueuedJobs() {
-  const $tbody = $("#queueTable > tbody");
-
-  // Silently return if table not available yet (view not loaded)
-  if (!$tbody.length) {
-    return;
-  }
-
-  // Show loading state
-  $tbody.html(
-    '<tr><td colspan="7" class="text-center">Loading queue data...</td></tr>'
-  );
-
-  // Note: There's currently no queue API endpoint
-  // This would need to be implemented on the backend
-  // For now, show a placeholder message
-  setTimeout(() => {
-    $tbody.html(
-      '<tr><td colspan="7" class="text-center">Queue functionality coming soon</td></tr>'
-    );
-  }, 500);
 }
