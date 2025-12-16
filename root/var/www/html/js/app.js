@@ -1064,3 +1064,37 @@ function estimateQueueStats() {
     $("#queue-total").text(`Total: ${formatFileSize(totalSize)}`);
   });
 }
+
+/**
+ * Wrapper function for handleCompletedJobList to match the naming convention used in views
+ */
+function handleCompletedJobs() {
+  return handleCompletedJobList();
+}
+
+/**
+ * Load and display queued jobs
+ * Note: Currently there's no dedicated queue API, so this displays a message
+ */
+function handleQueuedJobs() {
+  const $tbody = $("#queue-table");
+
+  if (!$tbody.length) {
+    console.warn("Queue table not found");
+    return;
+  }
+
+  // Show loading state
+  $tbody.html(
+    '<tr><td colspan="4" class="text-center">Loading queue data...</td></tr>'
+  );
+
+  // Note: There's currently no queue API endpoint
+  // This would need to be implemented on the backend
+  // For now, show a placeholder message
+  setTimeout(() => {
+    $tbody.html(
+      '<tr><td colspan="4" class="text-center">Queue functionality coming soon</td></tr>'
+    );
+  }, 500);
+}

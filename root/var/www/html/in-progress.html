@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="orange">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>In Progress - Uploader Dashboard</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+      integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="stylesheet" href="css/styles-new.css?v=5.0.0" />
+  </head>
+  <body>
+    <!-- Layout Container -->
+    <div class="app-layout">
+      <!-- Sidebar -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-container">
+          <!-- Logo -->
+          <div class="sidebar-logo">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <span class="sidebar-logo-text">Uploader</span>
+          </div>
+
+          <!-- Navigation -->
+          <nav class="sidebar-nav">
+            <ul class="sidebar-menu">
+              <li class="sidebar-menu-item">
+                <a href="index.html" class="sidebar-menu-link">
+                  <i class="fas fa-tachometer-alt"></i>
+                  <span class="sidebar-menu-text">Dashboard</span>
+                </a>
+              </li>
+              <li class="sidebar-menu-item">
+                <a href="queue.html" class="sidebar-menu-link">
+                  <i class="fas fa-list"></i>
+                  <span class="sidebar-menu-text">Queue</span>
+                  <span class="sidebar-badge" id="nav-queue-count">0</span>
+                </a>
+              </li>
+              <li class="sidebar-menu-item active">
+                <a href="in-progress.html" class="sidebar-menu-link">
+                  <i class="fas fa-sync-alt"></i>
+                  <span class="sidebar-menu-text">In Progress</span>
+                  <span
+                    class="sidebar-badge badge-success"
+                    id="nav-progress-count"
+                    >0</span
+                  >
+                </a>
+              </li>
+              <li class="sidebar-menu-item">
+                <a href="completed.html" class="sidebar-menu-link">
+                  <i class="fas fa-check-circle"></i>
+                  <span class="sidebar-menu-text">Completed</span>
+                </a>
+              </li>
+              <li class="sidebar-menu-item">
+                <a href="statistics.html" class="sidebar-menu-link">
+                  <i class="fas fa-chart-line"></i>
+                  <span class="sidebar-menu-text">Statistics</span>
+                </a>
+              </li>
+              <li class="sidebar-menu-item">
+                <a href="settings.html" class="sidebar-menu-link">
+                  <i class="fas fa-cog"></i>
+                  <span class="sidebar-menu-text">Settings</span>
+                </a>
+              </li>
+              <li class="sidebar-menu-item">
+                <a href="about.html" class="sidebar-menu-link">
+                  <i class="fas fa-info-circle"></i>
+                  <span class="sidebar-menu-text">About</span>
+                </a>
+              </li>
+            </ul>
+          </nav>
+
+          <!-- Footer / Version -->
+          <div class="sidebar-footer">
+            <div class="version-info">
+              <span class="version-label">Version</span>
+              <span class="version-badge" id="sidebar-version">loading...</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Content Area -->
+      <div class="main-wrapper">
+        <!-- Top Navbar -->
+        <header class="topnav">
+          <div class="topnav-left">
+            <button
+              class="sidebar-toggle"
+              id="sidebar-toggle"
+              aria-label="Toggle sidebar"
+            >
+              <i class="fas fa-bars"></i>
+            </button>
+            <h1 class="page-title">
+              <i class="fas fa-sync-alt fa-spin-pulse"></i>
+              In Progress
+            </h1>
+          </div>
+
+          <div class="topnav-right">
+            <!-- Real-time Stats -->
+            <div class="topnav-stat">
+              <i class="fas fa-tachometer-alt"></i>
+              <span id="topnav-rate">0.00 MB/s</span>
+            </div>
+            <div class="topnav-stat">
+              <i class="fas fa-list"></i>
+              <span id="topnav-queue">0</span>
+            </div>
+            <div class="topnav-stat">
+              <i class="fas fa-sync-alt"></i>
+              <span id="topnav-active">0</span>
+            </div>
+
+            <!-- Theme Switcher -->
+            <div class="theme-switcher-container">
+              <button
+                class="theme-switcher-btn"
+                id="theme-switcher-btn"
+                aria-label="Change theme"
+              >
+                <i class="fas fa-palette"></i>
+              </button>
+              <div class="theme-dropdown" id="theme-dropdown">
+                <div class="theme-dropdown-header">Themes</div>
+                <div class="theme-grid">
+                  <button class="theme-item" data-theme="orange">
+                    <span class="theme-color orange"></span>
+                    <span class="theme-name">Orange</span>
+                  </button>
+                  <button class="theme-item" data-theme="purple">
+                    <span class="theme-color purple"></span>
+                    <span class="theme-name">Purple</span>
+                  </button>
+                  <button class="theme-item" data-theme="blue">
+                    <span class="theme-color blue"></span>
+                    <span class="theme-name">Blue</span>
+                  </button>
+                  <button class="theme-item" data-theme="green">
+                    <span class="theme-color green"></span>
+                    <span class="theme-name">Green</span>
+                  </button>
+                  <button class="theme-item" data-theme="red">
+                    <span class="theme-color red"></span>
+                    <span class="theme-name">Red</span>
+                  </button>
+                  <button class="theme-item" data-theme="plex">
+                    <span class="theme-color plex"></span>
+                    <span class="theme-name">Plex</span>
+                  </button>
+                  <button class="theme-item" data-theme="dark">
+                    <span class="theme-color dark"></span>
+                    <span class="theme-name">Dark</span>
+                  </button>
+                  <button class="theme-item" data-theme="aquamarine">
+                    <span class="theme-color aquamarine"></span>
+                    <span class="theme-name">Aquamarine</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+          <div class="content-container">
+            <!-- Current Stats -->
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-card-icon">
+                  <i class="fas fa-tachometer-alt"></i>
+                </div>
+                <div class="stat-card-content">
+                  <div class="stat-card-title">Current Upload Rate</div>
+                  <div class="stat-card-value-row">
+                    <div class="stat-card-value" id="current-rate">
+                      0.00 MB/s
+                    </div>
+                    <div id="control">
+                      <span
+                        class="control-button bg-success"
+                        aria-label="Pause uploads"
+                      >
+                        <i class="fa-solid fa-pause"></i>
+                      </span>
+                    </div>
+                  </div>
+                  <div class="stat-card-subtitle" id="rate-limit">
+                    Limit per Transfer: 30 MB/s
+                  </div>
+                </div>
+              </div>
+
+              <div class="stat-card">
+                <div class="stat-card-icon">
+                  <i class="fas fa-exchange-alt"></i>
+                </div>
+                <div class="stat-card-content">
+                  <div class="stat-card-title">Active Transfers</div>
+                  <div class="stat-card-value" id="active-count">0</div>
+                  <div class="stat-card-subtitle" id="active-max">Max: 2</div>
+                </div>
+              </div>
+
+              <div class="stat-card">
+                <div class="stat-card-icon">
+                  <i class="fas fa-database"></i>
+                </div>
+                <div class="stat-card-content">
+                  <div class="stat-card-title">Total Uploading</div>
+                  <div class="stat-card-value" id="total-uploading-size">
+                    0 GB
+                  </div>
+                  <div class="stat-card-subtitle" id="total-uploading-files">
+                    0 files
+                  </div>
+                </div>
+              </div>
+
+              <div class="stat-card">
+                <div class="stat-card-icon">
+                  <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-card-content">
+                  <div class="stat-card-title">Average Speed</div>
+                  <div class="stat-card-value" id="avg-speed">0.00 MB/s</div>
+                  <div class="stat-card-subtitle">Current session</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Active Uploads Card -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">
+                  <i class="fas fa-sync-alt fa-spin-pulse"></i>
+                  Active Uploads
+                </div>
+                <div class="card-actions">
+                  <span class="active-uploads-badge">
+                    <i class="fas fa-arrow-up"></i>
+                    <span id="active-count-badge">0</span> active
+                  </span>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table id="uploadsTable" class="table">
+                    <thead>
+                      <tr>
+                        <th scope="col">Filename</th>
+                        <th scope="col" class="d-none d-lg-table-cell">
+                          Folder
+                        </th>
+                        <th scope="col" class="d-none d-lg-table-cell">Key</th>
+                        <th scope="col">Progress</th>
+                        <th scope="col" class="d-none d-lg-table-cell">
+                          Filesize
+                        </th>
+                        <th scope="col">Time Left</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td colspan="6" class="no-uploads-message">
+                          <div class="empty-state">
+                            <i class="fas fa-pause-circle fa-3x"></i>
+                            <h3>No Active Uploads</h3>
+                            <p>No files are currently being uploaded</p>
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <template id="upload-row-template">
+              <tr>
+                <td data-title="Filename" class="truncate file-name">
+                  filename.mkv
+                </td>
+                <td
+                  data-title="Folder"
+                  class="d-none d-lg-table-cell folder-name"
+                >
+                  movies
+                </td>
+                <td data-title="Key" class="d-none d-lg-table-cell key-name">
+                  GDSA1
+                </td>
+                <td data-title="Progress">
+                  <div class="progress-container">
+                    <div class="progress-info">
+                      <span class="progress-percentage">45%</span>
+                    </div>
+                    <div class="progress">
+                      <div
+                        class="progress-bar bg-success"
+                        role="progressbar"
+                        style="width: 45%"
+                        aria-valuenow="45"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                      ></div>
+                    </div>
+                  </div>
+                </td>
+                <td
+                  data-title="Filesize"
+                  class="d-none d-lg-table-cell file-size"
+                >
+                  4.7 GB
+                </td>
+                <td data-title="Time Left" class="text-end">
+                  <span class="time-remaining">3m 24s</span>
+                  <span class="upload-speed"
+                    ><i class="fas fa-tachometer-alt"></i> 24MB/s</span
+                  >
+                </td>
+              </tr>
+            </template>
+
+            <!-- Footer -->
+            <div class="footer">
+              <p>
+                <i class="fa-brands fa-github"></i>
+                <a
+                  href="https://github.com/dockserver"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  dockserver GitHub
+                </a>
+                |
+                <i class="fa-brands fa-wikipedia-w"></i>
+                <a
+                  href="https://dockserver.io"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  dockserver wiki
+                </a>
+              </p>
+              <p>
+                Copyrights <sup>&copy; &trade;</sup> 2021
+                <script>
+                  document.write(" - " + new Date().getFullYear());
+                </script>
+                Developed with
+                <i class="fas fa-heart" style="color: var(--theme-primary)"></i>
+                by dockserver.io
+              </p>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Status Message -->
+    <div
+      class="status-message"
+      id="status-message"
+      role="alert"
+      aria-live="polite"
+    ></div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="js/utils.js?v=5.0.0"></script>
+    <script src="js/app.js?v=5.0.0"></script>
+    <script src="js/layout.js?v=5.0.0"></script>
+    <script>
+      // In Progress page specific functionality
+      $(document).ready(function () {
+        // Use existing app.js functions
+        if (typeof handleInProgressJobs === "function") {
+          handleInProgressJobs();
+          // Auto-refresh every 2 seconds
+          setInterval(handleInProgressJobs, 2000);
+        }
+
+        if (typeof checkStatus === "function") {
+          checkStatus();
+          setInterval(checkStatus, 3000);
+        }
+      });
+    </script>
+  </body>
+</html>

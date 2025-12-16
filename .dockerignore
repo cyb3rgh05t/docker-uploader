@@ -1,0 +1,52 @@
+# Development files
+.git
+.gitignore
+.gitattributes
+*.md
+!README.md
+DEVELOPMENT.md
+
+# Docker files
+docker-compose*.yml
+.dockerignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Data directories (used for local development)
+data/
+dev-configs/
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
+
+# Node modules (if any)
+node_modules/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Build artifacts
+dist/
+build/
+*.tar.gz
+*.zip
