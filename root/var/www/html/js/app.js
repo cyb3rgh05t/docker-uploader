@@ -352,8 +352,14 @@ function stopPeriodicUpdates() {
  * Handle in-progress uploads display
  */
 function handleInProgressJobs() {
+  const $tableBody = $("#uploadsTable > tbody");
+
+  // Skip if table doesn't exist (view not active)
+  if (!$tableBody.length) {
+    return;
+  }
+
   $.getJSON("srv/api/jobs/inprogress.php", function (json) {
-    const $tableBody = $("#uploadsTable > tbody");
     let totalUploadRate = 0;
 
     $tableBody.empty();
@@ -477,9 +483,8 @@ function handleCompletedJobList() {
   const $completedTableBody = $("#completedTable > tbody");
   const $pagination = $("#page");
 
-  // Check if table exists
+  // Check if table exists - silently return if not available (view not loaded)
   if (!$completedTableBody.length || !$pagination.length) {
-    console.warn("Completed table or pagination container not found");
     return;
   }
 
