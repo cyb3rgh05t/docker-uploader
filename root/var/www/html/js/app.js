@@ -61,7 +61,7 @@ function initializeApp() {
  * Load the application version
  */
 function loadAppVersion() {
-  const versionElement = document.getElementById("app-version");
+  const versionElement = document.getElementById("sidebar-version");
 
   // Try dedicated API endpoint first
   fetch("srv/api/system/version.php")
@@ -401,7 +401,7 @@ function handleInProgressJobs() {
       // Create a new row based on the template
       const template = document.getElementById("upload-row-template");
       if (!template) {
-        console.error("Upload row template not found");
+        // Silently skip if template not available (view not loaded)
         return;
       }
 
@@ -490,6 +490,11 @@ function handleCompletedJobList() {
   $("#pageSize > li.page-item").removeClass("active");
   $(`#pageSize > li.page-item:contains("${savedPageSize}")`).addClass("active");
 
+  // Destroy existing pagination if it exists
+  if ($pagination.data("pagination")) {
+    $pagination.pagination("destroy");
+  }
+
   // Initialize pagination
   $pagination.pagination({
     dataSource: "srv/api/jobs/completed.php",
@@ -518,7 +523,7 @@ function handleCompletedJobList() {
     },
     afterPaging: function () {
       // After page changes, fetch complete upload stats for today
-      fetchCompletedTodayStats();
+      updateCompletedTodayStats();
     },
     callback: function (data, pagination) {
       // Add Bootstrap classes to pagination links
@@ -563,34 +568,13 @@ function handleCompletedJobList() {
       });
 
       // Fetch all completed uploads for today
-      fetchCompletedTodayStats();
+      updateCompletedTodayStats();
     },
   });
 }
-
-/**
- * Fetch statistics for all uploads completed today
- */
-function fetchCompletedTodayStats() {
-  $.getJSON("srv/api/jobs/completed_today_stats.php", function (data) {
-    if (data && data.count !== undefined) {
-      uploaderApp.completedTodayCount = data.count;
-      uploaderApp.completedTodaySize = data.total_size || 0;
-
-      // Update the stats display
-      $("#completed-count").text(data.count);
-      $("#completed-total").text(`Total: ${formatFileSize(data.total_size)}`);
-    }
-  }).fail(function () {
-    // If the API doesn't exist yet, fall back to counting visible rows
-    // This is a temporary solution until the API endpoint is implemented
-    calculateCompletedTodayStats();
-  });
-}
-
 /**
  * Calculate statistics for today's completed uploads from visible table rows
- * This is a fallback method used until the API endpoint is implemented
+ * This is a fallback method used if needed
  */
 function calculateCompletedTodayStats() {
   let completedToday = 0;
@@ -726,17 +710,28 @@ function setupPauseControl() {
 
 // Update the updateRealTimeStats function
 function updateRealTimeStats() {
-  // Get current upload rate
+  // Get current upload rate from the hidden element that's updated by handleInProgressJobs
   const currentRate = $("#download_rate").text() || "0.00";
+
+  // Update both possible upload rate elements (for different views)
+  $("#upload-rate").text(`${currentRate} MB/s`);
   $("#current-rate").text(`${currentRate} MB/s`);
 
   // Get active uploads count
   const activeUploads =
-    $("#uploadsTable tbody tr").not(':contains("No uploads")').length || 0;
+    $("#uploadsTable tbody tr")
+      .not(':contains("No Active Uploads")')
+      .not(':contains("No uploads")').length || 0;
+
+  // Update both possible active upload elements
+  $("#active-uploads").text(activeUploads);
   $("#active-count").text(activeUploads);
 
-  // Update queue stats separately - don't use active uploads count
+  // Update queue stats separately
   updateQueueStats();
+
+  // Update completed today stats
+  updateCompletedTodayStats();
 
   // Set the current max active transfers
   const maxTransfers =
@@ -749,6 +744,25 @@ function updateRealTimeStats() {
     $("#bandwidth_limit").val() ||
     "30";
   $("#rate-limit").text(`Limit per Transfer: ${bandwidthLimit}`);
+}
+
+/**
+ * Update completed today stats
+ */
+function updateCompletedTodayStats() {
+  $.getJSON("srv/api/jobs/completed_today_stats.php", function (data) {
+    if (data && data.count !== undefined) {
+      uploaderApp.completedTodayCount = data.count;
+      uploaderApp.completedTodaySize = data.total_size || 0;
+
+      // Update all possible completed today elements
+      $("#completed-today").text(data.count);
+      $("#completed-count").text(data.count);
+      $("#completed-total").text(`Total: ${formatFileSize(data.total_size)}`);
+    }
+  }).fail(function (error) {
+    console.error("Failed to fetch completed today stats:", error);
+  });
 }
 
 /**
@@ -1042,8 +1056,9 @@ function updateEnvSettingsLegacy(
 function updateQueueStats() {
   $.getJSON("srv/api/jobs/queue_stats.php", function (data) {
     if (data && typeof data === "object") {
-      // Update the queue count
+      // Update both queue count elements (dashboard and queue page)
       $("#queue-count").text(data.count || 0);
+      $("#queue-count-display").text(data.count || 0);
 
       // Format the total size nicely
       const totalSize = formatFileSize(data.total_size || 0);
@@ -1088,8 +1103,8 @@ function handleCompletedJobs() {
 function handleQueuedJobs() {
   const $tbody = $("#queueTable > tbody");
 
+  // Silently return if table not available yet (view not loaded)
   if (!$tbody.length) {
-    console.warn("Queue table not found");
     return;
   }
 

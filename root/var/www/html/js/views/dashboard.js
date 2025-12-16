@@ -204,6 +204,30 @@ function dashboardView() {
           </p>
         </div>
       </div>
+
+      <!-- Upload Row Template for In Progress table -->
+      <template id="upload-row-template">
+        <tr>
+          <td data-title="Filename" class="truncate file-name">filename.mkv</td>
+          <td data-title="Folder" class="truncate d-none d-lg-table-cell folder-name">folder/path</td>
+          <td data-title="Key" class="truncate d-none d-lg-table-cell key-name">key-name</td>
+          <td data-title="Progress">
+            <div class="progress-container">
+              <div class="progress">
+                <div class="progress-bar bg-secondary" role="progressbar" style="width: 0%">
+                  <span class="progress-text">0%</span>
+                </div>
+              </div>
+              <div class="speed-info">
+                <span class="speed-label">Speed:</span>
+                <span class="speed-value">0.00 MB/s</span>
+              </div>
+            </div>
+          </td>
+          <td data-title="Filesize" class="d-none d-lg-table-cell file-size">0 MB</td>
+          <td data-title="Time Left" class="time-left">--:--:--</td>
+        </tr>
+      </template>
     `,
     init: function () {
       // Initialize dashboard data loading with error handling
