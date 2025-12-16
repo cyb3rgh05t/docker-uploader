@@ -427,7 +427,9 @@ function settingsView() {
         saveSettingsSection("system", {
           log_level: $("#log_level").val(),
           log_entry: $("#log_entry").val(),
-          vfs_refresh_enable: $("#vfs_refresh_enable").is(":checked") ? "true" : "false",
+          vfs_refresh_enable: $("#vfs_refresh_enable").is(":checked")
+            ? "true"
+            : "false",
           language: $("#language").val(),
         });
       });
@@ -457,46 +459,56 @@ function settingsView() {
           success: function (response) {
             if (response && response.settings) {
               const s = response.settings;
-              
+
               // Populate transfer settings
-              if (s.bandwidth_limit) $("#bandwidth_limit").val(s.bandwidth_limit);
+              if (s.bandwidth_limit)
+                $("#bandwidth_limit").val(s.bandwidth_limit);
               if (s.transfers) $("#transfers").val(s.transfers);
               if (s.min_age_upload) $("#min_age_upload").val(s.min_age_upload);
               if (s.folder_depth) $("#folder_depth").val(s.folder_depth);
-              
+
               // Populate notification settings
-              if (s.notification_level) $("#notification_level").val(s.notification_level);
-              if (s.notification_servername) $("#notification_servername").val(s.notification_servername);
-              if (s.notification_url) $("#notification_url").val(s.notification_url);
-              
+              if (s.notification_level)
+                $("#notification_level").val(s.notification_level);
+              if (s.notification_servername)
+                $("#notification_servername").val(s.notification_servername);
+              if (s.notification_url)
+                $("#notification_url").val(s.notification_url);
+
               // Populate system settings
               if (s.log_level) $("#log_level").val(s.log_level);
               if (s.log_entry) $("#log_entry").val(s.log_entry);
-              if (s.vfs_refresh_enable) $("#vfs_refresh_enable").prop("checked", s.vfs_refresh_enable === "true");
+              if (s.vfs_refresh_enable)
+                $("#vfs_refresh_enable").prop(
+                  "checked",
+                  s.vfs_refresh_enable === "true"
+                );
               if (s.language) $("#language").val(s.language);
-              
+
               // Populate autoscan settings
               if (s.autoscan_url) $("#autoscan_url").val(s.autoscan_url);
               if (s.autoscan_user) $("#autoscan_user").val(s.autoscan_user);
               if (s.autoscan_pass) $("#autoscan_pass").val(s.autoscan_pass);
-              
+
               // Populate security settings
-              if (s.hashpassword) $("#hashpassword").prop("checked", s.hashpassword === "hashed");
+              if (s.hashpassword)
+                $("#hashpassword").prop("checked", s.hashpassword === "hashed");
               if (s.gdsa_name) $("#gdsa_name").val(s.gdsa_name);
               if (s.db_name) $("#db_name").val(s.db_name);
-              if (s.db_team) $("#db_team").prop("checked", s.db_team === "true");
+              if (s.db_team)
+                $("#db_team").prop("checked", s.db_team === "true");
             }
           },
           error: function (xhr, status, error) {
             console.error("Error loading settings:", error);
-          }
+          },
         });
       }
 
       // Helper function to save settings section
       function saveSettingsSection(section, data) {
         console.log("Saving " + section + " settings:", data);
-        
+
         $.ajax({
           url: "srv/api/system/update_env.php",
           method: "POST",
@@ -511,7 +523,7 @@ function settingsView() {
           error: function (xhr, status, error) {
             console.error("Error saving settings:", error);
             showNotification("Error saving settings: " + error, "error");
-          }
+          },
         });
       }
 
@@ -539,7 +551,8 @@ function settingsView() {
 
         // Set message and styling based on type
         notification.textContent = message;
-        notification.style.background = type === "success" ? "#4caf50" : "#f44336";
+        notification.style.background =
+          type === "success" ? "#4caf50" : "#f44336";
         notification.style.display = "block";
 
         // Auto-hide after 3 seconds

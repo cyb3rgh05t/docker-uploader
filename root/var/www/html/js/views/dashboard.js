@@ -179,6 +179,7 @@ function dashboardView() {
                 </tbody>
               </table>
             </div>
+            <div id="page" class="pagination-wrapper"></div>
           </div>
         </div>
 
@@ -213,6 +214,9 @@ function dashboardView() {
         if (typeof handleQueuedJobs === "function") {
           handleQueuedJobs();
         }
+        if (typeof handleCompletedJobList === "function") {
+          handleCompletedJobList();
+        }
         if (typeof updateRealTimeStats === "function") {
           updateRealTimeStats();
         }
@@ -232,7 +236,6 @@ function dashboardView() {
           try {
             if (typeof handleInProgressJobs === "function")
               handleInProgressJobs();
-            if (typeof handleQueuedJobs === "function") handleQueuedJobs();
             if (typeof updateRealTimeStats === "function")
               updateRealTimeStats();
           } catch (error) {

@@ -135,28 +135,7 @@ function completedView() {
             </div>
 
             <!-- Pagination -->
-            <div class="pagination-container" id="pagination-container" style="display: none;">
-              <div class="pagination-info">
-                Showing <span id="page-start">1</span>-<span id="page-end">10</span> of <span id="page-total">0</span>
-              </div>
-              <div class="pagination">
-                <button class="pagination-button" id="first-page" disabled>
-                  <i class="fas fa-angle-double-left"></i>
-                </button>
-                <button class="pagination-button" id="prev-page" disabled>
-                  <i class="fas fa-angle-left"></i>
-                </button>
-                <div class="pagination-pages" id="pagination-pages">
-                  <!-- Page buttons will be inserted here -->
-                </div>
-                <button class="pagination-button" id="next-page">
-                  <i class="fas fa-angle-right"></i>
-                </button>
-                <button class="pagination-button" id="last-page">
-                  <i class="fas fa-angle-double-right"></i>
-                </button>
-              </div>
-            </div>
+            <div id="page" class="pagination-wrapper"></div>
           </div>
         </div>
 

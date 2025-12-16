@@ -51,9 +51,8 @@ function initializeApp() {
   // Load environment settings
   loadEnvSettings();
   loadAppVersion();
-  // Initial data fetching
-  handleInProgressJobs();
-  handleCompletedJobList();
+  // Initial data fetching - only load global data
+  // View-specific data (like completed jobs) is loaded by the router views
   checkStatus();
   updateRealTimeStats();
 }
@@ -62,12 +61,14 @@ function initializeApp() {
  * Load the application version
  */
 function loadAppVersion() {
+  const versionElement = document.getElementById("app-version");
+
   // Try dedicated API endpoint first
   fetch("srv/api/system/version.php")
     .then((response) => response.json())
     .then((data) => {
-      if (data && data.version) {
-        document.getElementById("app-version").textContent = "v" + data.version;
+      if (data && data.version && versionElement) {
+        versionElement.textContent = "v" + data.version;
         console.log("Version loaded from API:", data.version);
       }
     })
@@ -78,9 +79,8 @@ function loadAppVersion() {
       fetch("release.json")
         .then((response) => response.json())
         .then((data) => {
-          if (data && data.newversion) {
-            document.getElementById("app-version").textContent =
-              "v" + data.newversion;
+          if (data && data.newversion && versionElement) {
+            versionElement.textContent = "v" + data.newversion;
             console.log("Version loaded from file:", data.newversion);
           } else {
             throw new Error("Invalid release.json format");
@@ -89,7 +89,9 @@ function loadAppVersion() {
         .catch((fallbackError) => {
           console.error("Version fetch failed:", fallbackError);
           // Set a hardcoded version as last resort
-          document.getElementById("app-version").textContent = "v4.0.0";
+          if (versionElement) {
+            versionElement.textContent = "v5.0.0";
+          }
         });
     });
 }
@@ -473,6 +475,13 @@ function handleInProgressJobs() {
 // Update handleCompletedJobList to use relative date by default
 function handleCompletedJobList() {
   const $completedTableBody = $("#completedTable > tbody");
+  const $pagination = $("#page");
+
+  // Check if table exists
+  if (!$completedTableBody.length || !$pagination.length) {
+    console.warn("Completed table or pagination container not found");
+    return;
+  }
 
   // Get previously saved page size or use default
   const savedPageSize = getUserSetting("pageSize", 10);
@@ -482,7 +491,7 @@ function handleCompletedJobList() {
   $(`#pageSize > li.page-item:contains("${savedPageSize}")`).addClass("active");
 
   // Initialize pagination
-  $("#page").pagination({
+  $pagination.pagination({
     dataSource: "srv/api/jobs/completed.php",
     locator: "jobs",
     ulClassName: "pagination pagination-sm",
@@ -1077,7 +1086,7 @@ function handleCompletedJobs() {
  * Note: Currently there's no dedicated queue API, so this displays a message
  */
 function handleQueuedJobs() {
-  const $tbody = $("#queue-table");
+  const $tbody = $("#queueTable > tbody");
 
   if (!$tbody.length) {
     console.warn("Queue table not found");
@@ -1086,7 +1095,7 @@ function handleQueuedJobs() {
 
   // Show loading state
   $tbody.html(
-    '<tr><td colspan="4" class="text-center">Loading queue data...</td></tr>'
+    '<tr><td colspan="7" class="text-center">Loading queue data...</td></tr>'
   );
 
   // Note: There's currently no queue API endpoint
@@ -1094,7 +1103,7 @@ function handleQueuedJobs() {
   // For now, show a placeholder message
   setTimeout(() => {
     $tbody.html(
-      '<tr><td colspan="4" class="text-center">Queue functionality coming soon</td></tr>'
+      '<tr><td colspan="7" class="text-center">Queue functionality coming soon</td></tr>'
     );
   }, 500);
 }

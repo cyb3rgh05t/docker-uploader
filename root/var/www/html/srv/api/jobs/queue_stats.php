@@ -20,26 +20,60 @@ function getQueueStats()
         'total_size' => 0
     );
 
-    $db = new SQLite3(DATABASE, SQLITE3_OPEN_READONLY);
+    try {
+        // Check if database file exists
+        if (!file_exists(DATABASE)) {
+            error_log("Database file does not exist: " . DATABASE);
+            $response['error'] = "Database file not found";
+            return json_encode($response);
+        }
 
-    // Count files in the queue
-    $countQuery = "SELECT COUNT(*) as count FROM upload_queue";
-    $countResult = $db->query($countQuery);
-    $response['count'] = $countResult->fetchArray()['count'];
+        // Check if database is readable
+        if (!is_readable(DATABASE)) {
+            error_log("Database file is not readable: " . DATABASE);
+            $response['error'] = "Database file not readable";
+            return json_encode($response);
+        }
 
-    // Calculate total size of files in the queue
-    $filesResult = $db->query("SELECT filesize FROM upload_queue");
-    $totalBytes = 0;
+        $db = new SQLite3(DATABASE, SQLITE3_OPEN_READONLY);
 
-    while ($row = $filesResult->fetchArray()) {
-        $sizeStr = $row['filesize'];
-        $totalBytes += convertSizeToBytes($sizeStr);
+        // Check if upload_queue table exists
+        $tableCheck = $db->querySingle("SELECT name FROM sqlite_master WHERE type='table' AND name='upload_queue'");
+        if (!$tableCheck) {
+            error_log("Table 'upload_queue' does not exist in database");
+            $response['error'] = "Table 'upload_queue' not found";
+            $db->close();
+            return json_encode($response);
+        }
+
+        // Count files in the queue
+        $countQuery = "SELECT COUNT(*) as count FROM upload_queue";
+        $countResult = $db->query($countQuery);
+
+        if ($countResult) {
+            $countRow = $countResult->fetchArray();
+            $response['count'] = $countRow ? $countRow['count'] : 0;
+        }
+
+        // Calculate total size of files in the queue
+        $filesResult = $db->query("SELECT filesize FROM upload_queue");
+        $totalBytes = 0;
+
+        if ($filesResult) {
+            while ($row = $filesResult->fetchArray()) {
+                $sizeStr = $row['filesize'];
+                $totalBytes += convertSizeToBytes($sizeStr);
+            }
+        }
+
+        $response['total_size'] = $totalBytes;
+
+        $db->close();
+        unset($db);
+    } catch (Exception $e) {
+        error_log("Error in getQueueStats: " . $e->getMessage());
+        $response['error'] = "Error: " . $e->getMessage();
     }
-
-    $response['total_size'] = $totalBytes;
-
-    $db->close();
-    unset($db);
 
     return json_encode($response);
 }
