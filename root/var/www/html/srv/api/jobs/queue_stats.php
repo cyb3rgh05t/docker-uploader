@@ -20,28 +20,35 @@ function getQueueStats()
         'total_size' => 0
     );
 
-    $db = new SQLite3(DATABASE, SQLITE3_OPEN_READONLY);
+    try {
+        $db = new SQLite3(DATABASE, SQLITE3_OPEN_READONLY);
+        $db->busyTimeout(5000); // Wait up to 5 seconds if database is locked
 
-    // Count files in the queue
-    $countQuery = "SELECT COUNT(*) as count FROM upload_queue";
-    $countResult = $db->query($countQuery);
-    $response['count'] = $countResult->fetchArray()['count'];
+        // Count files in the queue
+        $countQuery = "SELECT COUNT(*) as count FROM upload_queue";
+        $countResult = $db->query($countQuery);
+        $response['count'] = $countResult->fetchArray()['count'];
 
-    // Calculate total size of files in the queue
-    $filesResult = $db->query("SELECT filesize FROM upload_queue");
-    $totalBytes = 0;
+        // Calculate total size of files in the queue
+        $filesResult = $db->query("SELECT filesize FROM upload_queue");
+        $totalBytes = 0;
 
-    while ($row = $filesResult->fetchArray()) {
-        $sizeStr = $row['filesize'];
-        $totalBytes += convertSizeToBytes($sizeStr);
+        while ($row = $filesResult->fetchArray()) {
+            $sizeStr = $row['filesize'];
+            $totalBytes += convertSizeToBytes($sizeStr);
+        }
+
+        $response['total_size'] = $totalBytes;
+
+        $db->close();
+        unset($db);
+
+        return json_encode($response);
+    } catch (Exception $e) {
+        // Return default response on database error
+        error_log("Database error in queue_stats.php: " . $e->getMessage());
+        return json_encode($response);
     }
-
-    $response['total_size'] = $totalBytes;
-
-    $db->close();
-    unset($db);
-
-    return json_encode($response);
 }
 
 /**

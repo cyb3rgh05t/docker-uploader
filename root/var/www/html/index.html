@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="orange">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -12,474 +12,421 @@
       referrerpolicy="no-referrer"
     />
     <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="stylesheet" href="css/styles.css?v=4.2.0" />
+    <link rel="stylesheet" href="css/styles.css?v=4.2.3" />
   </head>
   <body>
-    <!-- Navbar -->
-    <nav class="navbar">
-      <a href="#" class="navbar-brand">
-        <i class="fas fa-cloud-upload-alt"></i>
-        Uploader Dashboard
-        <span class="version-badge" id="app-version">loading...</span>
-      </a>
+    <!-- Mobile Menu Toggle -->
+    <button
+      class="mobile-menu-toggle"
+      id="mobile-menu-toggle"
+      aria-label="Toggle menu"
+    >
+      <i class="fas fa-bars"></i>
+    </button>
 
-      <div class="navbar-controls">
-        <div class="badge-container">
-          <div class="badge-with-icon">
-            <i class="fas fa-tachometer-alt"></i>
-            <div id="download_rate" class="badge">0.00</div>
-          </div>
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <img src="logo.png" alt="Uploader Logo" class="logo-image" />
+          <span class="logo-text">Uploader</span>
         </div>
-        <button
-          id="settings-toggle"
-          class="settings-btn"
-          aria-label="Open settings"
-        >
-          <i class="fa-solid fa-gear"></i>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="#dashboard" class="nav-item active" data-section="dashboard">
+          <i class="fas fa-home"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="#uploads" class="nav-item" data-section="uploads">
+          <i class="fas fa-upload"></i>
+          <span>Active Uploads</span>
+        </a>
+        <a href="#queue" class="nav-item" data-section="queue">
+          <i class="fas fa-list"></i>
+          <span>Queue</span>
+        </a>
+        <a href="#history" class="nav-item" data-section="history">
+          <i class="fas fa-history"></i>
+          <span>History</span>
+        </a>
+        <a href="#settings" class="nav-item" data-section="settings">
+          <i class="fas fa-cog"></i>
           <span>Settings</span>
-        </button>
-      </div>
-    </nav>
+        </a>
+        <a href="#about" class="nav-item" data-section="about">
+          <i class="fas fa-info-circle"></i>
+          <span>About</span>
+        </a>
+      </nav>
 
-    <!-- Settings Modal -->
-    <div id="settings-modal" class="modal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2>Settings</h2>
-          <button
-            id="modal-close"
-            class="modal-close"
-            aria-label="Close settings"
-          >
-            <i class="fas fa-times"></i>
-          </button>
+      <div class="sidebar-footer">
+        <div class="version-check">
+          <span class="version-number" id="app-version">loading...</span>
+          <span class="version-status" id="version-status">
+            <i class="fas fa-circle-notch fa-spin"></i>
+          </span>
         </div>
-        <div class="modal-body">
-          <!-- Settings Tabs -->
-          <div class="settings-tabs">
-            <button class="tab-button active" data-target="transfer-tab">
-              <i class="fas fa-exchange-alt"></i>
-              <span>Transfer</span>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Top Bar -->
+      <header class="top-bar">
+        <div class="top-bar-left"></div>
+        <div class="top-bar-right">
+          <div id="control">
+            <button
+              class="control-button bg-success"
+              aria-label="Pause uploads"
+            >
+              <i class="fa-solid fa-pause"></i>
+              <span>Pause</span>
             </button>
-            <button class="tab-button" data-target="notification-tab">
-              <i class="fas fa-bell"></i>
-              <span>Notification</span>
-            </button>
-            <button class="tab-button" data-target="system-tab">
-              <i class="fas fa-cogs"></i>
-              <span>System</span>
-            </button>
-            <button class="tab-button" data-target="autoscan-tab">
-              <i class="fas fa-search"></i>
-              <span>AutoScan</span>
-            </button>
-            <button class="tab-button" data-target="security-tab">
-              <i class="fas fa-shield-alt"></i>
-              <span>Security</span>
-            </button>
-            <button class="tab-button" data-target="theme-tab">
+          </div>
+          <div class="status-indicator" id="status-indicator">
+            <span class="status-dot"></span>
+            <span class="status-text">Active</span>
+          </div>
+          <div class="theme-dropdown">
+            <button
+              class="theme-toggle-btn"
+              id="theme-toggle-btn"
+              aria-label="Change theme"
+            >
               <i class="fas fa-palette"></i>
-              <span>Theme</span>
             </button>
-          </div>
-
-          <!-- Tab Content Container -->
-          <div class="tab-content-container">
-            <!-- Transfer Tab - Now First and Active -->
-            <div id="transfer-tab" class="tab-content active">
-              <form class="settings-form" id="transfer-form">
-                <div class="form-group">
-                  <label for="bandwidth_limit">Bandwidth Limit (MB/s)</label>
-                  <input
-                    type="text"
-                    id="bandwidth_limit"
-                    name="bandwidth_limit"
-                    class="form-control"
-                    value="30"
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="transfers">Max Transfers</label>
-                  <input
-                    type="number"
-                    id="transfers"
-                    name="transfers"
-                    class="form-control"
-                    value="2"
-                    min="1"
-                    max="10"
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="min_age_upload">Min Age Upload (minutes)</label>
-                  <input
-                    type="number"
-                    id="min_age_upload"
-                    name="min_age_upload"
-                    class="form-control"
-                    value="0"
-                    min="0"
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="folder_depth">Folder Depth</label>
-                  <input
-                    type="number"
-                    id="folder_depth"
-                    name="folder_depth"
-                    class="form-control"
-                    value="1"
-                    min="1"
-                  />
-                </div>
-                <button type="submit" class="btn">Save Changes</button>
-              </form>
-            </div>
-
-            <!-- Notification Tab -->
-            <div id="notification-tab" class="tab-content">
-              <form class="settings-form" id="notification-form">
-                <div class="form-group">
-                  <label for="notification_level">Notification Level</label>
-                  <select
-                    id="notification_level"
-                    name="notification_level"
-                    class="form-control"
-                  >
-                    <option value="ALL" selected>ALL</option>
-                    <option value="ERROR">ERROR</option>
-                    <option value="NONE">NONE</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label for="notification_servername">Server Name</label>
-                  <input
-                    type="text"
-                    id="notification_servername"
-                    name="notification_servername"
-                    class="form-control"
-                    value="Drive-Upload"
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="notification_url">Notification URL</label>
-                  <input
-                    type="text"
-                    id="notification_url"
-                    name="notification_url"
-                    class="form-control"
-                    placeholder="discord://webhook-url"
-                  />
-                </div>
-                <button type="submit" class="btn">Save Changes</button>
-              </form>
-            </div>
-
-            <!-- System Tab -->
-            <div id="system-tab" class="tab-content">
-              <form class="settings-form" id="system-form">
-                <div class="form-group">
-                  <label for="log_level">Log Level</label>
-                  <select id="log_level" name="log_level" class="form-control">
-                    <option value="INFO" selected>INFO</option>
-                    <option value="DEBUG">DEBUG</option>
-                    <option value="WARNING">WARNING</option>
-                    <option value="ERROR">ERROR</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label for="log_entry">Log Entry Count</label>
-                  <input
-                    type="number"
-                    id="log_entry"
-                    name="log_entry"
-                    class="form-control"
-                    value="1000"
-                    min="100"
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="vfs_refresh_enable">VFS Refresh</label>
-                  <select
-                    id="vfs_refresh_enable"
-                    name="vfs_refresh_enable"
-                    class="form-control"
-                  >
-                    <option value="true" selected>Enabled</option>
-                    <option value="false">Disabled</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label for="language">Language</label>
-                  <select id="language" name="language" class="form-control">
-                    <option value="en" selected>English</option>
-                    <option value="de">German</option>
-                  </select>
-                </div>
-                <button type="submit" class="btn">Save Changes</button>
-              </form>
-            </div>
-
-            <!-- AutoScan Tab -->
-            <div id="autoscan-tab" class="tab-content">
-              <form class="settings-form" id="autoscan-form">
-                <div class="form-group">
-                  <label for="autoscan_url">AutoScan URL</label>
-                  <input
-                    type="text"
-                    id="autoscan_url"
-                    name="autoscan_url"
-                    class="form-control"
-                    placeholder="http://autoscan:3030"
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="autoscan_user">AutoScan Username</label>
-                  <input
-                    type="text"
-                    id="autoscan_user"
-                    name="autoscan_user"
-                    class="form-control"
-                    placeholder="username (leave empty for none)"
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="autoscan_pass">AutoScan Password</label>
-                  <input
-                    type="password"
-                    id="autoscan_pass"
-                    name="autoscan_pass"
-                    class="form-control"
-                    placeholder="password (leave empty for none)"
-                  />
-                </div>
-                <button type="submit" class="btn">Save Changes</button>
-              </form>
-            </div>
-
-            <!-- Security Tab -->
-            <div id="security-tab" class="tab-content">
-              <form class="settings-form" id="security-form">
-                <div class="form-group">
-                  <label for="hashpassword">Hash Password</label>
-                  <select
-                    id="hashpassword"
-                    name="hashpassword"
-                    class="form-control"
-                  >
-                    <option value="hashed" selected>Hashed</option>
-                    <option value="plain">Plain</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label for="gdsa_name">GDSA Name</label>
-                  <input
-                    type="text"
-                    id="gdsa_name"
-                    name="gdsa_name"
-                    class="form-control"
-                    value="encrypt"
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="db_name">DB Name</label>
-                  <input
-                    type="text"
-                    id="db_name"
-                    name="db_name"
-                    class="form-control"
-                    value="encrypt"
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="db_team">DB Team</label>
-                  <select id="db_team" name="db_team" class="form-control">
-                    <option value="true" selected>Enabled</option>
-                    <option value="false">Disabled</option>
-                  </select>
-                </div>
-                <button type="submit" class="btn">Save Changes</button>
-              </form>
-            </div>
-
-            <!-- Theme Tab (Restyled) -->
-            <div id="theme-tab" class="tab-content">
-              <!-- Accent Colors Section -->
-              <div class="theme-section">
-                <h3>Accent Colors</h3>
-                <p>
-                  Choose a simple color accent for your dashboard while
-                  maintaining the default dark style.
-                </p>
-
-                <div class="theme-options">
-                  <!-- Basic Accent Colors -->
-                  <div class="theme-option" data-theme="orange">
-                    <div class="theme-dot orange"></div>
-                    <span>Orange</span>
-                  </div>
-                  <div class="theme-option" data-theme="purple">
-                    <div class="theme-dot purple"></div>
-                    <span>Purple</span>
-                  </div>
-                  <div class="theme-option" data-theme="blue">
-                    <div class="theme-dot blue"></div>
-                    <span>Blue</span>
-                  </div>
-                  <div class="theme-option" data-theme="green">
-                    <div class="theme-dot green"></div>
-                    <span>Green</span>
-                  </div>
-                  <div class="theme-option" data-theme="red">
-                    <div class="theme-dot red"></div>
-                    <span>Red</span>
-                  </div>
-                </div>
+            <div class="theme-dropdown-menu" id="theme-dropdown-menu">
+              <div class="theme-dropdown-item" data-theme="dark">
+                <div class="theme-dot dark"></div>
+                <span>Dark</span>
+                <i class="fas fa-check theme-check"></i>
               </div>
-
-              <!-- Full Themes Section -->
-              <div class="theme-section" style="margin-top: 20px">
-                <h3>Complete Themes</h3>
-                <p>
-                  Select a comprehensive theme with custom colors, backgrounds,
-                  and styling effects.
-                </p>
-
-                <div class="theme-options">
-                  <!-- Full Custom Themes -->
-                  <div class="theme-option" data-theme="aquamarine">
-                    <div class="theme-dot aquamarine"></div>
-                    <span>Aquamarine</span>
-                  </div>
-                  <div class="theme-option" data-theme="dark">
-                    <div class="theme-dot dark"></div>
-                    <span>Dark</span>
-                  </div>
-                  <div class="theme-option" data-theme="organizr">
-                    <div class="theme-dot organizr"></div>
-                    <span>Organizr</span>
-                  </div>
-                  <div class="theme-option" data-theme="nord">
-                    <div class="theme-dot nord"></div>
-                    <span>Nord</span>
-                  </div>
-                  <div class="theme-option" data-theme="overseerr">
-                    <div class="theme-dot overseerr"></div>
-                    <span>Overseerr</span>
-                  </div>
-                  <div class="theme-option" data-theme="onedark">
-                    <div class="theme-dot onedark"></div>
-                    <span>OneDark</span>
-                  </div>
-                  <div class="theme-option" data-theme="hotline">
-                    <div class="theme-dot hotline"></div>
-                    <span>Hotline</span>
-                  </div>
-                  <div class="theme-option" data-theme="maroon">
-                    <div class="theme-dot maroon"></div>
-                    <span>Maroon</span>
-                  </div>
-                  <div class="theme-option" data-theme="dracula">
-                    <div class="theme-dot dracula"></div>
-                    <span>Dracula</span>
-                  </div>
-                  <div class="theme-option" data-theme="plex">
-                    <div class="theme-dot plex"></div>
-                    <span>Plex</span>
-                  </div>
-                  <div class="theme-option" data-theme="space-gray">
-                    <div class="theme-dot space-gray"></div>
-                    <span>Space Gray</span>
-                  </div>
-                  <div class="theme-option" data-theme="hotpink">
-                    <div class="theme-dot hotpink"></div>
-                    <span>Hot Pink</span>
-                  </div>
-                </div>
+              <div class="theme-dropdown-item" data-theme="aquamarine">
+                <div class="theme-dot aquamarine"></div>
+                <span>Aquamarine</span>
+                <i class="fas fa-check theme-check"></i>
+              </div>
+              <div class="theme-dropdown-item" data-theme="organizr">
+                <div class="theme-dot organizr"></div>
+                <span>Organizr</span>
+                <i class="fas fa-check theme-check"></i>
+              </div>
+              <div class="theme-dropdown-item" data-theme="nord">
+                <div class="theme-dot nord"></div>
+                <span>Nord</span>
+                <i class="fas fa-check theme-check"></i>
+              </div>
+              <div class="theme-dropdown-item" data-theme="overseerr">
+                <div class="theme-dot overseerr"></div>
+                <span>Overseerr</span>
+                <i class="fas fa-check theme-check"></i>
+              </div>
+              <div class="theme-dropdown-item" data-theme="onedark">
+                <div class="theme-dot onedark"></div>
+                <span>OneDark</span>
+                <i class="fas fa-check theme-check"></i>
+              </div>
+              <div class="theme-dropdown-item" data-theme="hotline">
+                <div class="theme-dot hotline"></div>
+                <span>Hotline</span>
+                <i class="fas fa-check theme-check"></i>
+              </div>
+              <div class="theme-dropdown-item" data-theme="maroon">
+                <div class="theme-dot maroon"></div>
+                <span>Maroon</span>
+                <i class="fas fa-check theme-check"></i>
+              </div>
+              <div class="theme-dropdown-item" data-theme="dracula">
+                <div class="theme-dot dracula"></div>
+                <span>Dracula</span>
+                <i class="fas fa-check theme-check"></i>
+              </div>
+              <div class="theme-dropdown-item" data-theme="plex">
+                <div class="theme-dot plex"></div>
+                <span>Plex</span>
+                <i class="fas fa-check theme-check"></i>
+              </div>
+              <div class="theme-dropdown-item" data-theme="space-gray">
+                <div class="theme-dot space-gray"></div>
+                <span>Space Gray</span>
+                <i class="fas fa-check theme-check"></i>
+              </div>
+              <div class="theme-dropdown-item" data-theme="hotpink">
+                <div class="theme-dot hotpink"></div>
+                <span>Hot Pink</span>
+                <i class="fas fa-check theme-check"></i>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </header>
 
-    <!-- Modal Overlay -->
-    <div id="modal-overlay" class="overlay"></div>
-
-    <!-- Status Message -->
-    <div
-      class="status-message"
-      id="status-message"
-      role="alert"
-      aria-live="polite"
-    ></div>
-
-    <!-- Main Content -->
-    <div class="main-content">
-      <div class="container">
-        <div class="stats-row">
-          <div class="stat-card">
-            <div class="stat-icon">
-              <i class="fas fa-tachometer-alt"></i>
-            </div>
-            <div class="stat-content">
-              <div class="stat-title">Current Upload Rate</div>
-              <div class="stat-value-row">
-                <div id="current-rate">0.00 MB/s</div>
-                <div id="control">
-                  <span
-                    class="control-button bg-success"
-                    aria-label="Pause uploads"
-                  >
-                    <i class="fa-solid fa-pause"></i>
-                  </span>
-                </div>
-              </div>
-              <div class="stat-subtitle" id="rate-limit">
-                Limit per Transfer: 30 MB/s
+      <!-- Dashboard Section -->
+      <section class="content-section active" id="dashboard-section">
+        <!-- System Overview Cards -->
+        <div class="overview-cards-grid">
+          <div class="overview-mini-card" id="system-status-card">
+            <div class="overview-mini-content">
+              <div class="overview-mini-label">System Status</div>
+              <div class="overview-mini-value" id="system-status-mini">
+                Operational
               </div>
             </div>
-          </div>
-
-          <div class="stat-card">
-            <div class="stat-icon">
-              <i class="fas fa-list"></i>
-            </div>
-            <div class="stat-content">
-              <div class="stat-title">Files in Queue</div>
-              <div class="stat-value" id="queue-count">0</div>
-              <div class="stat-subtitle" id="queue-total">Total: 0 GB</div>
-            </div>
-          </div>
-
-          <div class="stat-card">
-            <div class="stat-icon">
-              <i class="fas fa-exchange-alt"></i>
-            </div>
-            <div class="stat-content">
-              <div class="stat-title">Active Transfers</div>
-              <div class="stat-value" id="active-count">0</div>
-              <div class="stat-subtitle" id="active-max">Max: 2</div>
-            </div>
-          </div>
-
-          <div class="stat-card">
-            <div class="stat-icon">
+            <div class="overview-mini-icon" id="system-status-icon">
               <i class="fas fa-check-circle"></i>
             </div>
-            <div class="stat-content">
-              <div class="stat-title">Completed Today</div>
-              <div class="stat-value" id="completed-count">0</div>
-              <div class="stat-subtitle" id="completed-total">Total: 0 GB</div>
+          </div>
+
+          <div class="overview-mini-card">
+            <div class="overview-mini-content">
+              <div class="overview-mini-label">Uptime</div>
+              <div class="overview-mini-value value-blue" id="system-uptime">
+                Loading...
+              </div>
+            </div>
+            <div class="overview-mini-icon gradient-blue">
+              <i class="fas fa-clock"></i>
+            </div>
+          </div>
+
+          <div class="overview-mini-card">
+            <div class="overview-mini-content">
+              <div class="overview-mini-label">Storage Used</div>
+              <div class="overview-mini-value value-orange" id="storage-used">
+                Loading...
+              </div>
+            </div>
+            <div class="overview-mini-icon gradient-orange">
+              <i class="fas fa-hdd"></i>
+            </div>
+          </div>
+
+          <div class="overview-mini-card">
+            <div class="overview-mini-content">
+              <div class="overview-mini-label">Transfer Rate</div>
+              <div class="overview-mini-value value-purple" id="overview-rate">
+                0.00 MB/s
+              </div>
+            </div>
+            <div class="overview-mini-icon gradient-purple">
+              <i class="fas fa-tachometer-alt"></i>
+            </div>
+          </div>
+
+          <div class="overview-mini-card">
+            <div class="overview-mini-content">
+              <div class="overview-mini-label">Active Transfers</div>
+              <div
+                class="overview-mini-value value-indigo"
+                id="overview-active"
+              >
+                0
+              </div>
+            </div>
+            <div class="overview-mini-icon gradient-indigo">
+              <i class="fas fa-exchange-alt"></i>
+            </div>
+          </div>
+
+          <div class="overview-mini-card">
+            <div class="overview-mini-content">
+              <div class="overview-mini-label">Queue Size</div>
+              <div class="overview-mini-value value-red" id="overview-queue">
+                0
+              </div>
+            </div>
+            <div class="overview-mini-icon gradient-red">
+              <i class="fas fa-list"></i>
             </div>
           </div>
         </div>
 
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+          <div class="overview-mini-card">
+            <div class="overview-mini-content">
+              <div class="overview-mini-label">Upload Rate</div>
+              <div class="overview-mini-value value-orange" id="current-rate">
+                0.00 MB/s
+              </div>
+              <div class="overview-mini-subtitle" id="rate-limit">
+                <i class="fas fa-gauge-high"></i> Limit: 30 MB/s per transfer
+              </div>
+            </div>
+            <div class="overview-mini-icon gradient-orange">
+              <i class="fas fa-tachometer-alt"></i>
+            </div>
+          </div>
+
+          <div class="overview-mini-card">
+            <div class="overview-mini-content">
+              <div class="overview-mini-label">Files in Queue</div>
+              <div class="overview-mini-value value-blue" id="queue-count">
+                0
+              </div>
+              <div class="overview-mini-subtitle" id="queue-total">
+                <i class="fas fa-weight-hanging"></i> Total: 0 GB
+              </div>
+            </div>
+            <div class="overview-mini-icon gradient-blue">
+              <i class="fas fa-list"></i>
+            </div>
+          </div>
+
+          <div class="overview-mini-card">
+            <div class="overview-mini-content">
+              <div class="overview-mini-label">Active Transfers</div>
+              <div class="overview-mini-value value-purple" id="active-count">
+                0
+              </div>
+              <div class="overview-mini-subtitle" id="active-max">
+                <i class="fas fa-layer-group"></i> Max: 2
+              </div>
+            </div>
+            <div class="overview-mini-icon gradient-purple">
+              <i class="fas fa-exchange-alt"></i>
+            </div>
+          </div>
+
+          <div class="overview-mini-card">
+            <div class="overview-mini-content">
+              <div class="overview-mini-label">Completed Today</div>
+              <div class="overview-mini-value value-green" id="completed-count">
+                0
+              </div>
+              <div class="overview-mini-subtitle" id="completed-total">
+                <i class="fas fa-chart-line"></i> Total: 0 GB
+              </div>
+            </div>
+            <div class="overview-mini-icon gradient-green">
+              <i class="fas fa-check-circle"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dashboard Tables -->
+
+        <!-- Latest Active Uploads Table -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <i class="fas fa-upload"></i>
+              Active Uploads
+            </div>
+            <a href="#uploads" class="card-action-link" data-section="uploads">
+              View All <i class="fas fa-arrow-right"></i>
+            </a>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table" id="dashboard-active-table">
+                <thead>
+                  <tr>
+                    <th>Filename</th>
+                    <th>Folder</th>
+                    <th>Directory</th>
+                    <th>Key</th>
+                    <th>Progress</th>
+                    <th>Filesize</th>
+                    <th>Time Left</th>
+                    <th>Speed</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colspan="8" class="text-center">
+                      <i class="fas fa-circle-notch fa-spin"></i> Loading...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Latest Queue Table -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <i class="fas fa-list"></i>
+              Latest Queue
+            </div>
+            <a href="#queue" class="card-action-link" data-section="queue">
+              View All <i class="fas fa-arrow-right"></i>
+            </a>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table" id="dashboard-queue-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Filename</th>
+                    <th>Folder</th>
+                    <th>Directory</th>
+                    <th>Filesize</th>
+                    <th>Added</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colspan="6" class="text-center">
+                      <i class="fas fa-circle-notch fa-spin"></i> Loading...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Latest History Table -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <i class="fas fa-history"></i>
+              Recent History
+            </div>
+            <a href="#history" class="card-action-link" data-section="history">
+              View All <i class="fas fa-arrow-right"></i>
+            </a>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table" id="dashboard-history-table">
+                <thead>
+                  <tr>
+                    <th>Filename</th>
+                    <th>Folder</th>
+                    <th>Directory</th>
+                    <th>Key</th>
+                    <th>Filesize</th>
+                    <th>Time spent</th>
+                    <th>Uploaded</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colspan="7" class="text-center">
+                      <i class="fas fa-circle-notch fa-spin"></i> Loading...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Active Uploads Section -->
+      <section class="content-section" id="uploads-section">
         <div class="card uploads-card">
           <div class="card-header">
             <div class="card-title">
-              <i class="fas fa-sync-alt fa-spin-pulse"></i>
-              In Progress
+              <i class="fas fa-upload"></i>
+              Active Uploads
             </div>
             <div class="card-actions">
               <span class="active-uploads-badge">
@@ -503,6 +450,13 @@
                     </th>
                     <th
                       scope="col"
+                      data-title="Directory"
+                      class="d-none d-lg-table-cell"
+                    >
+                      Directory
+                    </th>
+                    <th
+                      scope="col"
                       data-title="Key"
                       class="d-none d-lg-table-cell"
                     >
@@ -517,11 +471,12 @@
                       Filesize
                     </th>
                     <th scope="col" data-title="Time Left">Time Left</th>
+                    <th scope="col" data-title="Speed">Speed</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td colspan="6" class="no-uploads-message">
+                    <td colspan="8" class="no-uploads-message text-center">
                       No uploads in progress
                     </td>
                   </tr>
@@ -538,6 +493,12 @@
             </td>
             <td data-title="Folder" class="d-none d-lg-table-cell folder-name">
               movies
+            </td>
+            <td
+              data-title="Directory"
+              class="d-none d-lg-table-cell truncate directory-name"
+            >
+              path/to/file
             </td>
             <td data-title="Key" class="d-none d-lg-table-cell key-name">
               GDSA1
@@ -562,20 +523,82 @@
             <td data-title="Filesize" class="d-none d-lg-table-cell file-size">
               4.7 GB
             </td>
-            <td data-title="Time Left" class="text-end">
+            <td data-title="Time Left">
               <span class="time-remaining">3m 24s</span>
+            </td>
+            <td data-title="Speed">
               <span class="upload-speed"
                 ><i class="fas fa-tachometer-alt"></i> 24MB/s</span
               >
             </td>
           </tr>
         </template>
+      </section>
 
+      <!-- Queue Section -->
+      <section class="content-section" id="queue-section">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <i class="fas fa-list"></i>
+              Upload Queue
+            </div>
+            <div class="card-actions">
+              <span class="active-uploads-badge">
+                <i class="fas fa-inbox"></i>
+                <span id="queue-count-badge">0</span> in queue
+              </span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table id="queueTable" class="table">
+                <thead>
+                  <tr>
+                    <th scope="col" data-title="#">#</th>
+                    <th scope="col" data-title="Filename">Filename</th>
+                    <th
+                      scope="col"
+                      data-title="Folder"
+                      class="d-none d-lg-table-cell"
+                    >
+                      Folder
+                    </th>
+                    <th
+                      scope="col"
+                      data-title="Directory"
+                      class="d-none d-lg-table-cell"
+                    >
+                      Directory
+                    </th>
+                    <th
+                      scope="col"
+                      data-title="Filesize"
+                      class="d-none d-lg-table-cell"
+                    >
+                      Filesize
+                    </th>
+                    <th scope="col" data-title="Added">Added</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colspan="6" class="no-uploads-message text-center">
+                      No files in queue
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="content-section" id="history-section">
         <div class="card">
           <div class="card-header">
             <div class="card-title">
               <i class="fas fa-check-circle"></i>
-              Completed
+              Completed Uploads
             </div>
             <div class="card-actions">
               <span id="clnHist" class="action-button">
@@ -597,6 +620,7 @@
                   <tr>
                     <th scope="col" data-title="Filename">Filename</th>
                     <th scope="col" data-title="Folder">Folder</th>
+                    <th scope="col" data-title="Directory">Directory</th>
                     <th scope="col" data-title="Key">Key</th>
                     <th scope="col" data-title="Filesize">Filesize</th>
                     <th scope="col" data-title="Time spent">Time spent</th>
@@ -613,7 +637,7 @@
                 </thead>
                 <tbody>
                   <tr>
-                    <td colspan="6" class="text-center">
+                    <td colspan="7" class="no-uploads-message text-center">
                       No completed uploads
                     </td>
                   </tr>
@@ -667,68 +691,632 @@
             </div>
           </div>
         </div>
+      </section>
 
-        <div class="footer">
-          <p>
-            <i class="fa-brands fa-github"></i>
-            <a
-              href="https://github.com/dockserver"
-              target="_blank"
-              rel="noopener noreferrer"
+      <!-- Settings Section -->
+      <section class="content-section" id="settings-section">
+        <form class="unified-settings-form" id="unified-settings-form">
+          <!-- Save Button at Top -->
+          <div class="settings-save-container settings-save-top">
+            <button type="submit" class="btn btn-save-all">
+              <i class="fas fa-save"></i>
+              Save All Settings
+            </button>
+            <span
+              class="auto-save-indicator"
+              style="
+                margin-left: 1rem;
+                color: var(--text-secondary);
+                display: none;
+              "
             >
-              dockserver GitHub
-            </a>
-            |
-            <i class="fa-brands fa-wikipedia-w"></i>
-            <a
-              href="https://dockserver.io"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              dockserver wiki
-            </a>
-          </p>
-          <p>
-            Copyrights <sup>&copy; &trade;</sup> 2021
-            <script>
-              document.write(" - " + new Date().getFullYear());
-            </script>
-            Developed with
-            <i class="fas fa-heart" style="color: var(--accent-color)"></i> by
-            dockserver.io
-          </p>
+              <i class="fas fa-check-circle"></i> Auto-saved
+            </span>
+          </div>
+          <div class="settings-grid">
+            <!-- Transfer Settings -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">
+                  <i class="fas fa-exchange-alt"></i>
+                  Transfer Settings
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="form-group">
+                  <label for="bandwidth_limit">Bandwidth Limit (MB/s)</label>
+                  <input
+                    type="text"
+                    id="bandwidth_limit"
+                    name="bandwidth_limit"
+                    class="form-control"
+                    value="30"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="transfers">Max Transfers</label>
+                  <input
+                    type="number"
+                    id="transfers"
+                    name="transfers"
+                    class="form-control"
+                    value="2"
+                    min="1"
+                    max="10"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="min_age_upload">Min Age Upload (minutes)</label>
+                  <input
+                    type="number"
+                    id="min_age_upload"
+                    name="min_age_upload"
+                    class="form-control"
+                    value="0"
+                    min="0"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="folder_depth">Folder Depth</label>
+                  <input
+                    type="number"
+                    id="folder_depth"
+                    name="folder_depth"
+                    class="form-control"
+                    value="1"
+                    min="1"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Notification Settings -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">
+                  <i class="fas fa-bell"></i>
+                  Notifications
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="form-group">
+                  <label for="notification_level">Notification Level</label>
+                  <select
+                    id="notification_level"
+                    name="notification_level"
+                    class="form-control"
+                  >
+                    <option value="ALL" selected>ALL</option>
+                    <option value="ERROR">ERROR</option>
+                    <option value="NONE">NONE</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="notification_servername">Server Name</label>
+                  <input
+                    type="text"
+                    id="notification_servername"
+                    name="notification_servername"
+                    class="form-control"
+                    value="Drive-Upload"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="notification_url">Notification URL</label>
+                  <input
+                    type="text"
+                    id="notification_url"
+                    name="notification_url"
+                    class="form-control"
+                    placeholder="discord://webhook-url"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- System Settings -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">
+                  <i class="fas fa-cogs"></i>
+                  System
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="form-group">
+                  <label for="log_level">Log Level</label>
+                  <select id="log_level" name="log_level" class="form-control">
+                    <option value="INFO" selected>INFO</option>
+                    <option value="DEBUG">DEBUG</option>
+                    <option value="WARNING">WARNING</option>
+                    <option value="ERROR">ERROR</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="log_entry">Log Entry Count</label>
+                  <input
+                    type="number"
+                    id="log_entry"
+                    name="log_entry"
+                    class="form-control"
+                    value="1000"
+                    min="100"
+                  />
+                </div>
+                <div class="form-group toggle-group">
+                  <label for="vfs_refresh_enable">VFS Refresh</label>
+                  <label class="toggle-switch">
+                    <input
+                      type="checkbox"
+                      id="vfs_refresh_enable"
+                      name="vfs_refresh_enable"
+                      checked
+                    />
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                <div class="form-group">
+                  <label for="language">Language</label>
+                  <select id="language" name="language" class="form-control">
+                    <option value="en" selected>English</option>
+                    <option value="de">German</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- AutoScan Settings -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">
+                  <i class="fas fa-search"></i>
+                  AutoScan
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="form-group">
+                  <label for="autoscan_url">AutoScan URL</label>
+                  <input
+                    type="text"
+                    id="autoscan_url"
+                    name="autoscan_url"
+                    class="form-control"
+                    placeholder="http://autoscan:3030"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="autoscan_user">AutoScan Username</label>
+                  <input
+                    type="text"
+                    id="autoscan_user"
+                    name="autoscan_user"
+                    class="form-control"
+                    placeholder="username (leave empty for none)"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="autoscan_pass">AutoScan Password</label>
+                  <input
+                    type="password"
+                    id="autoscan_pass"
+                    name="autoscan_pass"
+                    class="form-control"
+                    placeholder="password (leave empty for none)"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Security Settings -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">
+                  <i class="fas fa-shield-alt"></i>
+                  Security
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="form-group">
+                  <label for="hashpassword">Hash Password</label>
+                  <select
+                    id="hashpassword"
+                    name="hashpassword"
+                    class="form-control"
+                  >
+                    <option value="hashed" selected>Hashed</option>
+                    <option value="plain">Plain</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="gdsa_name">GDSA Name</label>
+                  <input
+                    type="text"
+                    id="gdsa_name"
+                    name="gdsa_name"
+                    class="form-control"
+                    value="encrypt"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="db_name">DB Name</label>
+                  <input
+                    type="text"
+                    id="db_name"
+                    name="db_name"
+                    class="form-control"
+                    value="encrypt"
+                  />
+                </div>
+                <div class="form-group toggle-group">
+                  <label for="db_team">DB Team</label>
+                  <label class="toggle-switch">
+                    <input
+                      type="checkbox"
+                      id="db_team"
+                      name="db_team"
+                      checked
+                    />
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <!-- About Section -->
+      <section class="content-section" id="about-section">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <i class="fas fa-info-circle"></i>
+              About Docker Uploader
+            </div>
+          </div>
+          <div class="card-body">
+            <div style="max-width: 800px; margin: 0 auto">
+              <div style="text-align: center; margin-bottom: 2rem">
+                <img
+                  src="logo.png"
+                  alt="Docker Uploader Logo"
+                  style="width: 120px; height: 120px; margin-bottom: 1rem"
+                />
+                <h2 style="font-size: 2rem; margin-bottom: 0.5rem">
+                  Docker Uploader
+                </h2>
+                <p
+                  style="color: var(--accent-color); font-weight: 600"
+                  id="about-version"
+                >
+                  Version 5.0.0
+                </p>
+              </div>
+
+              <div style="margin-bottom: 2rem">
+                <h3
+                  style="
+                    font-size: 1.25rem;
+                    margin-bottom: 1rem;
+                    color: var(--accent-color);
+                  "
+                >
+                  Description
+                </h3>
+                <p style="line-height: 1.8; color: var(--text-secondary)">
+                  Docker Uploader is a powerful and efficient file upload
+                  management system designed to run in Docker containers. It
+                  provides a modern web interface for monitoring and controlling
+                  file uploads with features like bandwidth management,
+                  concurrent transfer control, and real-time progress tracking.
+                </p>
+              </div>
+
+              <div style="margin-bottom: 2rem">
+                <h3
+                  style="
+                    font-size: 1.25rem;
+                    margin-bottom: 1rem;
+                    color: var(--accent-color);
+                  "
+                >
+                  Key Features
+                </h3>
+                <ul
+                  style="
+                    line-height: 2;
+                    color: var(--text-secondary);
+                    list-style-position: inside;
+                  "
+                >
+                  <li>Real-time upload monitoring and progress tracking</li>
+                  <li>Bandwidth limiting and transfer management</li>
+                  <li>Multiple concurrent upload support</li>
+                  <li>Complete upload history with statistics</li>
+                  <li>Pause and resume functionality</li>
+                  <li>17 beautiful theme options</li>
+                  <li>Responsive design for mobile and desktop</li>
+                  <li>Docker containerized deployment</li>
+                </ul>
+              </div>
+
+              <div style="margin-bottom: 2rem">
+                <h3
+                  style="
+                    font-size: 1.25rem;
+                    margin-bottom: 1rem;
+                    color: var(--accent-color);
+                  "
+                >
+                  Technology Stack
+                </h3>
+                <div
+                  style="
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                    gap: 1rem;
+                  "
+                >
+                  <div
+                    style="
+                      padding: 1rem;
+                      background: var(--bg-tertiary);
+                      border-radius: var(--radius-md);
+                      text-align: center;
+                    "
+                  >
+                    <i
+                      class="fab fa-docker"
+                      style="
+                        font-size: 2rem;
+                        color: var(--accent-color);
+                        margin-bottom: 0.5rem;
+                      "
+                    ></i>
+                    <p style="font-weight: 600">Docker</p>
+                  </div>
+                  <div
+                    style="
+                      padding: 1rem;
+                      background: var(--bg-tertiary);
+                      border-radius: var(--radius-md);
+                      text-align: center;
+                    "
+                  >
+                    <i
+                      class="fab fa-php"
+                      style="
+                        font-size: 2rem;
+                        color: var(--accent-color);
+                        margin-bottom: 0.5rem;
+                      "
+                    ></i>
+                    <p style="font-weight: 600">PHP</p>
+                  </div>
+                  <div
+                    style="
+                      padding: 1rem;
+                      background: var(--bg-tertiary);
+                      border-radius: var(--radius-md);
+                      text-align: center;
+                    "
+                  >
+                    <i
+                      class="fab fa-js"
+                      style="
+                        font-size: 2rem;
+                        color: var(--accent-color);
+                        margin-bottom: 0.5rem;
+                      "
+                    ></i>
+                    <p style="font-weight: 600">JavaScript</p>
+                  </div>
+                  <div
+                    style="
+                      padding: 1rem;
+                      background: var(--bg-tertiary);
+                      border-radius: var(--radius-md);
+                      text-align: center;
+                    "
+                  >
+                    <i
+                      class="fab fa-html5"
+                      style="
+                        font-size: 2rem;
+                        color: var(--accent-color);
+                        margin-bottom: 0.5rem;
+                      "
+                    ></i>
+                    <p style="font-weight: 600">HTML5/CSS3</p>
+                  </div>
+                </div>
+              </div>
+
+              <div style="margin-bottom: 2rem">
+                <h3
+                  style="
+                    font-size: 1.25rem;
+                    margin-bottom: 1rem;
+                    color: var(--accent-color);
+                  "
+                >
+                  Links & Resources
+                </h3>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap">
+                  <a
+                    href="https://github.com/dockserver"
+                    target="_blank"
+                    class="action-button"
+                    style="text-decoration: none"
+                  >
+                    <i class="fab fa-github"></i>
+                    GitHub Repository
+                  </a>
+                  <a
+                    href="https://dockserver.io"
+                    target="_blank"
+                    class="action-button"
+                    style="text-decoration: none"
+                  >
+                    <i class="fas fa-globe"></i>
+                    Official Website
+                  </a>
+                  <a
+                    href="https://github.com/dockserver/docker-uploader/issues"
+                    target="_blank"
+                    class="action-button"
+                    style="text-decoration: none"
+                  >
+                    <i class="fas fa-bug"></i>
+                    Report Issue
+                  </a>
+                  <a
+                    href="https://github.com/cyb3rgh05t/docker-uploader/blob/main/CHANGELOG.md"
+                    target="_blank"
+                    class="action-button"
+                    style="text-decoration: none"
+                  >
+                    <i class="fas fa-list-ul"></i>
+                    Changelog
+                  </a>
+                </div>
+              </div>
+
+              <div
+                style="
+                  text-align: center;
+                  padding-top: 2rem;
+                  border-top: 1px solid var(--border-color);
+                "
+              >
+                <p style="color: var(--text-secondary); margin-bottom: 1rem">
+                  <i class="fa-brands fa-github"></i>
+                  <a
+                    href="https://github.com/dockserver"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style="color: var(--accent-color)"
+                  >
+                    dockserver GitHub
+                  </a>
+                  |
+                  <i class="fa-brands fa-wikipedia-w"></i>
+                  <a
+                    href="https://dockserver.io"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style="color: var(--accent-color)"
+                  >
+                    dockserver wiki
+                  </a>
+                </p>
+                <p style="color: var(--text-tertiary); font-size: 0.875rem">
+                  Copyrights <sup>&copy; &trade;</sup> 2021<span id="copyright-year-range"></span>
+                  <script>
+                    (function () {
+                      var yearSpan = document.getElementById("copyright-year-range");
+                      if (yearSpan) {
+                        yearSpan.textContent = " - " + new Date().getFullYear();
+                      }
+                    })();
+                  </script>
+                  Developed with
+                  <i
+                    class="fas fa-heart"
+                    style="color: var(--accent-color)"
+                  ></i>
+                  by dockserver.io
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
+
+    <!-- Status Message -->
+    <div
+      class="status-message"
+      id="status-message"
+      role="alert"
+      aria-live="polite"
+    ></div>
 
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="js/ui/pagination.js?v=4.2.0"></script>
-    <script src="js/utils.js?v=4.2.0"></script>
-    <script src="js/app.js?v=4.2.0"></script>
+    <script src="js/ui/pagination.js?v=4.2.3"></script>
+    <script src="js/utils.js?v=4.2.3"></script>
+    <script src="js/app.js?v=4.2.3"></script>
 
     <script>
       $(document).ready(function () {
-        // Direct approach to theme switching
-        $(".theme-option").on("click", function () {
-          // Get theme from data attribute
+        // Mobile menu toggle
+        $("#mobile-menu-toggle").on("click", function () {
+          $("#sidebar").toggleClass("active");
+          $("body").toggleClass("sidebar-open");
+        });
+
+        // Sidebar navigation
+        $(".nav-item").on("click", function (e) {
+          e.preventDefault();
+          const section = $(this).data("section");
+
+          // Update active nav item
+          $(".nav-item").removeClass("active");
+          $(this).addClass("active");
+
+          // Show corresponding section
+          $(".content-section").removeClass("active");
+          $(`#${section}-section`).addClass("active");
+
+          // Update page title
+          const title = $(this).find("span").text();
+          $("#page-title").text(title);
+
+          // Close mobile menu
+          $("#sidebar").removeClass("active");
+          $("body").removeClass("sidebar-open");
+        });
+
+        // Dashboard "View All" links
+        $(".card-action-link").on("click", function (e) {
+          e.preventDefault();
+          const section = $(this).data("section");
+          $(`.nav-item[data-section='${section}']`).click();
+        });
+
+        // Theme dropdown toggle
+        $("#theme-toggle-btn").on("click", function (e) {
+          e.stopPropagation();
+          $("#theme-dropdown-menu").toggleClass("active");
+        });
+
+        // Close dropdown when clicking outside
+        $(document).on("click", function (e) {
+          if (!$(e.target).closest(".theme-dropdown").length) {
+            $("#theme-dropdown-menu").removeClass("active");
+          }
+        });
+
+        // Theme switching from dropdown
+        $(".theme-dropdown-item").on("click", function () {
           const theme = $(this).data("theme");
           console.log("Applying theme:", theme);
 
-          // Apply to both html and body elements
           document.documentElement.setAttribute("data-theme", theme);
           document.body.setAttribute("data-theme", theme);
 
-          // Update active state
-          $(".theme-option").removeClass("active");
+          $(".theme-dropdown-item").removeClass("active");
           $(this).addClass("active");
 
-          // Save to localStorage
           try {
             localStorage.setItem("uploader_theme", JSON.stringify(theme));
           } catch (error) {
             console.error("Failed to save theme:", error);
           }
+
+          // Close dropdown
+          $("#theme-dropdown-menu").removeClass("active");
         });
 
         // Load saved theme
@@ -738,16 +1326,17 @@
             const theme = JSON.parse(savedTheme);
             console.log("Loading saved theme:", theme);
 
-            // Apply theme
             document.documentElement.setAttribute("data-theme", theme);
             document.body.setAttribute("data-theme", theme);
 
-            // Update active state
-            $(".theme-option").removeClass("active");
-            $(`.theme-option[data-theme="${theme}"]`).addClass("active");
+            $(`.theme-dropdown-item[data-theme="${theme}"]`).addClass("active");
+          } else {
+            // Set default dark theme as active
+            $(`.theme-dropdown-item[data-theme="dark"]`).addClass("active");
           }
         } catch (error) {
           console.error("Error loading theme:", error);
+          $(`.theme-dropdown-item[data-theme="dark"]`).addClass("active");
         }
       });
     </script>

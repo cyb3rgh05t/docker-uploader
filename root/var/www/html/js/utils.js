@@ -481,11 +481,11 @@ function initializeTheme() {
       savedTheme = JSON.parse(directTheme);
     } else {
       // Fallback to getUserSetting method
-      savedTheme = getUserSetting("theme", "orange");
+      savedTheme = getUserSetting("theme", "dark");
     }
   } catch (error) {
     console.warn("Error loading theme, using default:", error);
-    savedTheme = "orange";
+    savedTheme = "dark";
   }
 
   setTheme(savedTheme);
@@ -512,4 +512,23 @@ function setupThemeEventListeners() {
   //   setTheme(theme);
   //   saveUserSetting("theme", theme);
   // });
+}
+
+/**
+ * Escape HTML special characters to prevent XSS
+ * @param {string} text - Text to escape
+ * @returns {string} Escaped text
+ */
+function escapeHtml(text) {
+  if (!text) return "";
+  const map = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;",
+  };
+  return String(text).replace(/[&<>"']/g, function (m) {
+    return map[m];
+  });
 }

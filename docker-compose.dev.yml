@@ -1,0 +1,65 @@
+---
+# Development docker-compose with hot-reloading and debugging features
+services:
+  uploader:
+    container_name: uploader-dev
+    hostname: uploader-dev
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # Add build args if needed
+      # args:
+      #   - BUILDPLATFORM=linux/amd64
+    restart: unless-stopped
+    cap_add:
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
+    environment:
+      # User/Group IDs
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Berlin
+
+      # Development settings
+      - LOG_LEVEL=DEBUG
+      - BANDWIDTH_LIMIT=50M
+      - TRANSFERS=2
+      - MIN_AGE_UPLOAD=1
+      - NOTIFICATION_LEVEL=ALL
+    ports:
+      # Web interface
+      - "8080:8080"
+    volumes:
+      # System configuration and data
+      - ./data/system:/system:rshared
+
+      # Download folder
+      - ./data/downloads:/mnt/downloads
+
+      # Development: Mount source files for live editing
+      - ./root/var/www/html:/var/www/html
+      - ./root/app:/app
+      - ./root/conf:/conf
+
+      # Development: Custom configurations
+      # - ./dev-configs/uploader.env:/system/uploader/uploader.env
+      # - ./dev-configs/rclone.conf:/app/rclone/rclone.conf
+    networks:
+      - uploader-dev-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    # Enable for extended logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  uploader-dev-network:
+    driver: bridge
