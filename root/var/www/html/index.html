@@ -1211,9 +1211,14 @@
                   </a>
                 </p>
                 <p style="color: var(--text-tertiary); font-size: 0.875rem">
-                  Copyrights <sup>&copy; &trade;</sup> 2021
+                  Copyrights <sup>&copy; &trade;</sup> 2021<span id="copyright-year-range"></span>
                   <script>
-                    document.write(" - " + new Date().getFullYear());
+                    (function () {
+                      var yearSpan = document.getElementById("copyright-year-range");
+                      if (yearSpan) {
+                        yearSpan.textContent = " - " + new Date().getFullYear();
+                      }
+                    })();
                   </script>
                   Developed with
                   <i
