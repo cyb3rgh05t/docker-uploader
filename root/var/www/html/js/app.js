@@ -919,9 +919,8 @@ function setupPauseControl() {
 
 // Update the updateRealTimeStats function
 function updateRealTimeStats() {
-  // Get current upload rate
+  // Get current upload rate (already updated by handleInProgressJobs)
   const currentRate = $("#download_rate").text() || "0.00";
-  $("#current-rate").text(`${currentRate} MB/s`);
 
   // Update rate progress bar
   const bandwidthLimit = parseFloat(
@@ -1394,14 +1393,22 @@ function loadDashboardQueue() {
     // Show only latest 5 items
     const files = data.files.slice(0, 5);
     files.forEach(function (file, index) {
-      const size = formatFileSize(parseFileSize(file.filesize));
-      const time = formatRelativeTime(file.created_at);
+      const size = file.filesize || "N/A";
+      // Remove folder prefix from directory path
+      let directory = file.filedir || "/";
+      if (file.drive && directory.startsWith(file.drive + "/")) {
+        directory = directory.substring(file.drive.length + 1);
+      }
+      // Format the added time properly
+      const time = file.created_at
+        ? formatRelativeTime(file.created_at)
+        : "N/A";
       const $row = $(`
         <tr>
           <td>${index + 1}</td>
           <td class="truncate">${escapeHtml(file.filename)}</td>
           <td>${escapeHtml(file.drive || "N/A")}</td>
-          <td class="truncate">${escapeHtml(file.filedir || "/")}</td>
+          <td class="truncate">${escapeHtml(directory)}</td>
           <td>${size}</td>
           <td>${time}</td>
         </tr>
@@ -1433,7 +1440,7 @@ function loadDashboardActive() {
     // Show only latest 5 items
     const jobs = data.jobs.slice(0, 5);
     jobs.forEach(function (job) {
-      const size = formatFileSize(parseFileSize(job.file_size));
+      const size = job.file_size || "N/A";
       const progress = parseInt(job.upload_percentage) || 0;
       const speed = job.upload_speed || "0 MB/s";
       const timeLeft = job.upload_remainingtime || "N/A";
@@ -1443,6 +1450,7 @@ function loadDashboardActive() {
           <td class="truncate">${escapeHtml(
             job.file_name || job.job_name || "Unknown"
           )}</td>
+          <td>${escapeHtml(job.drive || "N/A")}</td>
           <td class="truncate">${escapeHtml(job.file_directory || "N/A")}</td>
           <td>${escapeHtml(job.gdsa || "N/A")}</td>
           <td>
@@ -1464,7 +1472,7 @@ function loadDashboardActive() {
     });
   }).fail(function () {
     $("#dashboard-active-table tbody").html(
-      '<tr><td colspan="7" class="text-center">Failed to load active uploads</td></tr>'
+      '<tr><td colspan="8" class="text-center">Failed to load active uploads</td></tr>'
     );
   });
 }
