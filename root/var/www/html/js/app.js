@@ -615,20 +615,26 @@ function handleCompletedJobList() {
           : job.time_end_clean;
         const rowClass = job.successful === true ? "" : "table-danger";
 
-        $completedTableBody.append(`
-                  <tr class="${rowClass}">
-                    <td data-title="Filename" class="truncate">${
-                      job.file_name
-                    }</td>
-                    <td data-title="Folder">${job.drive}</td>
-                    <td data-title="Key">${job.gdsa}</td>
-                    <td data-title="Filesize">${job.file_size}</td>
-                    <td data-title="Time spent">${
-                      job.time_elapsed || "n/a"
-                    }</td>
-                    <td data-title="Uploaded">${endTime}</td>
-                  </tr>
-                `);
+        const row = $("<tr>").addClass(rowClass);
+        row.append(
+          $("<td>")
+            .attr("data-title", "Filename")
+            .addClass("truncate")
+            .text(job.file_name)
+        );
+        row.append($("<td>").attr("data-title", "Folder").text(job.drive));
+        row.append($("<td>").attr("data-title", "Key").text(job.gdsa));
+        row.append(
+          $("<td>").attr("data-title", "Filesize").text(job.file_size)
+        );
+        row.append(
+          $("<td>")
+            .attr("data-title", "Time spent")
+            .text(job.time_elapsed || "n/a")
+        );
+        row.append($("<td>").attr("data-title", "Uploaded").text(endTime));
+
+        $completedTableBody.append(row);
       });
 
       // Fetch all completed uploads for today
