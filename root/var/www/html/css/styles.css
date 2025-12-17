@@ -333,20 +333,19 @@ a:hover {
 
 .sidebar-header {
   padding: var(--space-xl) var(--space-lg);
-  border-bottom: 1px solid var(--border-color);
-  background: var(--bg-tertiary);
+  background: var(--bg-secondary);
 }
 
 .logo {
   display: flex;
   align-items: center;
   gap: var(--space-md);
-  margin-bottom: var(--space-sm);
 }
 
-.logo i {
-  font-size: 2rem;
-  color: var(--accent-color);
+.logo-image {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
 }
 
 .logo-text {

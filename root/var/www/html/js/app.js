@@ -138,8 +138,6 @@ function setupEventListeners() {
   // Fix notification form issues
   fixNotificationForm();
 
-  });
-
   // Setup pause control
   setupPauseControl();
 
@@ -738,33 +736,35 @@ function updateRealTimeStats() {
  * Update system overview card with uptime and storage info
  */
 function updateSystemOverview() {
-  // Update uptime
+  // Update uptime and storage with a single API call
   fetch("srv/api/system/status.php")
     .then((response) => response.json())
     .then((data) => {
-      if (data && data.uptime) {
-        $("#system-uptime").text(data.uptime);
-      }
-      if (data && data.status) {
-        $("#system-status").text(
-          data.status === "STARTED" ? "Operational" : "Stopped"
-        );
-      }
-    })
-    .catch((error) => {
-      console.error("Failed to fetch uptime:", error);
-    });
+      console.log("System overview data:", data);
 
-  // Update storage info
-  fetch("srv/api/system/status.php")
-    .then((response) => response.json())
-    .then((data) => {
-      if (data && data.storage) {
-        $("#storage-used").text(data.storage);
+      if (data) {
+        // Update uptime
+        if (data.uptime) {
+          $("#system-uptime").text(data.uptime);
+        }
+
+        // Update storage
+        if (data.storage) {
+          $("#storage-used").text(data.storage);
+        }
+
+        // Update system status
+        if (data.status) {
+          $("#system-status").text(
+            data.status === "STARTED" ? "Operational" : "Stopped"
+          );
+        }
       }
     })
     .catch((error) => {
-      console.error("Failed to fetch storage info:", error);
+      console.error("Failed to fetch system overview:", error);
+      $("#system-uptime").text("Error");
+      $("#storage-used").text("Error");
     });
 }
 
