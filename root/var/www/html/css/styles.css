@@ -1308,9 +1308,6 @@ a:hover {
   font-weight: 700;
   color: var(--text-primary);
   line-height: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 /* Colored Values Matching Icon Gradients */
