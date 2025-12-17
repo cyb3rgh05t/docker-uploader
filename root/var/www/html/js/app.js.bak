@@ -339,57 +339,33 @@ function setupSettingsModal() {
  * Special handling for form submissions
  */
 function setupFormSubmissions() {
-  let autoSaveTimeout = null;
-  
-  function collectFormData($form) {
+  // Unified settings form submission
+  $("#unified-settings-form").on("submit", function (e) {
+    e.preventDefault();
+
     const formData = {};
+    const $form = $(this);
+
+    // Get all form inputs including checkboxes
     $form.find("input, select, textarea").each(function () {
       const $input = $(this);
       const name = $input.attr("name");
+
       if (name) {
         if ($input.is(":checkbox")) {
-          formData[name.toUpperCase()] = $input.is(":checked") ? "true" : "false";
+          // For toggle switches, convert to "true"/"false" strings
+          formData[name.toUpperCase()] = $input.is(":checked")
+            ? "true"
+            : "false";
         } else {
           formData[name.toUpperCase()] = $input.val();
         }
       }
     });
-    return formData;
-  }
-  
-  function showAutoSaveIndicator() {
-    const $indicator = $(".auto-save-indicator");
-    $indicator.fadeIn(300);
-    setTimeout(() => { $indicator.fadeOut(300); }, 2000);
-  }
-  
-  $("#unified-settings-form").on("change", "input, select, textarea", function () {
-    const $form = $("#unified-settings-form");
-    if (autoSaveTimeout) clearTimeout(autoSaveTimeout);
-    autoSaveTimeout = setTimeout(() => {
-      const formData = collectFormData($form);
-      console.log("Auto-saving settings:", formData);
-      $.ajax({
-        url: "srv/api/system/update_env.php",
-        method: "POST",
-        data: JSON.stringify(formData),
-        contentType: "application/json",
-        success: function (response) {
-          console.log("Auto-save successful:", response);
-          showAutoSaveIndicator();
-        },
-        error: function (xhr, status, error) {
-          console.error("Auto-save failed:", error);
-        }
-      });
-    }, 1000);
-  });
-  
-  $("#unified-settings-form").on("submit", function (e) {
-    e.preventDefault();
-    const $form = $(this);
-    const formData = collectFormData($form);
+
     console.log("Submitting unified settings:", formData);
+
+    // Update environment file with all settings at once
     updateEnvSettings("unified-settings-form", formData);
   });
 }
