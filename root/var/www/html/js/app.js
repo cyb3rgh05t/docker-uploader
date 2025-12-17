@@ -138,20 +138,6 @@ function setupEventListeners() {
   // Fix notification form issues
   fixNotificationForm();
 
-  // Play/Pause button
-  $("#control > button").on("click", function () {
-    const action = $(this).find("i").hasClass("fa-play") ? "pause" : "continue";
-
-    $.ajax({
-      type: "POST",
-      url: "srv/api/system/status.php",
-      data: {
-        action: action,
-      },
-      success: function (data) {
-        alignPauseControl(data.status);
-      },
-    });
   });
 
   // Setup pause control
@@ -643,10 +629,12 @@ function alignPauseControl(status, fromUserAction = false) {
 
   const $control = $("#control > button");
   const $icon = $control.find("i");
+  const $text = $control.find("span");
 
   if (status === "STARTED") {
     // If uploader is RUNNING, show PAUSE icon (so user can pause it)
     $icon.removeClass("fa-play").addClass("fa-pause");
+    $text.text("Pause");
     $control.removeClass("bg-danger").addClass("bg-success");
     $control.attr("aria-label", "Pause uploads");
 
@@ -656,6 +644,7 @@ function alignPauseControl(status, fromUserAction = false) {
   } else if (status === "STOPPED") {
     // If uploader is STOPPED, show PLAY icon (so user can resume it)
     $icon.removeClass("fa-pause").addClass("fa-play");
+    $text.text("Resume");
     $control.removeClass("bg-success").addClass("bg-danger");
     $control.attr("aria-label", "Resume uploads");
 
@@ -740,6 +729,43 @@ function updateRealTimeStats() {
     $("#bandwidth_limit").val() ||
     "30";
   $("#rate-limit").text(`Limit per Transfer: ${bandwidthLimit}`);
+
+  // Update system overview
+  updateSystemOverview();
+}
+
+/**
+ * Update system overview card with uptime and storage info
+ */
+function updateSystemOverview() {
+  // Update uptime
+  fetch("srv/api/system/status.php")
+    .then((response) => response.json())
+    .then((data) => {
+      if (data && data.uptime) {
+        $("#system-uptime").text(data.uptime);
+      }
+      if (data && data.status) {
+        $("#system-status").text(
+          data.status === "STARTED" ? "Operational" : "Stopped"
+        );
+      }
+    })
+    .catch((error) => {
+      console.error("Failed to fetch uptime:", error);
+    });
+
+  // Update storage info
+  fetch("srv/api/system/status.php")
+    .then((response) => response.json())
+    .then((data) => {
+      if (data && data.storage) {
+        $("#storage-used").text(data.storage);
+      }
+    })
+    .catch((error) => {
+      console.error("Failed to fetch storage info:", error);
+    });
 }
 
 /**

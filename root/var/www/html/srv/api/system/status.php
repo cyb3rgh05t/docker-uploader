@@ -7,6 +7,41 @@ function checkStatus()
 {
     $response = new StatusResponse();
     $response->status = file_exists(PAUSE_FILE) ? StatusResponse::STATUS_STOPPED : StatusResponse::STATUS_STARTED;
+
+    // Get system uptime
+    if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+        // Windows
+        $uptime = shell_exec('net statistics workstation | find "Statistics since"');
+        if ($uptime) {
+            $response->uptime = "Available";
+        } else {
+            $response->uptime = "N/A";
+        }
+    } else {
+        // Linux/Unix
+        $uptime = shell_exec('uptime -p');
+        if ($uptime) {
+            $response->uptime = trim(str_replace('up ', '', $uptime));
+        } else {
+            $response->uptime = "N/A";
+        }
+    }
+
+    // Get storage information
+    $uploadPath = '/config/downloads';
+    if (is_dir($uploadPath)) {
+        $total = disk_total_space($uploadPath);
+        $free = disk_free_space($uploadPath);
+        $used = $total - $free;
+
+        $usedTB = round($used / (1024 ** 4), 2);
+        $totalTB = round($total / (1024 ** 4), 2);
+
+        $response->storage = "$usedTB TB / $totalTB TB";
+    } else {
+        $response->storage = "N/A";
+    }
+
     return json_encode($response);
 }
 
