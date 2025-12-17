@@ -1300,7 +1300,7 @@ a:hover {
 }
 
 .overview-mini-value {
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--text-primary);
   line-height: 1;
@@ -1436,14 +1436,12 @@ a:hover {
   display: inline-flex;
   align-items: center;
   gap: var(--space-sm);
-  background: linear-gradient(135deg, var(--accent-color), var(--accent-light));
   color: white;
   padding: var(--space-sm) var(--space-lg);
   border-radius: 999px;
   font-size: 0.875rem;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  animation: pulse 2s ease-in-out infinite;
+  border: 1px solid var(--accent-dark);
 }
 
 #active-count-badge {
@@ -1455,7 +1453,7 @@ a:hover {
   min-width: 20px;
   text-align: center;
   font-weight: 700;
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  border: 1px solid var(--accent-dark);
 }
 
 .action-button {
@@ -1466,7 +1464,7 @@ a:hover {
   background: var(--bg-tertiary);
   color: var(--text-secondary);
   border-radius: var(--radius-md);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--accent-dark);
   cursor: pointer;
   transition: all var(--transition);
   font-size: 0.875rem;
@@ -1719,9 +1717,9 @@ a:hover {
 
 .btn {
   padding: var(--space-md) var(--space-xl);
-  background: var(--accent-color);
+  background: var(--accent-transparent);
   color: white;
-  border: none;
+  border: 1px solid var(--accent-dark);
   border-radius: var(--radius-md);
   font-weight: 500;
   cursor: pointer;
@@ -1734,9 +1732,11 @@ a:hover {
 }
 
 .btn:hover {
-  background: var(--accent-dark);
+  background: var(--accent-color);
+  color: white;
+  border-color: var(--accent-color);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.3);
+  box-shadow: var(--shadow-md);
 }
 
 .btn:active {

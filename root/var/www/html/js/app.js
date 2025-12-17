@@ -520,7 +520,7 @@ function handleInProgressJobs() {
       const uploadSpeedEl = rowNode.querySelector(".upload-speed");
 
       timeRemainingEl.textContent = data.upload_remainingtime;
-      uploadSpeedEl.innerHTML = `<i class="fas fa-tachometer-alt"></i> ${data.upload_speed}`;
+      uploadSpeedEl.textContent = data.upload_speed;
 
       // Add a color class based on upload speed
       if (uploadRateNumeric < 5) {
@@ -762,18 +762,19 @@ function handleQueueList() {
           .text(file.drive || "N/A")
       );
 
-      // Directory (hidden on mobile)
+      // Directory (hidden on mobile) - remove folder prefix
+      let directory = file.filedir || "/";
+      if (file.drive && directory.startsWith(file.drive + "/")) {
+        directory = directory.substring(file.drive.length + 1);
+      }
       row.append(
-        $("<td>")
-          .addClass("d-none d-lg-table-cell truncate")
-          .text(file.filedir || "/")
+        $("<td>").addClass("d-none d-lg-table-cell truncate").text(directory)
       );
 
-      // Filesize (hidden on mobile)
+      // Filesize (hidden on mobile) - format the size
+      const formattedSize = formatFileSize(parseFileSize(file.filesize));
       row.append(
-        $("<td>")
-          .addClass("d-none d-lg-table-cell")
-          .text(file.filesize || "N/A")
+        $("<td>").addClass("d-none d-lg-table-cell").text(formattedSize)
       );
 
       // Added time
@@ -1417,7 +1418,7 @@ function loadDashboardQueue() {
     // Show only latest 5 items
     const files = data.files.slice(0, 5);
     files.forEach(function (file, index) {
-      const size = file.filesize || "N/A";
+      const size = formatFileSize(parseFileSize(file.filesize));
       // Remove folder prefix from directory path
       let directory = file.filedir || "/";
       if (file.drive && directory.startsWith(file.drive + "/")) {
