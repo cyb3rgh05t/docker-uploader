@@ -139,7 +139,7 @@ function setupEventListeners() {
   fixNotificationForm();
 
   // Play/Pause button
-  $("#control > span").on("click", function () {
+  $("#control > button").on("click", function () {
     const action = $(this).find("i").hasClass("fa-play") ? "pause" : "continue";
 
     $.ajax({
@@ -641,7 +641,7 @@ function checkStatus() {
 function alignPauseControl(status, fromUserAction = false) {
   console.log("Aligning pause control to status:", status);
 
-  const $control = $("#control > span");
+  const $control = $("#control > button");
   const $icon = $control.find("i");
 
   if (status === "STARTED") {
@@ -669,7 +669,7 @@ function alignPauseControl(status, fromUserAction = false) {
  * Update the pause/play control based on service status
  */
 function setupPauseControl() {
-  $("#control > span").on("click", function () {
+  $("#control > button").on("click", function () {
     console.log("Pause/play button clicked");
 
     // Determine action based on current state
