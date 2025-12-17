@@ -83,7 +83,6 @@ function checkStatus()
                     $totalTB = round($total / (1024 ** 4), 2);
                     $storage = "$usedTB TB / $totalTB TB";
                 }
-                error_log("Storage calculated from path: $uploadPath");
                 break;
             }
         }
