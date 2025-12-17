@@ -12,7 +12,7 @@
       referrerpolicy="no-referrer"
     />
     <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="stylesheet" href="css/styles.css?v=5.1.0" />
+    <link rel="stylesheet" href="css/styles.css?v=5.7.0" />
   </head>
   <body>
     <!-- Mobile Menu Toggle -->
@@ -41,6 +41,10 @@
         <a href="#uploads" class="nav-item" data-section="uploads">
           <i class="fas fa-upload"></i>
           <span>Active Uploads</span>
+        </a>
+        <a href="#queue" class="nav-item" data-section="queue">
+          <i class="fas fa-list"></i>
+          <span>Queue</span>
         </a>
         <a href="#history" class="nav-item" data-section="history">
           <i class="fas fa-history"></i>
@@ -90,98 +94,143 @@
 
       <!-- Dashboard Section -->
       <section class="content-section active" id="dashboard-section">
-        <!-- Quick Overview Card -->
-        <div class="card overview-card">
-          <div class="card-header">
-            <div class="card-title">
-              <i class="fas fa-chart-line"></i>
-              System Overview
+        <!-- System Overview Cards -->
+        <div class="overview-cards-grid">
+          <div class="overview-mini-card" id="system-status-card">
+            <div class="overview-mini-content">
+              <div class="overview-mini-label">System Status</div>
+              <div class="overview-mini-value" id="system-status-mini">
+                Operational
+              </div>
+            </div>
+            <div class="overview-mini-icon" id="system-status-icon">
+              <i class="fas fa-check-circle"></i>
             </div>
           </div>
-          <div class="card-body">
-            <div class="overview-grid">
-              <div class="overview-item">
-                <i class="fas fa-server"></i>
-                <div class="overview-content">
-                  <div class="overview-label">System Status</div>
-                  <div class="overview-value" id="system-status">
-                    Operational
-                  </div>
-                </div>
+
+          <div class="overview-mini-card">
+            <div class="overview-mini-content">
+              <div class="overview-mini-label">Uptime</div>
+              <div class="overview-mini-value value-blue" id="system-uptime">
+                Loading...
               </div>
-              <div class="overview-item">
-                <i class="fas fa-clock"></i>
-                <div class="overview-content">
-                  <div class="overview-label">Uptime</div>
-                  <div class="overview-value" id="system-uptime">
-                    Loading...
-                  </div>
-                </div>
+            </div>
+            <div class="overview-mini-icon gradient-blue">
+              <i class="fas fa-clock"></i>
+            </div>
+          </div>
+
+          <div class="overview-mini-card">
+            <div class="overview-mini-content">
+              <div class="overview-mini-label">Storage Used</div>
+              <div class="overview-mini-value value-orange" id="storage-used">
+                Loading...
               </div>
-              <div class="overview-item">
-                <i class="fas fa-database"></i>
-                <div class="overview-content">
-                  <div class="overview-label">Storage Used</div>
-                  <div class="overview-value" id="storage-used">Loading...</div>
-                </div>
+            </div>
+            <div class="overview-mini-icon gradient-orange">
+              <i class="fas fa-hdd"></i>
+            </div>
+          </div>
+
+          <div class="overview-mini-card">
+            <div class="overview-mini-content">
+              <div class="overview-mini-label">Transfer Rate</div>
+              <div class="overview-mini-value value-purple" id="overview-rate">
+                0.00 MB/s
               </div>
+            </div>
+            <div class="overview-mini-icon gradient-purple">
+              <i class="fas fa-tachometer-alt"></i>
+            </div>
+          </div>
+
+          <div class="overview-mini-card">
+            <div class="overview-mini-content">
+              <div class="overview-mini-label">Active Transfers</div>
+              <div
+                class="overview-mini-value value-indigo"
+                id="overview-active"
+              >
+                0
+              </div>
+            </div>
+            <div class="overview-mini-icon gradient-indigo">
+              <i class="fas fa-exchange-alt"></i>
+            </div>
+          </div>
+
+          <div class="overview-mini-card">
+            <div class="overview-mini-content">
+              <div class="overview-mini-label">Queue Size</div>
+              <div class="overview-mini-value value-red" id="overview-queue">
+                0
+              </div>
+            </div>
+            <div class="overview-mini-icon gradient-red">
+              <i class="fas fa-list"></i>
             </div>
           </div>
         </div>
 
         <!-- Stats Grid -->
         <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-header">
-              <div class="stat-icon">
-                <i class="fas fa-tachometer-alt"></i>
+          <div class="overview-mini-card">
+            <div class="overview-mini-content">
+              <div class="overview-mini-label">Upload Rate</div>
+              <div class="overview-mini-value value-orange" id="current-rate">
+                0.00 MB/s
               </div>
-              <div class="stat-label">Upload Rate</div>
+              <div class="overview-mini-subtitle" id="rate-limit">
+                <i class="fas fa-gauge-high"></i> Limit: 30 MB/s per transfer
+              </div>
             </div>
-            <div class="stat-body">
-              <div class="stat-value" id="current-rate">0.00 MB/s</div>
-              <div class="stat-subtitle" id="rate-limit">
-                Limit: 30 MB/s per transfer
-              </div>
+            <div class="overview-mini-icon gradient-orange">
+              <i class="fas fa-tachometer-alt"></i>
             </div>
           </div>
 
-          <div class="stat-card">
-            <div class="stat-header">
-              <div class="stat-icon">
-                <i class="fas fa-list"></i>
+          <div class="overview-mini-card">
+            <div class="overview-mini-content">
+              <div class="overview-mini-label">Files in Queue</div>
+              <div class="overview-mini-value value-blue" id="queue-count">
+                0
               </div>
-              <div class="stat-label">Files in Queue</div>
+              <div class="overview-mini-subtitle" id="queue-total">
+                <i class="fas fa-weight-hanging"></i> Total: 0 GB
+              </div>
             </div>
-            <div class="stat-body">
-              <div class="stat-value" id="queue-count">0</div>
-              <div class="stat-subtitle" id="queue-total">Total: 0 GB</div>
+            <div class="overview-mini-icon gradient-blue">
+              <i class="fas fa-list"></i>
             </div>
           </div>
 
-          <div class="stat-card">
-            <div class="stat-header">
-              <div class="stat-icon">
-                <i class="fas fa-exchange-alt"></i>
+          <div class="overview-mini-card">
+            <div class="overview-mini-content">
+              <div class="overview-mini-label">Active Transfers</div>
+              <div class="overview-mini-value value-purple" id="active-count">
+                0
               </div>
-              <div class="stat-label">Active Transfers</div>
+              <div class="overview-mini-subtitle" id="active-max">
+                <i class="fas fa-layer-group"></i> Max: 2
+              </div>
             </div>
-            <div class="stat-body">
-              <div class="stat-value" id="active-count">0</div>
-              <div class="stat-subtitle" id="active-max">Max: 2</div>
+            <div class="overview-mini-icon gradient-purple">
+              <i class="fas fa-exchange-alt"></i>
             </div>
           </div>
 
-          <div class="stat-card">
-            <div class="stat-header">
-              <div class="stat-icon">
-                <i class="fas fa-check-circle"></i>
+          <div class="overview-mini-card">
+            <div class="overview-mini-content">
+              <div class="overview-mini-label">Completed Today</div>
+              <div class="overview-mini-value value-green" id="completed-count">
+                0
               </div>
-              <div class="stat-label">Completed Today</div>
+              <div class="overview-mini-subtitle" id="completed-total">
+                <i class="fas fa-chart-line"></i> Total: 0 GB
+              </div>
             </div>
-            <div class="stat-body">
-              <div class="stat-value" id="completed-count">0</div>
-              <div class="stat-subtitle" id="completed-total">Total: 0 GB</div>
+            <div class="overview-mini-icon gradient-green">
+              <i class="fas fa-check-circle"></i>
             </div>
           </div>
         </div>
@@ -289,7 +338,64 @@
         </template>
       </section>
 
-      <!-- History Section -->
+      <!-- Queue Section -->
+      <section class="content-section" id="queue-section">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <i class="fas fa-list"></i>
+              Upload Queue
+            </div>
+            <div class="card-actions">
+              <span class="active-uploads-badge">
+                <i class="fas fa-inbox"></i>
+                <span id="queue-count-badge">0</span> in queue
+              </span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table id="queueTable" class="table">
+                <thead>
+                  <tr>
+                    <th scope="col" data-title="#">#</th>
+                    <th scope="col" data-title="Filename">Filename</th>
+                    <th
+                      scope="col"
+                      data-title="Folder"
+                      class="d-none d-lg-table-cell"
+                    >
+                      Folder
+                    </th>
+                    <th
+                      scope="col"
+                      data-title="Directory"
+                      class="d-none d-lg-table-cell"
+                    >
+                      Directory
+                    </th>
+                    <th
+                      scope="col"
+                      data-title="Filesize"
+                      class="d-none d-lg-table-cell"
+                    >
+                      Filesize
+                    </th>
+                    <th scope="col" data-title="Added">Added</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colspan="6" class="no-uploads-message text-center">
+                      No files in queue
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
       <section class="content-section" id="history-section">
         <div class="card">
           <div class="card-header">
@@ -333,7 +439,7 @@
                 </thead>
                 <tbody>
                   <tr>
-                    <td colspan="6" class="text-center">
+                    <td colspan="6" class="no-uploads-message text-center">
                       No completed uploads
                     </td>
                   </tr>

@@ -18,6 +18,7 @@ const uploaderApp = {
     inProgress: null,
     completed: null,
     stats: null,
+    queue: null,
   },
 };
 
@@ -54,6 +55,7 @@ function initializeApp() {
   // Initial data fetching
   handleInProgressJobs();
   handleCompletedJobList();
+  handleQueueList();
   checkStatus();
   updateRealTimeStats();
 }
@@ -406,6 +408,7 @@ function startPeriodicUpdates() {
 
   // Set new intervals
   uploaderApp.intervals.inProgress = setInterval(handleInProgressJobs, 1000);
+  uploaderApp.intervals.queue = setInterval(handleQueueList, 5000);
   uploaderApp.intervals.stats = setInterval(updateRealTimeStats, 2000);
   uploaderApp.intervals.status = setInterval(checkStatus, 30000);
 }
@@ -431,7 +434,7 @@ function handleInProgressJobs() {
 
     if (!json.jobs || json.jobs.length === 0) {
       $tableBody.append(
-        '<tr><td colspan="6" class="no-uploads-message">No uploads in progress</td></tr>'
+        '<tr><td colspan="6" class="no-uploads-message text-center">No uploads in progress</td></tr>'
       );
       $("#download_rate").text("0.00");
       $("#current-rate").text("0.00 MB/s");
@@ -595,7 +598,7 @@ function handleCompletedJobList() {
 
       if (!data || data.length === 0) {
         $completedTableBody.append(
-          '<tr><td colspan="6" class="text-center">No completed uploads</td></tr>'
+          '<tr><td colspan="6" class="no-uploads-message text-center">No completed uploads</td></tr>'
         );
         $("#clnHist").hide();
         return;
@@ -691,6 +694,74 @@ function calculateCompletedTodayStats() {
   uploaderApp.completedTodaySize = totalSize;
 }
 
+/**
+ * Handle queue list display
+ */
+function handleQueueList() {
+  $.getJSON("srv/api/jobs/queue.php", function (json) {
+    const $tableBody = $("#queueTable > tbody");
+    $tableBody.empty();
+
+    if (!json.success || !json.files || json.files.length === 0) {
+      $tableBody.append(
+        '<tr><td colspan="6" class="no-uploads-message text-center">No files in queue</td></tr>'
+      );
+      $("#queue-count-badge").text("0");
+      return;
+    }
+
+    // Update badge count
+    $("#queue-count-badge").text(json.files.length);
+
+    // Process and display each queued file
+    $.each(json.files, function (index, file) {
+      const row = $("<tr>");
+
+      // Position number
+      row.append($("<td>").text(index + 1));
+
+      // Filename
+      row.append($("<td>").addClass("truncate").text(file.filename));
+
+      // Folder (hidden on mobile)
+      row.append(
+        $("<td>")
+          .addClass("d-none d-lg-table-cell")
+          .text(file.drive || "N/A")
+      );
+
+      // Directory (hidden on mobile)
+      row.append(
+        $("<td>")
+          .addClass("d-none d-lg-table-cell truncate")
+          .text(file.filedir || "/")
+      );
+
+      // Filesize (hidden on mobile)
+      row.append(
+        $("<td>")
+          .addClass("d-none d-lg-table-cell")
+          .text(file.filesize || "N/A")
+      );
+
+      // Added time
+      const addedTime = file.created_at
+        ? formatRelativeTime(file.created_at)
+        : "Unknown";
+      row.append($("<td>").text(addedTime));
+
+      $tableBody.append(row);
+    });
+  }).fail(function (jqXHR, textStatus, errorThrown) {
+    console.error("Failed to fetch queue list:", textStatus, errorThrown);
+    const $tableBody = $("#queueTable > tbody");
+    $tableBody.empty();
+    $tableBody.append(
+      '<tr><td colspan="6" class="no-uploads-message text-center">Error loading queue</td></tr>'
+    );
+  });
+}
+
 // Enhanced status check function
 function checkStatus() {
   console.log("Checking uploader status");
@@ -701,14 +772,25 @@ function checkStatus() {
 
       if (json === undefined || json.status === "UNKNOWN") {
         console.warn("Unable to check status");
+        updateStatusIndicator("error", "Unknown");
         return;
       }
 
-      // Pass false as second parameter since this is an automatic check, not user action
+      // Update pause control button
       alignPauseControl(json.status, false);
+
+      // Update status indicator
+      if (json.status === "STARTED") {
+        updateStatusIndicator("active", "Active");
+      } else if (json.status === "STOPPED") {
+        updateStatusIndicator("paused", "Paused");
+      } else {
+        updateStatusIndicator("stopped", "Stopped");
+      }
     })
     .fail(function (jqXHR, textStatus, errorThrown) {
       console.error("Failed to check status:", textStatus, errorThrown);
+      updateStatusIndicator("error", "Error");
     });
 }
 
@@ -729,6 +811,7 @@ function alignPauseControl(status, fromUserAction = false) {
 
     if (fromUserAction) {
       showStatusMessage("Uploader is running");
+      updateStatusIndicator("active", "Active");
     }
   } else if (status === "STOPPED") {
     // If uploader is STOPPED, show PLAY icon (so user can resume it)
@@ -739,14 +822,39 @@ function alignPauseControl(status, fromUserAction = false) {
 
     if (fromUserAction) {
       showStatusMessage("Uploader is paused");
+      updateStatusIndicator("paused", "Paused");
     }
   }
+}
+
+/**
+ * Update the status indicator badge
+ * @param {string} state - One of: 'active', 'paused', 'stopped', 'error'
+ * @param {string} text - Text to display
+ */
+function updateStatusIndicator(state, text) {
+  const $indicator = $("#status-indicator");
+  const $statusText = $indicator.find(".status-text");
+
+  // Remove all status classes
+  $indicator.removeClass(
+    "status-active status-paused status-stopped status-error"
+  );
+
+  // Add the new status class
+  $indicator.addClass(`status-${state}`);
+
+  // Update text
+  $statusText.text(text);
+
+  console.log(`Status indicator updated: ${state} - ${text}`);
 }
 
 /**
  * Update the pause/play control based on service status
  */
 function setupPauseControl() {
+  // Pause/Resume button click handler
   $("#control > button").on("click", function () {
     console.log("Pause/play button clicked");
 
@@ -791,6 +899,12 @@ function setupPauseControl() {
       },
     });
   });
+
+  // Status indicator click handler - triggers pause/resume
+  $("#status-indicator").on("click", function () {
+    console.log("Status indicator clicked - triggering pause/resume");
+    $("#control > button").click();
+  });
 }
 
 // Update the updateRealTimeStats function
@@ -799,10 +913,27 @@ function updateRealTimeStats() {
   const currentRate = $("#download_rate").text() || "0.00";
   $("#current-rate").text(`${currentRate} MB/s`);
 
+  // Update rate progress bar
+  const bandwidthLimit = parseFloat(
+    uploaderApp.envSettings.BANDWIDTH_LIMIT ||
+      $("#bandwidth_limit").val() ||
+      "30"
+  );
+  const rateValue = parseFloat(currentRate);
+  const ratePercentage = Math.min((rateValue / bandwidthLimit) * 100, 100);
+  $("#rate-progress .progress-bar-mini").css("width", ratePercentage + "%");
+
   // Get active uploads count
   const activeUploads =
     $("#uploadsTable tbody tr").not(':contains("No uploads")').length || 0;
   $("#active-count").text(activeUploads);
+
+  // Update active count badge
+  $("#active-count-badge").text(activeUploads);
+
+  // Update overview cards
+  $("#overview-active").text(activeUploads);
+  $("#overview-rate").text(`${currentRate} MB/s`);
 
   // Update queue stats separately - don't use active uploads count
   updateQueueStats();
@@ -813,11 +944,9 @@ function updateRealTimeStats() {
   $("#active-max").text(`Max: ${maxTransfers}`);
 
   // Set the bandwidth limit
-  const bandwidthLimit =
-    uploaderApp.envSettings.BANDWIDTH_LIMIT ||
-    $("#bandwidth_limit").val() ||
-    "30";
-  $("#rate-limit").text(`Limit per Transfer: ${bandwidthLimit}`);
+  $("#rate-limit").html(
+    `<i class="fas fa-gauge-high"></i> Limit: ${bandwidthLimit} MB/s per transfer`
+  );
 
   // Update system overview
   updateSystemOverview();
@@ -844,16 +973,59 @@ function updateSystemOverview() {
           $("#storage-used").text(data.storage);
         }
 
-        // Update system status
+        // Update system status with dynamic styling
         if (data.status) {
-          $("#system-status").text(
-            data.status === "STARTED" ? "Operational" : "Stopped"
+          const $statusValue = $("#system-status-mini");
+          const $statusIcon = $("#system-status-icon");
+          const $statusIconI = $statusIcon.find("i");
+
+          // Remove all color classes
+          $statusValue.removeClass("value-green value-red value-orange");
+          $statusIcon.removeClass(
+            "gradient-green gradient-red gradient-orange"
           );
+
+          if (data.status === "STARTED") {
+            $statusValue.text("Online").addClass("value-green");
+            $statusIcon.addClass("gradient-green");
+            $statusIconI
+              .removeClass("fa-times-circle fa-pause-circle")
+              .addClass("fa-check-circle");
+          } else if (data.status === "STOPPED") {
+            $statusValue.text("Stopped").addClass("value-orange");
+            $statusIcon.addClass("gradient-orange");
+            $statusIconI
+              .removeClass("fa-check-circle fa-times-circle")
+              .addClass("fa-pause-circle");
+          } else {
+            $statusValue.text("Offline").addClass("value-red");
+            $statusIcon.addClass("gradient-red");
+            $statusIconI
+              .removeClass("fa-check-circle fa-pause-circle")
+              .addClass("fa-times-circle");
+          }
         }
       }
     })
     .catch((error) => {
       console.error("Failed to fetch system overview:", error);
+
+      // On error, show red error state
+      const $statusValue = $("#system-status-mini");
+      const $statusIcon = $("#system-status-icon");
+      const $statusIconI = $statusIcon.find("i");
+
+      $statusValue
+        .removeClass("value-green value-orange")
+        .addClass("value-red")
+        .text("Error");
+      $statusIcon
+        .removeClass("gradient-green gradient-orange")
+        .addClass("gradient-red");
+      $statusIconI
+        .removeClass("fa-check-circle fa-pause-circle")
+        .addClass("fa-times-circle");
+
       $("#system-uptime").text("Error");
       $("#storage-used").text("Error");
     });
@@ -1151,7 +1323,9 @@ function updateQueueStats() {
   $.getJSON("srv/api/jobs/queue_stats.php", function (data) {
     if (data && typeof data === "object") {
       // Update the queue count
-      $("#queue-count").text(data.count || 0);
+      const queueCount = data.count || 0;
+      $("#queue-count").text(queueCount);
+      $("#overview-queue").text(queueCount);
 
       // Format the total size nicely
       const totalSize = formatFileSize(data.total_size || 0);
@@ -1170,6 +1344,7 @@ function estimateQueueStats() {
   $.getJSON("srv/api/jobs/inprogress.php", function (data) {
     const queueCount = data.jobs ? data.jobs.length : 0;
     $("#queue-count").text(queueCount);
+    $("#overview-queue").text(queueCount);
 
     let totalSize = 0;
     if (data.jobs && data.jobs.length > 0) {
