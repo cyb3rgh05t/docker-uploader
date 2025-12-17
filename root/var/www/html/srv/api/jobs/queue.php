@@ -43,13 +43,16 @@ function getQueueFiles()
         }
 
         while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+            // Convert SQLite datetime to Unix timestamp
+            $timestamp = !empty($row['time']) ? strtotime($row['time']) : time();
+
             $response['files'][] = array(
                 'filename' => $row['filebase'],
                 'filesize' => $row['filesize'],
                 'drive' => $row['drive'],
                 'filedir' => $row['filedir'],
                 'metadata' => $row['metadata'],
-                'created_at' => $row['time']
+                'created_at' => $timestamp
             );
         }
 

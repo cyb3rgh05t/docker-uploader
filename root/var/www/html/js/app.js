@@ -438,7 +438,7 @@ function handleInProgressJobs() {
 
     if (!json.jobs || json.jobs.length === 0) {
       $tableBody.append(
-        '<tr><td colspan="7" class="no-uploads-message text-center">No uploads in progress</td></tr>'
+        '<tr><td colspan="8" class="no-uploads-message text-center">No uploads in progress</td></tr>'
       );
       $("#download_rate").text("0.00");
       $("#current-rate").text("0.00 MB/s");
@@ -490,6 +490,12 @@ function handleInProgressJobs() {
       // Fill in the data
       rowNode.querySelector(".file-name").textContent = data.file_name;
       rowNode.querySelector(".folder-name").textContent = data.drive;
+      // Remove folder prefix from directory path
+      let directory = data.file_directory || "N/A";
+      if (data.drive && directory.startsWith(data.drive + "/")) {
+        directory = directory.substring(data.drive.length + 1);
+      }
+      rowNode.querySelector(".directory-name").textContent = directory;
       rowNode.querySelector(".key-name").textContent = data.gdsa;
       rowNode.querySelector(".progress-percentage").textContent =
         data.upload_percentage;
@@ -531,23 +537,28 @@ function handleInProgressJobs() {
 
     // Update the upload rate display
     totalUploadRate = totalUploadRate.toFixed(2);
-    $("#download_rate").text(totalUploadRate);
     $("#current-rate").text(`${totalUploadRate} MB/s`);
+    $("#overview-rate").text(`${totalUploadRate} MB/s`);
     $("#active-count-badge").text(json.jobs.length);
 
-    // Color-code the upload rate based on speed
-    if (totalUploadRate < 5) {
-      $("#download_rate")
-        .removeClass("bg-success bg-warning")
-        .addClass("bg-danger");
-    } else if (totalUploadRate < 10) {
-      $("#download_rate")
-        .removeClass("bg-success bg-danger")
-        .addClass("bg-warning");
-    } else {
-      $("#download_rate")
-        .removeClass("bg-warning bg-danger")
-        .addClass("bg-success");
+    // Store the rate for other functions to access
+    uploaderApp.currentUploadRate = totalUploadRate;
+
+    // Color-code the upload rate based on speed (if element exists)
+    if ($("#download_rate").length > 0) {
+      if (totalUploadRate < 5) {
+        $("#download_rate")
+          .removeClass("bg-success bg-warning")
+          .addClass("bg-danger");
+      } else if (totalUploadRate < 10) {
+        $("#download_rate")
+          .removeClass("bg-success bg-danger")
+          .addClass("bg-warning");
+      } else {
+        $("#download_rate")
+          .removeClass("bg-warning bg-danger")
+          .addClass("bg-success");
+      }
     }
   });
 }
@@ -602,7 +613,7 @@ function handleCompletedJobList() {
 
       if (!data || data.length === 0) {
         $completedTableBody.append(
-          '<tr><td colspan="6" class="no-uploads-message text-center">No completed uploads</td></tr>'
+          '<tr><td colspan="7" class="no-uploads-message text-center">No completed uploads</td></tr>'
         );
         $("#clnHist").hide();
         return;
@@ -618,6 +629,11 @@ function handleCompletedJobList() {
           ? job.time_end
           : job.time_end_clean;
         const rowClass = job.successful === true ? "" : "table-danger";
+        // Remove folder prefix from directory path
+        let directory = job.file_directory || "N/A";
+        if (job.drive && directory.startsWith(job.drive + "/")) {
+          directory = directory.substring(job.drive.length + 1);
+        }
 
         const row = $("<tr>").addClass(rowClass);
         row.append(
@@ -627,6 +643,12 @@ function handleCompletedJobList() {
             .text(job.file_name)
         );
         row.append($("<td>").attr("data-title", "Folder").text(job.drive));
+        row.append(
+          $("<td>")
+            .attr("data-title", "Directory")
+            .addClass("truncate")
+            .text(directory)
+        );
         row.append($("<td>").attr("data-title", "Key").text(job.gdsa));
         row.append(
           $("<td>").attr("data-title", "Filesize").text(job.file_size)
@@ -919,8 +941,11 @@ function setupPauseControl() {
 
 // Update the updateRealTimeStats function
 function updateRealTimeStats() {
-  // Get current upload rate (already updated by handleInProgressJobs)
-  const currentRate = $("#download_rate").text() || "0.00";
+  // Get current upload rate from the app state or current-rate element
+  const currentRate =
+    uploaderApp.currentUploadRate || parseFloat($("#current-rate").text()) || 0;
+  const currentRateStr =
+    typeof currentRate === "number" ? currentRate.toFixed(2) : currentRate;
 
   // Update rate progress bar
   const bandwidthLimit = parseFloat(
@@ -928,7 +953,7 @@ function updateRealTimeStats() {
       $("#bandwidth_limit").val() ||
       "30"
   );
-  const rateValue = parseFloat(currentRate);
+  const rateValue = parseFloat(currentRateStr);
   const ratePercentage = Math.min((rateValue / bandwidthLimit) * 100, 100);
   $("#rate-progress .progress-bar-mini").css("width", ratePercentage + "%");
 
@@ -942,7 +967,6 @@ function updateRealTimeStats() {
 
   // Update overview cards
   $("#overview-active").text(activeUploads);
-  $("#overview-rate").text(`${currentRate} MB/s`);
 
   // Update queue stats separately - don't use active uploads count
   updateQueueStats();
@@ -1432,7 +1456,7 @@ function loadDashboardActive() {
 
     if (!data.jobs || data.jobs.length === 0) {
       $tbody.append(
-        '<tr><td colspan="7" class="text-center">No active uploads</td></tr>'
+        '<tr><td colspan="8" class="text-center">No active uploads</td></tr>'
       );
       return;
     }
@@ -1444,6 +1468,11 @@ function loadDashboardActive() {
       const progress = parseInt(job.upload_percentage) || 0;
       const speed = job.upload_speed || "0 MB/s";
       const timeLeft = job.upload_remainingtime || "N/A";
+      // Remove folder prefix from directory path
+      let directory = job.file_directory || "N/A";
+      if (job.drive && directory.startsWith(job.drive + "/")) {
+        directory = directory.substring(job.drive.length + 1);
+      }
 
       const $row = $(`
         <tr>
@@ -1451,7 +1480,7 @@ function loadDashboardActive() {
             job.file_name || job.job_name || "Unknown"
           )}</td>
           <td>${escapeHtml(job.drive || "N/A")}</td>
-          <td class="truncate">${escapeHtml(job.file_directory || "N/A")}</td>
+          <td class="truncate">${escapeHtml(directory)}</td>
           <td>${escapeHtml(job.gdsa || "N/A")}</td>
           <td>
             <div class="progress-container">
@@ -1487,7 +1516,7 @@ function loadDashboardHistory() {
 
     if (!data.jobs || data.jobs.length === 0) {
       $tbody.append(
-        '<tr><td colspan="6" class="text-center">No upload history</td></tr>'
+        '<tr><td colspan="7" class="text-center">No upload history</td></tr>'
       );
       return;
     }
@@ -1498,11 +1527,17 @@ function loadDashboardHistory() {
       const size = job.file_size || "N/A";
       const timeSpent = job.time_elapsed || "N/A";
       const uploaded = job.time_end_clean || "N/A";
+      // Remove folder prefix from directory path
+      let directory = job.file_directory || "N/A";
+      if (job.drive && directory.startsWith(job.drive + "/")) {
+        directory = directory.substring(job.drive.length + 1);
+      }
 
       const $row = $(`
         <tr>
           <td class="truncate">${escapeHtml(job.file_name || "")}</td>
-          <td class="truncate">${escapeHtml(job.drive || "N/A")}</td>
+          <td>${escapeHtml(job.drive || "N/A")}</td>
+          <td class="truncate">${escapeHtml(directory)}</td>
           <td>${escapeHtml(job.gdsa || "N/A")}</td>
           <td>${size}</td>
           <td>${timeSpent}</td>
@@ -1513,7 +1548,7 @@ function loadDashboardHistory() {
     });
   }).fail(function () {
     $("#dashboard-history-table tbody").html(
-      '<tr><td colspan="6" class="text-center">Failed to load history</td></tr>'
+      '<tr><td colspan="7" class="text-center">Failed to load history</td></tr>'
     );
   });
 }
