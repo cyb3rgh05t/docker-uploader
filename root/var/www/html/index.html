@@ -50,10 +50,19 @@
           <i class="fas fa-cog"></i>
           <span>Settings</span>
         </a>
+        <a href="#about" class="nav-item" data-section="about">
+          <i class="fas fa-info-circle"></i>
+          <span>About</span>
+        </a>
       </nav>
 
       <div class="sidebar-footer">
-        <span class="version-badge" id="app-version">loading...</span>
+        <div class="version-check">
+          <span class="version-number" id="app-version">loading...</span>
+          <span class="version-status" id="version-status">
+            <i class="fas fa-circle-notch fa-spin"></i>
+          </span>
+        </div>
       </div>
     </aside>
 
@@ -737,37 +746,259 @@
         </div>
       </section>
 
-      <!-- Footer -->
-      <footer class="footer">
-        <p>
-          <i class="fa-brands fa-github"></i>
-          <a
-            href="https://github.com/dockserver"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            dockserver GitHub
-          </a>
-          |
-          <i class="fa-brands fa-wikipedia-w"></i>
-          <a
-            href="https://dockserver.io"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            dockserver wiki
-          </a>
-        </p>
-        <p>
-          Copyrights <sup>&copy; &trade;</sup> 2021
-          <script>
-            document.write(" - " + new Date().getFullYear());
-          </script>
-          Developed with
-          <i class="fas fa-heart" style="color: var(--accent-color)"></i> by
-          dockserver.io
-        </p>
-      </footer>
+      <!-- About Section -->
+      <section class="content-section" id="about-section">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <i class="fas fa-info-circle"></i>
+              About Docker Uploader
+            </div>
+          </div>
+          <div class="card-body">
+            <div style="max-width: 800px; margin: 0 auto">
+              <div style="text-align: center; margin-bottom: 2rem">
+                <img
+                  src="logo.png"
+                  alt="Docker Uploader Logo"
+                  style="width: 120px; height: 120px; margin-bottom: 1rem"
+                />
+                <h2 style="font-size: 2rem; margin-bottom: 0.5rem">
+                  Docker Uploader
+                </h2>
+                <p
+                  style="color: var(--accent-color); font-weight: 600"
+                  id="about-version"
+                >
+                  Version 5.0.0
+                </p>
+              </div>
+
+              <div style="margin-bottom: 2rem">
+                <h3
+                  style="
+                    font-size: 1.25rem;
+                    margin-bottom: 1rem;
+                    color: var(--accent-color);
+                  "
+                >
+                  Description
+                </h3>
+                <p style="line-height: 1.8; color: var(--text-secondary)">
+                  Docker Uploader is a powerful and efficient file upload
+                  management system designed to run in Docker containers. It
+                  provides a modern web interface for monitoring and controlling
+                  file uploads with features like bandwidth management,
+                  concurrent transfer control, and real-time progress tracking.
+                </p>
+              </div>
+
+              <div style="margin-bottom: 2rem">
+                <h3
+                  style="
+                    font-size: 1.25rem;
+                    margin-bottom: 1rem;
+                    color: var(--accent-color);
+                  "
+                >
+                  Key Features
+                </h3>
+                <ul
+                  style="
+                    line-height: 2;
+                    color: var(--text-secondary);
+                    list-style-position: inside;
+                  "
+                >
+                  <li>Real-time upload monitoring and progress tracking</li>
+                  <li>Bandwidth limiting and transfer management</li>
+                  <li>Multiple concurrent upload support</li>
+                  <li>Complete upload history with statistics</li>
+                  <li>Pause and resume functionality</li>
+                  <li>17 beautiful theme options</li>
+                  <li>Responsive design for mobile and desktop</li>
+                  <li>Docker containerized deployment</li>
+                </ul>
+              </div>
+
+              <div style="margin-bottom: 2rem">
+                <h3
+                  style="
+                    font-size: 1.25rem;
+                    margin-bottom: 1rem;
+                    color: var(--accent-color);
+                  "
+                >
+                  Technology Stack
+                </h3>
+                <div
+                  style="
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                    gap: 1rem;
+                  "
+                >
+                  <div
+                    style="
+                      padding: 1rem;
+                      background: var(--bg-tertiary);
+                      border-radius: var(--radius-md);
+                      text-align: center;
+                    "
+                  >
+                    <i
+                      class="fab fa-docker"
+                      style="
+                        font-size: 2rem;
+                        color: var(--accent-color);
+                        margin-bottom: 0.5rem;
+                      "
+                    ></i>
+                    <p style="font-weight: 600">Docker</p>
+                  </div>
+                  <div
+                    style="
+                      padding: 1rem;
+                      background: var(--bg-tertiary);
+                      border-radius: var(--radius-md);
+                      text-align: center;
+                    "
+                  >
+                    <i
+                      class="fab fa-php"
+                      style="
+                        font-size: 2rem;
+                        color: var(--accent-color);
+                        margin-bottom: 0.5rem;
+                      "
+                    ></i>
+                    <p style="font-weight: 600">PHP</p>
+                  </div>
+                  <div
+                    style="
+                      padding: 1rem;
+                      background: var(--bg-tertiary);
+                      border-radius: var(--radius-md);
+                      text-align: center;
+                    "
+                  >
+                    <i
+                      class="fab fa-js"
+                      style="
+                        font-size: 2rem;
+                        color: var(--accent-color);
+                        margin-bottom: 0.5rem;
+                      "
+                    ></i>
+                    <p style="font-weight: 600">JavaScript</p>
+                  </div>
+                  <div
+                    style="
+                      padding: 1rem;
+                      background: var(--bg-tertiary);
+                      border-radius: var(--radius-md);
+                      text-align: center;
+                    "
+                  >
+                    <i
+                      class="fab fa-html5"
+                      style="
+                        font-size: 2rem;
+                        color: var(--accent-color);
+                        margin-bottom: 0.5rem;
+                      "
+                    ></i>
+                    <p style="font-weight: 600">HTML5/CSS3</p>
+                  </div>
+                </div>
+              </div>
+
+              <div style="margin-bottom: 2rem">
+                <h3
+                  style="
+                    font-size: 1.25rem;
+                    margin-bottom: 1rem;
+                    color: var(--accent-color);
+                  "
+                >
+                  Links & Resources
+                </h3>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap">
+                  <a
+                    href="https://github.com/dockserver"
+                    target="_blank"
+                    class="action-button"
+                    style="text-decoration: none"
+                  >
+                    <i class="fab fa-github"></i>
+                    GitHub Repository
+                  </a>
+                  <a
+                    href="https://dockserver.io"
+                    target="_blank"
+                    class="action-button"
+                    style="text-decoration: none"
+                  >
+                    <i class="fas fa-globe"></i>
+                    Official Website
+                  </a>
+                  <a
+                    href="https://github.com/dockserver/docker-uploader/issues"
+                    target="_blank"
+                    class="action-button"
+                    style="text-decoration: none"
+                  >
+                    <i class="fas fa-bug"></i>
+                    Report Issue
+                  </a>
+                </div>
+              </div>
+
+              <div
+                style="
+                  text-align: center;
+                  padding-top: 2rem;
+                  border-top: 1px solid var(--border-color);
+                "
+              >
+                <p style="color: var(--text-secondary); margin-bottom: 1rem">
+                  <i class="fa-brands fa-github"></i>
+                  <a
+                    href="https://github.com/dockserver"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style="color: var(--accent-color)"
+                  >
+                    dockserver GitHub
+                  </a>
+                  |
+                  <i class="fa-brands fa-wikipedia-w"></i>
+                  <a
+                    href="https://dockserver.io"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style="color: var(--accent-color)"
+                  >
+                    dockserver wiki
+                  </a>
+                </p>
+                <p style="color: var(--text-tertiary); font-size: 0.875rem">
+                  Copyrights <sup>&copy; &trade;</sup> 2021
+                  <script>
+                    document.write(" - " + new Date().getFullYear());
+                  </script>
+                  Developed with
+                  <i
+                    class="fas fa-heart"
+                    style="color: var(--accent-color)"
+                  ></i>
+                  by dockserver.io
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
 
     <!-- Status Message -->

@@ -343,8 +343,8 @@ a:hover {
 }
 
 .logo-image {
-  width: 48px;
-  height: 48px;
+  width: 36px;
+  height: 36px;
   object-fit: contain;
 }
 
@@ -421,6 +421,62 @@ a:hover {
 .sidebar-footer {
   padding: var(--space-lg);
   border-top: 1px solid var(--border-color);
+}
+
+.version-check {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+}
+
+.version-number {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.version-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: all var(--transition);
+}
+
+.version-status.checking {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-tertiary);
+}
+
+.version-status.up-to-date {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.version-status.update-available {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  cursor: pointer;
+}
+
+.version-status.update-available:hover {
+  background: rgba(245, 158, 11, 0.25);
+}
+
+.version-status.develop {
+  background: rgba(139, 92, 246, 0.15);
+  color: #8b5cf6;
+  border: 1px solid rgba(139, 92, 246, 0.3);
 }
 
 .theme-toggle-btn {
@@ -800,7 +856,7 @@ a:hover {
 }
 
 .no-uploads-message {
-  text-align: center;
+  text-align: center !important;
   padding: var(--space-xxl);
   color: var(--text-tertiary);
   font-style: italic;

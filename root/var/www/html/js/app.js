@@ -62,13 +62,17 @@ function initializeApp() {
  * Load the application version
  */
 function loadAppVersion() {
+  let currentVersion = null;
+
   // Try dedicated API endpoint first
   fetch("srv/api/system/version.php")
     .then((response) => response.json())
     .then((data) => {
       if (data && data.version) {
+        currentVersion = data.version;
         document.getElementById("app-version").textContent = "v" + data.version;
         console.log("Version loaded from API:", data.version);
+        checkGitHubVersion(currentVersion);
       }
     })
     .catch((error) => {
@@ -79,9 +83,11 @@ function loadAppVersion() {
         .then((response) => response.json())
         .then((data) => {
           if (data && data.newversion) {
+            currentVersion = data.newversion;
             document.getElementById("app-version").textContent =
               "v" + data.newversion;
             console.log("Version loaded from file:", data.newversion);
+            checkGitHubVersion(currentVersion);
           } else {
             throw new Error("Invalid release.json format");
           }
@@ -89,9 +95,92 @@ function loadAppVersion() {
         .catch((fallbackError) => {
           console.error("Version fetch failed:", fallbackError);
           // Set a hardcoded version as last resort
-          document.getElementById("app-version").textContent = "v4.0.0";
+          currentVersion = "5.0.0";
+          document.getElementById("app-version").textContent =
+            "v" + currentVersion;
+          checkGitHubVersion(currentVersion);
         });
     });
+}
+
+/**
+ * Check GitHub for latest release version
+ */
+function checkGitHubVersion(currentVersion) {
+  const $statusBadge = $("#version-status");
+
+  fetch(
+    "https://api.github.com/repos/cyb3rgh05t/docker-uploader/releases/latest"
+  )
+    .then((response) => response.json())
+    .then((data) => {
+      if (data && data.tag_name) {
+        const latestVersion = data.tag_name.replace(/^v/, "");
+        const current = currentVersion.replace(/^v/, "");
+
+        console.log(
+          "Current version:",
+          current,
+          "Latest version:",
+          latestVersion
+        );
+
+        const versionComparison = compareVersions(current, latestVersion);
+
+        if (versionComparison < 0) {
+          // Update available
+          $statusBadge.html('<i class="fas fa-arrow-up"></i> Update Available');
+          $statusBadge
+            .removeClass("up-to-date checking develop")
+            .addClass("update-available");
+          $statusBadge.attr("title", `New version ${latestVersion} available`);
+        } else if (versionComparison > 0) {
+          // Development version (ahead of latest release)
+          $statusBadge.html('<i class="fas fa-code-branch"></i> Develop');
+          $statusBadge
+            .removeClass("update-available checking up-to-date")
+            .addClass("develop");
+          $statusBadge.attr(
+            "title",
+            `Development build (ahead of v${latestVersion})`
+          );
+        } else {
+          // Up to date
+          $statusBadge.html('<i class="fas fa-check"></i> Up to Date');
+          $statusBadge
+            .removeClass("update-available checking develop")
+            .addClass("up-to-date");
+          $statusBadge.attr("title", "You are running the latest version");
+        }
+      } else {
+        throw new Error("Invalid GitHub response");
+      }
+    })
+    .catch((error) => {
+      console.error("Failed to check GitHub version:", error);
+      $statusBadge.html('<i class="fas fa-question"></i> Unknown');
+      $statusBadge.removeClass("update-available checking up-to-date");
+      $statusBadge.attr("title", "Unable to check for updates");
+    });
+}
+
+/**
+ * Compare two semantic version strings
+ * Returns: -1 if v1 < v2, 0 if equal, 1 if v1 > v2
+ */
+function compareVersions(v1, v2) {
+  const parts1 = v1.split(".").map(Number);
+  const parts2 = v2.split(".").map(Number);
+
+  for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
+    const part1 = parts1[i] || 0;
+    const part2 = parts2[i] || 0;
+
+    if (part1 < part2) return -1;
+    if (part1 > part2) return 1;
+  }
+
+  return 0;
 }
 
 /**
@@ -345,6 +434,7 @@ function handleInProgressJobs() {
         '<tr><td colspan="6" class="no-uploads-message">No uploads in progress</td></tr>'
       );
       $("#download_rate").text("0.00");
+      $("#current-rate").text("0.00 MB/s");
       $("#active-count-badge").text("0");
       return;
     }
@@ -435,6 +525,7 @@ function handleInProgressJobs() {
     // Update the upload rate display
     totalUploadRate = totalUploadRate.toFixed(2);
     $("#download_rate").text(totalUploadRate);
+    $("#current-rate").text(`${totalUploadRate} MB/s`);
     $("#active-count-badge").text(json.jobs.length);
 
     // Color-code the upload rate based on speed
