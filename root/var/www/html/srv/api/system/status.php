@@ -63,6 +63,7 @@ function checkStatus()
 
     // Get storage information
     $possiblePaths = [
+        '/mnt/downloads',
         '/data/downloads',
         '/config/downloads',
         '/downloads',
