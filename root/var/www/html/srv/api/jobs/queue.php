@@ -21,11 +21,25 @@ function getQueueFiles()
     );
 
     try {
+        // Check if database file exists
+        if (!file_exists(DATABASE)) {
+            $response['success'] = false;
+            $response['error'] = 'Database file not found';
+            return json_encode($response);
+        }
+
         $db = new SQLite3(DATABASE, SQLITE3_OPEN_READONLY);
 
         // Get all files from the queue ordered by time (oldest first)
         $query = "SELECT time, drive, filedir, filebase, filesize, metadata FROM upload_queue ORDER BY time ASC";
         $result = $db->query($query);
+
+        if ($result === false) {
+            $response['success'] = false;
+            $response['error'] = $db->lastErrorMsg();
+            $db->close();
+            return json_encode($response);
+        }
 
         while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
             $response['files'][] = array(

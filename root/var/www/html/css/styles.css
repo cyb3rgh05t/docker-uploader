@@ -1368,6 +1368,41 @@ a:hover {
   vertical-align: middle !important;
 }
 
+/* Table column specific alignment */
+.table th[data-title="Progress"],
+.table th[data-title="Filesize"],
+.table th[data-title="Time Left"],
+.table th[data-title="Time spent"],
+.table th[data-title="Speed"],
+.table th[data-title="Uploaded"],
+.table th[data-title="Added"],
+.table th[data-title="#"] {
+  text-align: center;
+}
+
+.table td[data-title="Progress"],
+.table td[data-title="Filesize"],
+.table td[data-title="Time Left"],
+.table td[data-title="Time spent"],
+.table td[data-title="Speed"],
+.table td[data-title="Uploaded"],
+.table td[data-title="Added"],
+.table td[data-title="#"] {
+  text-align: center;
+}
+
+.table td[data-title="Folder"],
+.table td[data-title="Directory"],
+.table td[data-title="Key"] {
+  text-align: center;
+}
+
+.table th[data-title="Folder"],
+.table th[data-title="Directory"],
+.table th[data-title="Key"] {
+  text-align: center;
+}
+
 .active-uploads-badge {
   display: inline-flex;
   align-items: center;

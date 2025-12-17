@@ -434,7 +434,7 @@ function handleInProgressJobs() {
 
     if (!json.jobs || json.jobs.length === 0) {
       $tableBody.append(
-        '<tr><td colspan="6" class="no-uploads-message text-center">No uploads in progress</td></tr>'
+        '<tr><td colspan="7" class="no-uploads-message text-center">No uploads in progress</td></tr>'
       );
       $("#download_rate").text("0.00");
       $("#current-rate").text("0.00 MB/s");
