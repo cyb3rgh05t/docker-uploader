@@ -12,7 +12,7 @@
       referrerpolicy="no-referrer"
     />
     <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="stylesheet" href="css/styles.css?v=4.2.4" />
+    <link rel="stylesheet" href="css/styles.css?v=4.2.5" />
   </head>
   <body>
     <!-- Mobile Menu Toggle -->
@@ -205,73 +205,16 @@
 
           <div class="overview-mini-card">
             <div class="overview-mini-content">
-              <div class="overview-mini-label">Transfer Rate</div>
-              <div class="overview-mini-value value-purple" id="overview-rate">
-                0.00 MB/s
-              </div>
-            </div>
-            <div class="overview-mini-icon gradient-purple">
-              <i class="fas fa-tachometer-alt"></i>
-            </div>
-          </div>
-
-          <div class="overview-mini-card">
-            <div class="overview-mini-content">
-              <div class="overview-mini-label">Active Transfers</div>
-              <div
-                class="overview-mini-value value-indigo"
-                id="overview-active"
-              >
-                0
-              </div>
-            </div>
-            <div class="overview-mini-icon gradient-indigo">
-              <i class="fas fa-exchange-alt"></i>
-            </div>
-          </div>
-
-          <div class="overview-mini-card">
-            <div class="overview-mini-content">
-              <div class="overview-mini-label">Queue Size</div>
-              <div class="overview-mini-value value-red" id="overview-queue">
-                0
-              </div>
-            </div>
-            <div class="overview-mini-icon gradient-red">
-              <i class="fas fa-list"></i>
-            </div>
-          </div>
-        </div>
-
-        <!-- Stats Grid -->
-        <div class="stats-grid">
-          <div class="overview-mini-card">
-            <div class="overview-mini-content">
               <div class="overview-mini-label">Upload Rate</div>
-              <div class="overview-mini-value value-orange" id="current-rate">
+              <div class="overview-mini-value value-indigo" id="current-rate">
                 0.00 MB/s
               </div>
               <div class="overview-mini-subtitle" id="rate-limit">
                 <i class="fas fa-gauge-high"></i> Limit: 30 MB/s per transfer
               </div>
             </div>
-            <div class="overview-mini-icon gradient-orange">
+            <div class="overview-mini-icon gradient-indigo">
               <i class="fas fa-tachometer-alt"></i>
-            </div>
-          </div>
-
-          <div class="overview-mini-card">
-            <div class="overview-mini-content">
-              <div class="overview-mini-label">Files in Queue</div>
-              <div class="overview-mini-value value-blue" id="queue-count">
-                0
-              </div>
-              <div class="overview-mini-subtitle" id="queue-total">
-                <i class="fas fa-weight-hanging"></i> Total: 0 GB
-              </div>
-            </div>
-            <div class="overview-mini-icon gradient-blue">
-              <i class="fas fa-list"></i>
             </div>
           </div>
 
@@ -287,6 +230,21 @@
             </div>
             <div class="overview-mini-icon gradient-purple">
               <i class="fas fa-exchange-alt"></i>
+            </div>
+          </div>
+
+          <div class="overview-mini-card">
+            <div class="overview-mini-content">
+              <div class="overview-mini-label">Files in Queue</div>
+              <div class="overview-mini-value value-blue" id="queue-count">
+                0
+              </div>
+              <div class="overview-mini-subtitle" id="queue-total">
+                <i class="fas fa-weight-hanging"></i> Total: 0 GB
+              </div>
+            </div>
+            <div class="overview-mini-icon gradient-blue">
+              <i class="fas fa-list"></i>
             </div>
           </div>
 
@@ -1211,10 +1169,14 @@
                   </a>
                 </p>
                 <p style="color: var(--text-tertiary); font-size: 0.875rem">
-                  Copyrights <sup>&copy; &trade;</sup> 2021<span id="copyright-year-range"></span>
+                  Copyrights <sup>&copy; &trade;</sup> 2021<span
+                    id="copyright-year-range"
+                  ></span>
                   <script>
                     (function () {
-                      var yearSpan = document.getElementById("copyright-year-range");
+                      var yearSpan = document.getElementById(
+                        "copyright-year-range"
+                      );
                       if (yearSpan) {
                         yearSpan.textContent = " - " + new Date().getFullYear();
                       }
@@ -1244,9 +1206,9 @@
 
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="js/ui/pagination.js?v=4.2.4"></script>
-    <script src="js/utils.js?v=4.2.4"></script>
-    <script src="js/app.js?v=4.2.4"></script>
+    <script src="js/ui/pagination.js?v=4.2.5"></script>
+    <script src="js/utils.js?v=4.2.5"></script>
+    <script src="js/app.js?v=4.2.5"></script>
 
     <script>
       $(document).ready(function () {
