@@ -1520,7 +1520,7 @@ a:hover {
 .settings-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-lg);
+  gap: var(--space-xl);
   margin-bottom: var(--space-xl);
 }
 
@@ -1666,15 +1666,12 @@ a:hover {
   align-items: center;
   padding: var(--space-md);
   min-height: 48px;
+  margin-top: var(--space-md);
+  margin-bottom: var(--space-md);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   background: var(--bg-secondary);
   transition: all 0.2s ease;
-}
-
-.form-group.toggle-group:hover {
-  border-color: var(--accent-color);
-  background: var(--bg-tertiary);
 }
 
 .form-group.toggle-group label:first-child {
@@ -1691,10 +1688,12 @@ a:hover {
 }
 
 .settings-save-top {
+  justify-content: flex-end;
   margin-top: 0;
-  margin-bottom: var(--space-lg);
+  margin-bottom: var(--space-xl);
   border-top: none;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: none;
+  padding-bottom: 0;
 }
 
 .auto-save-indicator {
