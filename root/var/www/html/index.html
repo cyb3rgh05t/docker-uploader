@@ -12,7 +12,7 @@
       referrerpolicy="no-referrer"
     />
     <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="stylesheet" href="css/styles.css?v=4.1.3" />
+    <link rel="stylesheet" href="css/styles.css?v=4.1.4" />
   </head>
   <body>
     <!-- Mobile Menu Toggle -->
@@ -325,16 +325,17 @@
                 <thead>
                   <tr>
                     <th>Filename</th>
-                    <th>Drive</th>
                     <th>Folder</th>
+                    <th>Key</th>
                     <th>Progress</th>
-                    <th>Size</th>
+                    <th>Filesize</th>
+                    <th>Time Left</th>
                     <th>Speed</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td colspan="6" class="text-center">
+                    <td colspan="7" class="text-center">
                       <i class="fas fa-circle-notch fa-spin"></i> Loading...
                     </td>
                   </tr>
@@ -360,16 +361,17 @@
               <table class="table" id="dashboard-queue-table">
                 <thead>
                   <tr>
+                    <th>#</th>
                     <th>Filename</th>
-                    <th>Drive</th>
+                    <th>Folder</th>
                     <th>Directory</th>
-                    <th>Size</th>
-                    <th>Time</th>
+                    <th>Filesize</th>
+                    <th>Added</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td colspan="5" class="text-center">
+                    <td colspan="6" class="text-center">
                       <i class="fas fa-circle-notch fa-spin"></i> Loading...
                     </td>
                   </tr>
@@ -396,14 +398,16 @@
                 <thead>
                   <tr>
                     <th>Filename</th>
-                    <th>Drive</th>
-                    <th>Size</th>
-                    <th>Time</th>
+                    <th>Folder</th>
+                    <th>Key</th>
+                    <th>Filesize</th>
+                    <th>Time spent</th>
+                    <th>Uploaded</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td colspan="4" class="text-center">
+                    <td colspan="6" class="text-center">
                       <i class="fas fa-circle-notch fa-spin"></i> Loading...
                     </td>
                   </tr>
@@ -1210,9 +1214,9 @@
 
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="js/ui/pagination.js?v=4.1.3"></script>
-    <script src="js/utils.js?v=4.1.3"></script>
-    <script src="js/app.js?v=4.1.3"></script>
+    <script src="js/ui/pagination.js?v=4.1.4"></script>
+    <script src="js/utils.js?v=4.1.4"></script>
+    <script src="js/app.js?v=4.1.4"></script>
 
     <script>
       $(document).ready(function () {

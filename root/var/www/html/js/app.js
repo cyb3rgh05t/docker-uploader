@@ -340,7 +340,7 @@ function setupSettingsModal() {
  */
 function setupFormSubmissions() {
   let autoSaveTimeout = null;
-  
+
   function collectFormData($form) {
     const formData = {};
     $form.find("input, select, textarea").each(function () {
@@ -348,7 +348,9 @@ function setupFormSubmissions() {
       const name = $input.attr("name");
       if (name) {
         if ($input.is(":checkbox")) {
-          formData[name.toUpperCase()] = $input.is(":checked") ? "true" : "false";
+          formData[name.toUpperCase()] = $input.is(":checked")
+            ? "true"
+            : "false";
         } else {
           formData[name.toUpperCase()] = $input.val();
         }
@@ -356,35 +358,41 @@ function setupFormSubmissions() {
     });
     return formData;
   }
-  
+
   function showAutoSaveIndicator() {
     const $indicator = $(".auto-save-indicator");
     $indicator.fadeIn(300);
-    setTimeout(() => { $indicator.fadeOut(300); }, 2000);
+    setTimeout(() => {
+      $indicator.fadeOut(300);
+    }, 2000);
   }
-  
-  $("#unified-settings-form").on("change", "input, select, textarea", function () {
-    const $form = $("#unified-settings-form");
-    if (autoSaveTimeout) clearTimeout(autoSaveTimeout);
-    autoSaveTimeout = setTimeout(() => {
-      const formData = collectFormData($form);
-      console.log("Auto-saving settings:", formData);
-      $.ajax({
-        url: "srv/api/system/update_env.php",
-        method: "POST",
-        data: JSON.stringify(formData),
-        contentType: "application/json",
-        success: function (response) {
-          console.log("Auto-save successful:", response);
-          showAutoSaveIndicator();
-        },
-        error: function (xhr, status, error) {
-          console.error("Auto-save failed:", error);
-        }
-      });
-    }, 1000);
-  });
-  
+
+  $("#unified-settings-form").on(
+    "change",
+    "input, select, textarea",
+    function () {
+      const $form = $("#unified-settings-form");
+      if (autoSaveTimeout) clearTimeout(autoSaveTimeout);
+      autoSaveTimeout = setTimeout(() => {
+        const formData = collectFormData($form);
+        console.log("Auto-saving settings:", formData);
+        $.ajax({
+          url: "srv/api/system/update_env.php",
+          method: "POST",
+          data: JSON.stringify(formData),
+          contentType: "application/json",
+          success: function (response) {
+            console.log("Auto-save successful:", response);
+            showAutoSaveIndicator();
+          },
+          error: function (xhr, status, error) {
+            console.error("Auto-save failed:", error);
+          },
+        });
+      }, 1000);
+    }
+  );
+
   $("#unified-settings-form").on("submit", function (e) {
     e.preventDefault();
     const $form = $(this);
@@ -1378,21 +1386,22 @@ function loadDashboardQueue() {
 
     if (!data.files || data.files.length === 0) {
       $tbody.append(
-        '<tr><td colspan="5" class="text-center">No files in queue</td></tr>'
+        '<tr><td colspan="6" class="text-center">No files in queue</td></tr>'
       );
       return;
     }
 
     // Show only latest 5 items
     const files = data.files.slice(0, 5);
-    files.forEach(function (file) {
+    files.forEach(function (file, index) {
       const size = formatFileSize(parseFileSize(file.filesize));
       const time = formatRelativeTime(file.created_at);
       const $row = $(`
         <tr>
+          <td>${index + 1}</td>
           <td class="truncate">${escapeHtml(file.filename)}</td>
           <td>${escapeHtml(file.drive || "N/A")}</td>
-          <td class="truncate">${escapeHtml(file.filedir || "")}</td>
+          <td class="truncate">${escapeHtml(file.filedir || "/")}</td>
           <td>${size}</td>
           <td>${time}</td>
         </tr>
@@ -1401,7 +1410,7 @@ function loadDashboardQueue() {
     });
   }).fail(function () {
     $("#dashboard-queue-table tbody").html(
-      '<tr><td colspan="5" class="text-center">Failed to load queue</td></tr>'
+      '<tr><td colspan="6" class="text-center">Failed to load queue</td></tr>'
     );
   });
 }
@@ -1416,7 +1425,7 @@ function loadDashboardActive() {
 
     if (!data.jobs || data.jobs.length === 0) {
       $tbody.append(
-        '<tr><td colspan="6" class="text-center">No active uploads</td></tr>'
+        '<tr><td colspan="7" class="text-center">No active uploads</td></tr>'
       );
       return;
     }
@@ -1427,14 +1436,15 @@ function loadDashboardActive() {
       const size = formatFileSize(parseFileSize(job.file_size));
       const progress = parseInt(job.upload_percentage) || 0;
       const speed = job.upload_speed || "0 MB/s";
+      const timeLeft = job.upload_remainingtime || "N/A";
 
       const $row = $(`
         <tr>
           <td class="truncate">${escapeHtml(
             job.file_name || job.job_name || "Unknown"
           )}</td>
-          <td>${escapeHtml(job.drive || "N/A")}</td>
           <td class="truncate">${escapeHtml(job.file_directory || "N/A")}</td>
+          <td>${escapeHtml(job.gdsa || "N/A")}</td>
           <td>
             <div class="progress-container">
               <div class="progress-info">
@@ -1446,6 +1456,7 @@ function loadDashboardActive() {
             </div>
           </td>
           <td>${size}</td>
+          <td>${timeLeft}</td>
           <td>${speed}</td>
         </tr>
       `);
@@ -1453,7 +1464,7 @@ function loadDashboardActive() {
     });
   }).fail(function () {
     $("#dashboard-active-table tbody").html(
-      '<tr><td colspan="6" class="text-center">Failed to load active uploads</td></tr>'
+      '<tr><td colspan="7" class="text-center">Failed to load active uploads</td></tr>'
     );
   });
 }
@@ -1468,7 +1479,7 @@ function loadDashboardHistory() {
 
     if (!data.jobs || data.jobs.length === 0) {
       $tbody.append(
-        '<tr><td colspan="4" class="text-center">No upload history</td></tr>'
+        '<tr><td colspan="6" class="text-center">No upload history</td></tr>'
       );
       return;
     }
@@ -1477,21 +1488,24 @@ function loadDashboardHistory() {
     const jobs = data.jobs.slice(0, 5);
     jobs.forEach(function (job) {
       const size = job.file_size || "N/A";
-      const time = job.time_end_clean || "N/A";
+      const timeSpent = job.time_elapsed || "N/A";
+      const uploaded = job.time_end_clean || "N/A";
 
       const $row = $(`
         <tr>
           <td class="truncate">${escapeHtml(job.file_name || "")}</td>
-          <td>${escapeHtml(job.drive || "N/A")}</td>
+          <td class="truncate">${escapeHtml(job.drive || "N/A")}</td>
+          <td>${escapeHtml(job.gdsa || "N/A")}</td>
           <td>${size}</td>
-          <td>${time}</td>
+          <td>${timeSpent}</td>
+          <td>${uploaded}</td>
         </tr>
       `);
       $tbody.append($row);
     });
   }).fail(function () {
     $("#dashboard-history-table tbody").html(
-      '<tr><td colspan="4" class="text-center">Failed to load history</td></tr>'
+      '<tr><td colspan="6" class="text-center">Failed to load history</td></tr>'
     );
   });
 }
