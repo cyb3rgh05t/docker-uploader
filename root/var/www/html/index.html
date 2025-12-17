@@ -12,7 +12,7 @@
       referrerpolicy="no-referrer"
     />
     <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="stylesheet" href="css/styles.css?v=6.8" />
+    <link rel="stylesheet" href="css/styles.css?v=4.1.0" />
   </head>
   <body>
     <!-- Mobile Menu Toggle -->
@@ -307,6 +307,43 @@
         </div>
 
         <!-- Dashboard Tables -->
+
+        <!-- Latest Active Uploads Table -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <i class="fas fa-upload"></i>
+              Active Uploads
+            </div>
+            <a href="#uploads" class="card-action-link" data-section="uploads">
+              View All <i class="fas fa-arrow-right"></i>
+            </a>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table" id="dashboard-active-table">
+                <thead>
+                  <tr>
+                    <th>Filename</th>
+                    <th>Drive</th>
+                    <th>Folder</th>
+                    <th>Progress</th>
+                    <th>Size</th>
+                    <th>Speed</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colspan="6" class="text-center">
+                      <i class="fas fa-circle-notch fa-spin"></i> Loading...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
         <!-- Latest Queue Table -->
         <div class="card">
           <div class="card-header">
@@ -328,41 +365,6 @@
                     <th>Directory</th>
                     <th>Size</th>
                     <th>Time</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td colspan="5" class="text-center">
-                      <i class="fas fa-circle-notch fa-spin"></i> Loading...
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <!-- Latest Active Uploads Table -->
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title">
-              <i class="fas fa-upload"></i>
-              Active Uploads
-            </div>
-            <a href="#uploads" class="card-action-link" data-section="uploads">
-              View All <i class="fas fa-arrow-right"></i>
-            </a>
-          </div>
-          <div class="card-body">
-            <div class="table-responsive">
-              <table class="table" id="dashboard-active-table">
-                <thead>
-                  <tr>
-                    <th>Filename</th>
-                    <th>Folder</th>
-                    <th>Progress</th>
-                    <th>Size</th>
-                    <th>Speed</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -674,6 +676,23 @@
       <!-- Settings Section -->
       <section class="content-section" id="settings-section">
         <form class="unified-settings-form" id="unified-settings-form">
+          <!-- Save Button at Top -->
+          <div class="settings-save-container settings-save-top">
+            <button type="submit" class="btn btn-save-all">
+              <i class="fas fa-save"></i>
+              Save All Settings
+            </button>
+            <span
+              class="auto-save-indicator"
+              style="
+                margin-left: 1rem;
+                color: var(--text-secondary);
+                display: none;
+              "
+            >
+              <i class="fas fa-check-circle"></i> Auto-saved
+            </span>
+          </div>
           <div class="settings-grid">
             <!-- Transfer Settings -->
             <div class="card">
@@ -922,14 +941,6 @@
                 </div>
               </div>
             </div>
-          </div>
-
-          <!-- Single Save Button -->
-          <div class="settings-save-container">
-            <button type="submit" class="btn btn-save-all">
-              <i class="fas fa-save"></i>
-              Save All Settings
-            </button>
           </div>
         </form>
       </section>
@@ -1199,9 +1210,9 @@
 
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="js/ui/pagination.js?v=6.8"></script>
-    <script src="js/utils.js?v=6.8"></script>
-    <script src="js/app.js?v=6.8"></script>
+    <script src="js/ui/pagination.js?v=4.1.0"></script>
+    <script src="js/utils.js?v=4.1.0"></script>
+    <script src="js/app.js?v=4.1.0"></script>
 
     <script>
       $(document).ready(function () {

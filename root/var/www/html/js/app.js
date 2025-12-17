@@ -1363,10 +1363,10 @@ function loadDashboardQueue() {
     const files = data.files.slice(0, 5);
     files.forEach(function (file) {
       const size = formatFileSize(parseFileSize(file.filesize));
-      const time = formatRelativeTime(file.time);
+      const time = formatRelativeTime(file.created_at);
       const $row = $(`
         <tr>
-          <td class="truncate">${escapeHtml(file.filebase)}</td>
+          <td class="truncate">${escapeHtml(file.filename)}</td>
           <td>${escapeHtml(file.drive || "N/A")}</td>
           <td class="truncate">${escapeHtml(file.filedir || "")}</td>
           <td>${size}</td>
@@ -1392,7 +1392,7 @@ function loadDashboardActive() {
 
     if (!data.jobs || data.jobs.length === 0) {
       $tbody.append(
-        '<tr><td colspan="5" class="text-center">No active uploads</td></tr>'
+        '<tr><td colspan="6" class="text-center">No active uploads</td></tr>'
       );
       return;
     }
@@ -1401,13 +1401,16 @@ function loadDashboardActive() {
     const jobs = data.jobs.slice(0, 5);
     jobs.forEach(function (job) {
       const size = formatFileSize(parseFileSize(job.file_size));
-      const progress = parseInt(job.percentage) || 0;
-      const speed = job.speed || "0 MB/s";
+      const progress = parseInt(job.upload_percentage) || 0;
+      const speed = job.upload_speed || "0 MB/s";
 
       const $row = $(`
         <tr>
-          <td class="truncate">${escapeHtml(job.filename)}</td>
-          <td>${escapeHtml(job.folder || "N/A")}</td>
+          <td class="truncate">${escapeHtml(
+            job.file_name || job.job_name || "Unknown"
+          )}</td>
+          <td>${escapeHtml(job.drive || "N/A")}</td>
+          <td class="truncate">${escapeHtml(job.file_directory || "N/A")}</td>
           <td>
             <div class="progress-container">
               <div class="progress-info">
@@ -1426,7 +1429,7 @@ function loadDashboardActive() {
     });
   }).fail(function () {
     $("#dashboard-active-table tbody").html(
-      '<tr><td colspan="5" class="text-center">Failed to load active uploads</td></tr>'
+      '<tr><td colspan="6" class="text-center">Failed to load active uploads</td></tr>'
     );
   });
 }

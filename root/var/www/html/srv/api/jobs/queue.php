@@ -29,6 +29,7 @@ function getQueueFiles()
         }
 
         $db = new SQLite3(DATABASE, SQLITE3_OPEN_READONLY);
+        $db->busyTimeout(5000); // Wait up to 5 seconds if database is locked
 
         // Get all files from the queue ordered by time (oldest first)
         $query = "SELECT time, drive, filedir, filebase, filesize, metadata FROM upload_queue ORDER BY time ASC";

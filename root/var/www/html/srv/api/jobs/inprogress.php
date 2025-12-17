@@ -8,33 +8,42 @@ function processJsonFiles()
 {
     $response = new ApiResponse();
     $response->jobs = [];
-    $db = new SQLite3(DATABASE, SQLITE3_OPEN_READONLY);
-    $results = $db->query("SELECT drive, filedir, filebase, filesize, gdsa, logfile FROM uploads");
-    while ($row = $results->fetchArray()) {
-        try {
-            $jobStatus = new UploadJobStatus();
-            $jobStatus->job_name = $row['filebase'];
-            $jobStatus->drive = $row['drive'];
-            $jobStatus->gdsa = $row['gdsa'];
-            $jobStatus->file_directory = $row['filedir'];
-            $jobStatus->file_name = $row['filebase'];
-            $jobStatus->file_size = $row['filesize'];
 
-            //Parse rclone logfile
-            if ($row['logfile'] != null) {
-                mapLogFileInformation($row['logfile'], $jobStatus);
-                $response->jobs[] = $jobStatus;
+    try {
+        $db = new SQLite3(DATABASE, SQLITE3_OPEN_READONLY);
+        $db->busyTimeout(5000); // Wait up to 5 seconds if database is locked
+        $results = $db->query("SELECT drive, filedir, filebase, filesize, gdsa, logfile FROM uploads");
+        while ($row = $results->fetchArray()) {
+            try {
+                $jobStatus = new UploadJobStatus();
+                $jobStatus->job_name = $row['filebase'];
+                $jobStatus->drive = $row['drive'];
+                $jobStatus->gdsa = $row['gdsa'];
+                $jobStatus->file_directory = $row['filedir'];
+                $jobStatus->file_name = $row['filebase'];
+                $jobStatus->file_size = $row['filesize'];
+
+                //Parse rclone logfile
+                if ($row['logfile'] != null) {
+                    mapLogFileInformation($row['logfile'], $jobStatus);
+                    $response->jobs[] = $jobStatus;
+                }
+            } catch (Exception $e) {
+                //TODO: Error handling
             }
-        } catch (Exception $e) {
-            //TODO: Error handling
         }
+
+        $response->total_count = isset($response->jobs) ? count($response->jobs) : 0;
+
+        $db?->close();
+        unset($db);
+        return json_encode($response);
+    } catch (Exception $e) {
+        // Return empty response on database error
+        error_log("Database error in inprogress.php: " . $e->getMessage());
+        $response->total_count = 0;
+        return json_encode($response);
     }
-
-    $response->total_count = isset($response->jobs) ? count($response->jobs) : 0;
-
-    $db?->close();
-    unset($db);
-    return json_encode($response);
 }
 
 function mapLogFileInformation($logfile, UploadJobStatus $jobStatus): UploadJobStatus

@@ -14,38 +14,45 @@ function getCompletedTodayStats()
         'total_size' => 0
     );
 
-    $db = new SQLite3(DATABASE, SQLITE3_OPEN_READONLY);
+    try {
+        $db = new SQLite3(DATABASE, SQLITE3_OPEN_READONLY);
+        $db->busyTimeout(5000); // Wait up to 5 seconds if database is locked
 
-    // Get start of today timestamp
-    $startOfToday = strtotime('today midnight');
+        // Get start of today timestamp
+        $startOfToday = strtotime('today midnight');
 
-    // Count uploads completed today
-    $countQuery = "SELECT COUNT(*) as count FROM completed_uploads WHERE endtime >= $startOfToday";
-    $countResult = $db->query($countQuery);
-    $response['count'] = $countResult->fetchArray()['count'];
+        // Count uploads completed today
+        $countQuery = "SELECT COUNT(*) as count FROM completed_uploads WHERE endtime >= $startOfToday";
+        $countResult = $db->query($countQuery);
+        $response['count'] = $countResult->fetchArray()['count'];
 
-    // First try to get total size in bytes from filesize_bytes column
-    $sizeQuery = "SELECT SUM(filesize_bytes) as total_bytes FROM completed_uploads WHERE endtime >= $startOfToday AND filesize_bytes > 0";
-    $sizeResult = $db->query($sizeQuery);
-    $totalBytes = $sizeResult->fetchArray()['total_bytes'];
+        // First try to get total size in bytes from filesize_bytes column
+        $sizeQuery = "SELECT SUM(filesize_bytes) as total_bytes FROM completed_uploads WHERE endtime >= $startOfToday AND filesize_bytes > 0";
+        $sizeResult = $db->query($sizeQuery);
+        $totalBytes = $sizeResult->fetchArray()['total_bytes'];
 
-    // If filesize_bytes returns null or 0, fall back to calculating from filesize string
-    if (!$totalBytes) {
-        $fallbackQuery = "SELECT filesize FROM completed_uploads WHERE endtime >= $startOfToday";
-        $fallbackResult = $db->query($fallbackQuery);
-        $totalBytes = 0;
+        // If filesize_bytes returns null or 0, fall back to calculating from filesize string
+        if (!$totalBytes) {
+            $fallbackQuery = "SELECT filesize FROM completed_uploads WHERE endtime >= $startOfToday";
+            $fallbackResult = $db->query($fallbackQuery);
+            $totalBytes = 0;
 
-        while ($row = $fallbackResult->fetchArray()) {
-            $totalBytes += convertSizeToBytes($row['filesize']);
+            while ($row = $fallbackResult->fetchArray()) {
+                $totalBytes += convertSizeToBytes($row['filesize']);
+            }
         }
+
+        $response['total_size'] = $totalBytes ?: 0;
+
+        $db->close();
+        unset($db);
+
+        return json_encode($response);
+    } catch (Exception $e) {
+        // Return default response on database error
+        error_log("Database error in completed_today_stats.php: " . $e->getMessage());
+        return json_encode($response);
     }
-
-    $response['total_size'] = $totalBytes ?: 0;
-
-    $db->close();
-    unset($db);
-
-    return json_encode($response);
 }
 
 /**
