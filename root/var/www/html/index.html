@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="orange">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -12,7 +12,7 @@
       referrerpolicy="no-referrer"
     />
     <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="stylesheet" href="css/styles.css?v=6.2" />
+    <link rel="stylesheet" href="css/styles.css?v=6.8" />
   </head>
   <body>
     <!-- Mobile Menu Toggle -->
@@ -76,6 +76,77 @@
       <header class="top-bar">
         <div class="top-bar-left"></div>
         <div class="top-bar-right">
+          <div class="theme-dropdown">
+            <button
+              class="theme-toggle-btn"
+              id="theme-toggle-btn"
+              aria-label="Change theme"
+            >
+              <i class="fas fa-palette"></i>
+            </button>
+            <div class="theme-dropdown-menu" id="theme-dropdown-menu">
+              <div class="theme-dropdown-item" data-theme="dark">
+                <div class="theme-dot dark"></div>
+                <span>Dark</span>
+                <i class="fas fa-check theme-check"></i>
+              </div>
+              <div class="theme-dropdown-item" data-theme="aquamarine">
+                <div class="theme-dot aquamarine"></div>
+                <span>Aquamarine</span>
+                <i class="fas fa-check theme-check"></i>
+              </div>
+              <div class="theme-dropdown-item" data-theme="organizr">
+                <div class="theme-dot organizr"></div>
+                <span>Organizr</span>
+                <i class="fas fa-check theme-check"></i>
+              </div>
+              <div class="theme-dropdown-item" data-theme="nord">
+                <div class="theme-dot nord"></div>
+                <span>Nord</span>
+                <i class="fas fa-check theme-check"></i>
+              </div>
+              <div class="theme-dropdown-item" data-theme="overseerr">
+                <div class="theme-dot overseerr"></div>
+                <span>Overseerr</span>
+                <i class="fas fa-check theme-check"></i>
+              </div>
+              <div class="theme-dropdown-item" data-theme="onedark">
+                <div class="theme-dot onedark"></div>
+                <span>OneDark</span>
+                <i class="fas fa-check theme-check"></i>
+              </div>
+              <div class="theme-dropdown-item" data-theme="hotline">
+                <div class="theme-dot hotline"></div>
+                <span>Hotline</span>
+                <i class="fas fa-check theme-check"></i>
+              </div>
+              <div class="theme-dropdown-item" data-theme="maroon">
+                <div class="theme-dot maroon"></div>
+                <span>Maroon</span>
+                <i class="fas fa-check theme-check"></i>
+              </div>
+              <div class="theme-dropdown-item" data-theme="dracula">
+                <div class="theme-dot dracula"></div>
+                <span>Dracula</span>
+                <i class="fas fa-check theme-check"></i>
+              </div>
+              <div class="theme-dropdown-item" data-theme="plex">
+                <div class="theme-dot plex"></div>
+                <span>Plex</span>
+                <i class="fas fa-check theme-check"></i>
+              </div>
+              <div class="theme-dropdown-item" data-theme="space-gray">
+                <div class="theme-dot space-gray"></div>
+                <span>Space Gray</span>
+                <i class="fas fa-check theme-check"></i>
+              </div>
+              <div class="theme-dropdown-item" data-theme="hotpink">
+                <div class="theme-dot hotpink"></div>
+                <span>Hot Pink</span>
+                <i class="fas fa-check theme-check"></i>
+              </div>
+            </div>
+          </div>
           <div id="control">
             <button
               class="control-button bg-success"
@@ -231,6 +302,111 @@
             </div>
             <div class="overview-mini-icon gradient-green">
               <i class="fas fa-check-circle"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dashboard Tables -->
+        <!-- Latest Queue Table -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <i class="fas fa-list"></i>
+              Latest Queue
+            </div>
+            <a href="#queue" class="card-action-link" data-section="queue">
+              View All <i class="fas fa-arrow-right"></i>
+            </a>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table" id="dashboard-queue-table">
+                <thead>
+                  <tr>
+                    <th>Filename</th>
+                    <th>Drive</th>
+                    <th>Directory</th>
+                    <th>Size</th>
+                    <th>Time</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colspan="5" class="text-center">
+                      <i class="fas fa-circle-notch fa-spin"></i> Loading...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Latest Active Uploads Table -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <i class="fas fa-upload"></i>
+              Active Uploads
+            </div>
+            <a href="#uploads" class="card-action-link" data-section="uploads">
+              View All <i class="fas fa-arrow-right"></i>
+            </a>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table" id="dashboard-active-table">
+                <thead>
+                  <tr>
+                    <th>Filename</th>
+                    <th>Folder</th>
+                    <th>Progress</th>
+                    <th>Size</th>
+                    <th>Speed</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colspan="5" class="text-center">
+                      <i class="fas fa-circle-notch fa-spin"></i> Loading...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Latest History Table -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <i class="fas fa-history"></i>
+              Recent History
+            </div>
+            <a href="#history" class="card-action-link" data-section="history">
+              View All <i class="fas fa-arrow-right"></i>
+            </a>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table" id="dashboard-history-table">
+                <thead>
+                  <tr>
+                    <th>Filename</th>
+                    <th>Drive</th>
+                    <th>Size</th>
+                    <th>Time</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colspan="4" class="text-center">
+                      <i class="fas fa-circle-notch fa-spin"></i> Loading...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
@@ -497,17 +673,17 @@
 
       <!-- Settings Section -->
       <section class="content-section" id="settings-section">
-        <div class="settings-grid">
-          <!-- Transfer Settings -->
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">
-                <i class="fas fa-exchange-alt"></i>
-                Transfer Settings
+        <form class="unified-settings-form" id="unified-settings-form">
+          <div class="settings-grid">
+            <!-- Transfer Settings -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">
+                  <i class="fas fa-exchange-alt"></i>
+                  Transfer Settings
+                </div>
               </div>
-            </div>
-            <div class="card-body">
-              <form class="settings-form" id="transfer-form">
+              <div class="card-body">
                 <div class="form-group">
                   <label for="bandwidth_limit">Bandwidth Limit (MB/s)</label>
                   <input
@@ -552,21 +728,18 @@
                     min="1"
                   />
                 </div>
-                <button type="submit" class="btn">Save Changes</button>
-              </form>
-            </div>
-          </div>
-
-          <!-- Notification Settings -->
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">
-                <i class="fas fa-bell"></i>
-                Notifications
               </div>
             </div>
-            <div class="card-body">
-              <form class="settings-form" id="notification-form">
+
+            <!-- Notification Settings -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">
+                  <i class="fas fa-bell"></i>
+                  Notifications
+                </div>
+              </div>
+              <div class="card-body">
                 <div class="form-group">
                   <label for="notification_level">Notification Level</label>
                   <select
@@ -599,21 +772,18 @@
                     placeholder="discord://webhook-url"
                   />
                 </div>
-                <button type="submit" class="btn">Save Changes</button>
-              </form>
-            </div>
-          </div>
-
-          <!-- System Settings -->
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">
-                <i class="fas fa-cogs"></i>
-                System
               </div>
             </div>
-            <div class="card-body">
-              <form class="settings-form" id="system-form">
+
+            <!-- System Settings -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">
+                  <i class="fas fa-cogs"></i>
+                  System
+                </div>
+              </div>
+              <div class="card-body">
                 <div class="form-group">
                   <label for="log_level">Log Level</label>
                   <select id="log_level" name="log_level" class="form-control">
@@ -634,16 +804,17 @@
                     min="100"
                   />
                 </div>
-                <div class="form-group">
+                <div class="form-group toggle-group">
                   <label for="vfs_refresh_enable">VFS Refresh</label>
-                  <select
-                    id="vfs_refresh_enable"
-                    name="vfs_refresh_enable"
-                    class="form-control"
-                  >
-                    <option value="true" selected>Enabled</option>
-                    <option value="false">Disabled</option>
-                  </select>
+                  <label class="toggle-switch">
+                    <input
+                      type="checkbox"
+                      id="vfs_refresh_enable"
+                      name="vfs_refresh_enable"
+                      checked
+                    />
+                    <span class="toggle-slider"></span>
+                  </label>
                 </div>
                 <div class="form-group">
                   <label for="language">Language</label>
@@ -652,21 +823,18 @@
                     <option value="de">German</option>
                   </select>
                 </div>
-                <button type="submit" class="btn">Save Changes</button>
-              </form>
-            </div>
-          </div>
-
-          <!-- AutoScan Settings -->
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">
-                <i class="fas fa-search"></i>
-                AutoScan
               </div>
             </div>
-            <div class="card-body">
-              <form class="settings-form" id="autoscan-form">
+
+            <!-- AutoScan Settings -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">
+                  <i class="fas fa-search"></i>
+                  AutoScan
+                </div>
+              </div>
+              <div class="card-body">
                 <div class="form-group">
                   <label for="autoscan_url">AutoScan URL</label>
                   <input
@@ -697,21 +865,18 @@
                     placeholder="password (leave empty for none)"
                   />
                 </div>
-                <button type="submit" class="btn">Save Changes</button>
-              </form>
-            </div>
-          </div>
-
-          <!-- Security Settings -->
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">
-                <i class="fas fa-shield-alt"></i>
-                Security
               </div>
             </div>
-            <div class="card-body">
-              <form class="settings-form" id="security-form">
+
+            <!-- Security Settings -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">
+                  <i class="fas fa-shield-alt"></i>
+                  Security
+                </div>
+              </div>
+              <div class="card-body">
                 <div class="form-group">
                   <label for="hashpassword">Hash Password</label>
                   <select
@@ -743,113 +908,30 @@
                     value="encrypt"
                   />
                 </div>
-                <div class="form-group">
+                <div class="form-group toggle-group">
                   <label for="db_team">DB Team</label>
-                  <select id="db_team" name="db_team" class="form-control">
-                    <option value="true" selected>Enabled</option>
-                    <option value="false">Disabled</option>
-                  </select>
-                </div>
-                <button type="submit" class="btn">Save Changes</button>
-              </form>
-            </div>
-          </div>
-
-          <!-- Theme Settings -->
-          <div class="card theme-card">
-            <div class="card-header">
-              <div class="card-title">
-                <i class="fas fa-palette"></i>
-                Appearance
-              </div>
-            </div>
-            <div class="card-body">
-              <!-- Accent Colors Section -->
-              <div class="theme-section">
-                <h3>Accent Colors</h3>
-                <p>Choose a simple color accent for your dashboard</p>
-                <div class="theme-options">
-                  <div class="theme-option" data-theme="orange">
-                    <div class="theme-dot orange"></div>
-                    <span>Orange</span>
-                  </div>
-                  <div class="theme-option" data-theme="purple">
-                    <div class="theme-dot purple"></div>
-                    <span>Purple</span>
-                  </div>
-                  <div class="theme-option" data-theme="blue">
-                    <div class="theme-dot blue"></div>
-                    <span>Blue</span>
-                  </div>
-                  <div class="theme-option" data-theme="green">
-                    <div class="theme-dot green"></div>
-                    <span>Green</span>
-                  </div>
-                  <div class="theme-option" data-theme="red">
-                    <div class="theme-dot red"></div>
-                    <span>Red</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Full Themes Section -->
-              <div class="theme-section" style="margin-top: 20px">
-                <h3>Complete Themes</h3>
-                <p>Select a comprehensive theme with custom styling</p>
-                <div class="theme-options">
-                  <div class="theme-option" data-theme="aquamarine">
-                    <div class="theme-dot aquamarine"></div>
-                    <span>Aquamarine</span>
-                  </div>
-                  <div class="theme-option" data-theme="dark">
-                    <div class="theme-dot dark"></div>
-                    <span>Dark</span>
-                  </div>
-                  <div class="theme-option" data-theme="organizr">
-                    <div class="theme-dot organizr"></div>
-                    <span>Organizr</span>
-                  </div>
-                  <div class="theme-option" data-theme="nord">
-                    <div class="theme-dot nord"></div>
-                    <span>Nord</span>
-                  </div>
-                  <div class="theme-option" data-theme="overseerr">
-                    <div class="theme-dot overseerr"></div>
-                    <span>Overseerr</span>
-                  </div>
-                  <div class="theme-option" data-theme="onedark">
-                    <div class="theme-dot onedark"></div>
-                    <span>OneDark</span>
-                  </div>
-                  <div class="theme-option" data-theme="hotline">
-                    <div class="theme-dot hotline"></div>
-                    <span>Hotline</span>
-                  </div>
-                  <div class="theme-option" data-theme="maroon">
-                    <div class="theme-dot maroon"></div>
-                    <span>Maroon</span>
-                  </div>
-                  <div class="theme-option" data-theme="dracula">
-                    <div class="theme-dot dracula"></div>
-                    <span>Dracula</span>
-                  </div>
-                  <div class="theme-option" data-theme="plex">
-                    <div class="theme-dot plex"></div>
-                    <span>Plex</span>
-                  </div>
-                  <div class="theme-option" data-theme="space-gray">
-                    <div class="theme-dot space-gray"></div>
-                    <span>Space Gray</span>
-                  </div>
-                  <div class="theme-option" data-theme="hotpink">
-                    <div class="theme-dot hotpink"></div>
-                    <span>Hot Pink</span>
-                  </div>
+                  <label class="toggle-switch">
+                    <input
+                      type="checkbox"
+                      id="db_team"
+                      name="db_team"
+                      checked
+                    />
+                    <span class="toggle-slider"></span>
+                  </label>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+
+          <!-- Single Save Button -->
+          <div class="settings-save-container">
+            <button type="submit" class="btn btn-save-all">
+              <i class="fas fa-save"></i>
+              Save All Settings
+            </button>
+          </div>
+        </form>
       </section>
 
       <!-- About Section -->
@@ -1117,9 +1199,9 @@
 
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="js/ui/pagination.js?v=6.2"></script>
-    <script src="js/utils.js?v=6.2"></script>
-    <script src="js/app.js?v=6.2"></script>
+    <script src="js/ui/pagination.js?v=6.8"></script>
+    <script src="js/utils.js?v=6.8"></script>
+    <script src="js/app.js?v=6.8"></script>
 
     <script>
       $(document).ready(function () {
@@ -1151,15 +1233,35 @@
           $("body").removeClass("sidebar-open");
         });
 
-        // Theme switching
-        $(".theme-option").on("click", function () {
+        // Dashboard "View All" links
+        $(".card-action-link").on("click", function (e) {
+          e.preventDefault();
+          const section = $(this).data("section");
+          $(`.nav-item[data-section='${section}']`).click();
+        });
+
+        // Theme dropdown toggle
+        $("#theme-toggle-btn").on("click", function (e) {
+          e.stopPropagation();
+          $("#theme-dropdown-menu").toggleClass("active");
+        });
+
+        // Close dropdown when clicking outside
+        $(document).on("click", function (e) {
+          if (!$(e.target).closest(".theme-dropdown").length) {
+            $("#theme-dropdown-menu").removeClass("active");
+          }
+        });
+
+        // Theme switching from dropdown
+        $(".theme-dropdown-item").on("click", function () {
           const theme = $(this).data("theme");
           console.log("Applying theme:", theme);
 
           document.documentElement.setAttribute("data-theme", theme);
           document.body.setAttribute("data-theme", theme);
 
-          $(".theme-option").removeClass("active");
+          $(".theme-dropdown-item").removeClass("active");
           $(this).addClass("active");
 
           try {
@@ -1167,18 +1269,9 @@
           } catch (error) {
             console.error("Failed to save theme:", error);
           }
-        });
 
-        // Theme toggle button
-        $("#theme-toggle").on("click", function () {
-          // Navigate to settings and show theme section
-          $(".nav-item[data-section='settings']").click();
-          setTimeout(() => {
-            $(".theme-card")[0].scrollIntoView({
-              behavior: "smooth",
-              block: "center",
-            });
-          }, 100);
+          // Close dropdown
+          $("#theme-dropdown-menu").removeClass("active");
         });
 
         // Load saved theme
@@ -1191,10 +1284,14 @@
             document.documentElement.setAttribute("data-theme", theme);
             document.body.setAttribute("data-theme", theme);
 
-            $(`.theme-option[data-theme="${theme}"]`).addClass("active");
+            $(`.theme-dropdown-item[data-theme="${theme}"]`).addClass("active");
+          } else {
+            // Set default dark theme as active
+            $(`.theme-dropdown-item[data-theme="dark"]`).addClass("active");
           }
         } catch (error) {
           console.error("Error loading theme:", error);
+          $(`.theme-dropdown-item[data-theme="dark"]`).addClass("active");
         }
       });
     </script>

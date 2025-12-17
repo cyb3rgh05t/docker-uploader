@@ -58,6 +58,8 @@ function initializeApp() {
   handleQueueList();
   checkStatus();
   updateRealTimeStats();
+  // Load dashboard recent activity
+  loadDashboardActivity();
 }
 
 /**
@@ -226,9 +228,6 @@ function setupEventListeners() {
   // Form submissions - with improved handling
   setupFormSubmissions();
 
-  // Fix notification form issues
-  fixNotificationForm();
-
   // Setup pause control
   setupPauseControl();
 
@@ -340,62 +339,34 @@ function setupSettingsModal() {
  * Special handling for form submissions
  */
 function setupFormSubmissions() {
-  // Form submissions
-  $(".settings-form").on("submit", function (e) {
+  // Unified settings form submission
+  $("#unified-settings-form").on("submit", function (e) {
     e.preventDefault();
 
-    // Get form ID to determine which settings to update
-    const formId = $(this).attr("id");
-
-    // Skip notification form as it has special handling
-    if (formId === "notification-form") {
-      return;
-    }
-
-    // Serialize form data
     const formData = {};
-    const formArray = $(this).serializeArray();
+    const $form = $(this);
 
-    // Convert form data to a simple object
-    formArray.forEach((item) => {
-      // Convert form field names to uppercase as the backend expects them that way
-      formData[item.name.toUpperCase()] = item.value;
+    // Get all form inputs including checkboxes
+    $form.find("input, select, textarea").each(function () {
+      const $input = $(this);
+      const name = $input.attr("name");
+
+      if (name) {
+        if ($input.is(":checkbox")) {
+          // For toggle switches, convert to "true"/"false" strings
+          formData[name.toUpperCase()] = $input.is(":checked")
+            ? "true"
+            : "false";
+        } else {
+          formData[name.toUpperCase()] = $input.val();
+        }
+      }
     });
 
-    // Update environment file with new settings
-    updateEnvSettings(formId, formData);
-  });
-}
+    console.log("Submitting unified settings:", formData);
 
-/**
- * Special handling for notification form to prevent conflicts
- */
-function fixNotificationForm() {
-  // Prevent ServerName from affecting Notification URL
-  $("#notification_servername").on("change", function () {
-    // This empty handler prevents any automatic updates that might happen
-    console.log("ServerName changed to:", $(this).val());
-  });
-
-  // Ensure both fields get submitted separately
-  $("#notification-form").on("submit", function (e) {
-    e.preventDefault();
-
-    const serverName = $("#notification_servername").val();
-    const notificationUrl = $("#notification_url").val();
-
-    console.log("Submitting notification form with separate values:", {
-      serverName: serverName,
-      notificationUrl: notificationUrl,
-    });
-
-    const formData = {
-      NOTIFICATION_SERVERNAME: serverName,
-      NOTIFICATION_URL: notificationUrl,
-      NOTIFICATION_LEVEL: $("#notification_level").val(),
-    };
-
-    updateEnvSettings("notification-form", formData);
+    // Update environment file with all settings at once
+    updateEnvSettings("unified-settings-form", formData);
   });
 }
 
@@ -411,6 +382,7 @@ function startPeriodicUpdates() {
   uploaderApp.intervals.queue = setInterval(handleQueueList, 5000);
   uploaderApp.intervals.stats = setInterval(updateRealTimeStats, 2000);
   uploaderApp.intervals.status = setInterval(checkStatus, 30000);
+  uploaderApp.intervals.dashboard = setInterval(loadDashboardActivity, 5000);
 }
 
 /**
@@ -1360,5 +1332,139 @@ function estimateQueueStats() {
     }
 
     $("#queue-total").text(`Total: ${formatFileSize(totalSize)}`);
+  });
+}
+
+/**
+ * Load dashboard activity sections
+ */
+function loadDashboardActivity() {
+  loadDashboardQueue();
+  loadDashboardActive();
+  loadDashboardHistory();
+}
+
+/**
+ * Load latest queue items for dashboard
+ */
+function loadDashboardQueue() {
+  $.getJSON("srv/api/jobs/queue.php", function (data) {
+    const $tbody = $("#dashboard-queue-table tbody");
+    $tbody.empty();
+
+    if (!data.files || data.files.length === 0) {
+      $tbody.append(
+        '<tr><td colspan="5" class="text-center">No files in queue</td></tr>'
+      );
+      return;
+    }
+
+    // Show only latest 5 items
+    const files = data.files.slice(0, 5);
+    files.forEach(function (file) {
+      const size = formatFileSize(parseFileSize(file.filesize));
+      const time = formatRelativeTime(file.time);
+      const $row = $(`
+        <tr>
+          <td class="truncate">${escapeHtml(file.filebase)}</td>
+          <td>${escapeHtml(file.drive || "N/A")}</td>
+          <td class="truncate">${escapeHtml(file.filedir || "")}</td>
+          <td>${size}</td>
+          <td>${time}</td>
+        </tr>
+      `);
+      $tbody.append($row);
+    });
+  }).fail(function () {
+    $("#dashboard-queue-table tbody").html(
+      '<tr><td colspan="5" class="text-center">Failed to load queue</td></tr>'
+    );
+  });
+}
+
+/**
+ * Load latest active uploads for dashboard
+ */
+function loadDashboardActive() {
+  $.getJSON("srv/api/jobs/inprogress.php", function (data) {
+    const $tbody = $("#dashboard-active-table tbody");
+    $tbody.empty();
+
+    if (!data.jobs || data.jobs.length === 0) {
+      $tbody.append(
+        '<tr><td colspan="5" class="text-center">No active uploads</td></tr>'
+      );
+      return;
+    }
+
+    // Show only latest 5 items
+    const jobs = data.jobs.slice(0, 5);
+    jobs.forEach(function (job) {
+      const size = formatFileSize(parseFileSize(job.file_size));
+      const progress = parseInt(job.percentage) || 0;
+      const speed = job.speed || "0 MB/s";
+
+      const $row = $(`
+        <tr>
+          <td class="truncate">${escapeHtml(job.filename)}</td>
+          <td>${escapeHtml(job.folder || "N/A")}</td>
+          <td>
+            <div class="progress-container">
+              <div class="progress-info">
+                <span class="progress-percentage">${progress}%</span>
+              </div>
+              <div class="progress">
+                <div class="progress-bar bg-success" style="width: ${progress}%"></div>
+              </div>
+            </div>
+          </td>
+          <td>${size}</td>
+          <td>${speed}</td>
+        </tr>
+      `);
+      $tbody.append($row);
+    });
+  }).fail(function () {
+    $("#dashboard-active-table tbody").html(
+      '<tr><td colspan="5" class="text-center">Failed to load active uploads</td></tr>'
+    );
+  });
+}
+
+/**
+ * Load latest history for dashboard
+ */
+function loadDashboardHistory() {
+  $.getJSON("srv/api/jobs/completed.php?page=1", function (data) {
+    const $tbody = $("#dashboard-history-table tbody");
+    $tbody.empty();
+
+    if (!data.jobs || data.jobs.length === 0) {
+      $tbody.append(
+        '<tr><td colspan="4" class="text-center">No upload history</td></tr>'
+      );
+      return;
+    }
+
+    // Show only latest 5 items
+    const jobs = data.jobs.slice(0, 5);
+    jobs.forEach(function (job) {
+      const size = job.file_size || "N/A";
+      const time = job.time_end_clean || "N/A";
+
+      const $row = $(`
+        <tr>
+          <td class="truncate">${escapeHtml(job.file_name || "")}</td>
+          <td>${escapeHtml(job.drive || "N/A")}</td>
+          <td>${size}</td>
+          <td>${time}</td>
+        </tr>
+      `);
+      $tbody.append($row);
+    });
+  }).fail(function () {
+    $("#dashboard-history-table tbody").html(
+      '<tr><td colspan="4" class="text-center">Failed to load history</td></tr>'
+    );
   });
 }
