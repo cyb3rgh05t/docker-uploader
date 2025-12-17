@@ -21,7 +21,14 @@ function checkStatus()
             $startTimeJiffies = isset($parts[21]) ? (float)$parts[21] : 0;
 
             // Get system clock ticks per second
-            $clockTicks = 100; // Default for most Linux systems
+            $clockTicks = 100; // Sensible default for many Linux systems
+            $clkTckOutput = @shell_exec('getconf CLK_TCK 2>/dev/null');
+            if ($clkTckOutput !== null) {
+                $clkTckOutput = trim($clkTckOutput);
+                if (is_numeric($clkTckOutput) && (float)$clkTckOutput > 0) {
+                    $clockTicks = (float)$clkTckOutput;
+                }
+            }
 
             // Get system uptime
             $uptimeData = @file_get_contents('/proc/uptime');
