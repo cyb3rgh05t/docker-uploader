@@ -2,6 +2,9 @@
 
 class UploadJobStatus
 {
+    public $job_name;
+    public $job_last_update_timestamp;
+    public $drive;
     public $file_directory;
     public $file_name;
     public $file_size;
@@ -11,5 +14,7 @@ class UploadJobStatus
     public $gdsa;
     public $time_start;
     public $time_end;
+    public $time_end_clean;
     public $time_elapsed;
+    public $successful;
 }
