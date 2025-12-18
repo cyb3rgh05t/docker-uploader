@@ -239,6 +239,10 @@ Example:
 uploader|0XXXXXXXXX000000EERR|72nsjsiwjsjsu|72nsjsiwjsjsu
 ```
 
+## Version
+
+![Image of Uploader](/images/versioning.png)
+
 ## Support
 
 Kindly report any issues on [GitHub](https://github.com/dockserver/dockserver/issues) or [![Discord: https://discord.gg/A7h7bKBCVa](https://img.shields.io/badge/Discord-gray.svg?style=for-the-badge)](https://discord.gg/A7h7bKBCVa)
