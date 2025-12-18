@@ -400,6 +400,19 @@ function rcloneupload() {
 
 function listfiles() {
    source /system/uploader/uploader.env
+   
+   # Validate MIN_AGE_UPLOAD
+   if [[ -z "${MIN_AGE_UPLOAD}" || ! "${MIN_AGE_UPLOAD}" =~ ^[0-9]+$ ]]; then
+      MIN_AGE_UPLOAD=1
+      log "Warning: MIN_AGE_UPLOAD was invalid, reset to 1"
+   fi
+   
+   # Validate FOLDER_DEPTH
+   if [[ -z "${FOLDER_DEPTH}" || ! "${FOLDER_DEPTH}" =~ ^[0-9]+$ || "${FOLDER_DEPTH}" -lt 1 ]]; then
+      FOLDER_DEPTH=1
+      log "Warning: FOLDER_DEPTH was invalid, reset to 1"
+   fi
+   
    #### CREATE TEMP_FILE ####
    sqlite3read "SELECT filebase FROM upload_queue UNION ALL SELECT filebase FROM uploads;" > "${TEMPFILES}"
    #### FIND NEW FILES ####
@@ -409,7 +422,12 @@ function listfiles() {
    for NAME in ${FILEBASE[@]}; do
       LISTFILE=$($(which basename) "${NAME}")
       LISTDIR=$($(which dirname) "${NAME}")
-      LISTDRIVE=$($(which echo) "${LISTDIR}" | $(which cut) -d/ -f-"${FOLDER_DEPTH}" | $(which xargs) -I {} $(which basename) {})
+      # Ensure FOLDER_DEPTH is valid
+      if [[ -z "${FOLDER_DEPTH}" || "${FOLDER_DEPTH}" -lt 1 ]]; then
+        FOLDER_DEPTH=1
+        log "Warning: FOLDER_DEPTH was invalid, reset to 1"
+      fi
+      LISTDRIVE=$($(which echo) "${LISTDIR}" | $(which cut) -d/ -f1-"${FOLDER_DEPTH}" | $(which xargs) -I {} $(which basename) {})
       LISTSIZE=$($(which stat) -c %s "${DLFOLDER}/${NAME}" 2>/dev/null)
       LISTTYPE="${NAME##*.}"
       if [[ "${LISTTYPE}" == "mkv" ]] || [[ "${LISTTYPE}" == "mp4" ]] || [[ "${LISTTYPE}" == "avi" ]] || [[ "${LISTTYPE}" == "mov" ]] || [[ "${LISTTYPE}" == "mpeg" ]] || [[ "${LISTTYPE}" == "mpegts" ]] || [[ "${LISTTYPE}" == "ts" ]]; then
@@ -459,7 +477,7 @@ function checkmeta() {
 function checkspace() {
    source /system/uploader/uploader.env
    #### CHECK DRIVEUSEDSPACE ####
-   if [[ "${DRIVEUSEDSPACE}" =~ ^[0-9][0-9]+([.][0-9]+)?$ ]]; then
+   if [[ "${DRIVEUSEDSPACE}" != "null" && "${DRIVEUSEDSPACE}" =~ ^[0-9][0-9]+([.][0-9]+)?$ ]]; then
       while true; do
         LCT=$($(which df) --output=pcent "${DLFOLDER}" | tr -dc '0-9')
         if [[ "${DRIVEUSEDSPACE}" =~ ^[0-9][0-9]+([.][0-9]+)?$ ]]; then
