@@ -270,7 +270,7 @@ function rcloneupload() {
    fi
    #### CHECK IS FILE AVAILABLE ####
    if [[ ! -f "${DLFOLDER}/${DIR}/${FILE}" ]]; then
-      sqlite3write "DELETE FROM uploads WHERE filebase = \"${FILE}\";" &>/dev/null
+      sqlite3write "DELETE FROM uploads WHERE filebase = '${FILE//\'/\'\'}';" &>/dev/null
       $(which sleep) 2 && return
    fi
    #### CHECK IS FILE SIZE NOT CHANGED ####
@@ -329,7 +329,7 @@ function rcloneupload() {
    #### TOUCH LOG FILE FOR UI READING ####
    touch "${LOGFILE}/${FILE}.txt" &>/dev/null
    #### UPDATE DATABASE ENTRY ####
-   sqlite3write "INSERT OR REPLACE INTO uploads (drive,filedir,filebase,filesize,logfile,gdsa) VALUES (\"${DRIVE}\",\"${DIR}\",\"${FILE}\",\"${SIZE}\",\"${LOGFILE}/${FILE}.txt\",\"${KEYNOTI}${CRYPTED}\");" &>/dev/null
+   sqlite3write "INSERT OR REPLACE INTO uploads (drive,filedir,filebase,filesize,logfile,gdsa) VALUES ('${DRIVE//\'/\'\'}','${DIR//\'/\'\'}','${FILE//\'/\'\'}','${SIZE}','${LOGFILE}/${FILE//\'/\'\'}. txt','${KEYNOTI}${CRYPTED}');" &>/dev/null
    #### READ BWLIMIT ####
    if [[ "${BANDWIDTH_LIMIT}" == "" ]]; then
       BANDWIDTH_LIMIT="null"
@@ -388,7 +388,7 @@ function rcloneupload() {
    fi
    
    # Insert into completed_uploads with the filesize_bytes field
-   sqlite3write "INSERT INTO completed_uploads (drive,filedir,filebase,filesize,filesize_bytes,gdsa,starttime,endtime,status,error) VALUES (\"${DRIVE}\",\"${DIR}\",\"${FILE}\",\"${SIZE}\",\"${SIZEBYTES}\",\"${KEYNOTI}${CRYPTED}\",\"${STARTZ}\",\"${ENDZ}\",\"${STATUS}\",\"${ERROR}\"); DELETE FROM uploads WHERE filebase = \"${FILE}\";" &>/dev/null
+   sqlite3write "INSERT INTO completed_uploads (drive,filedir,filebase,filesize,filesize_bytes,gdsa,starttime,endtime,status,error) VALUES ('${DRIVE//\'/\'\'}','${DIR//\'/\'\'}','${FILE//\'/\'\'}','${SIZE}','${SIZEBYTES}','${KEYNOTI}${CRYPTED}','${STARTZ}','${ENDZ}','${STATUS//\'/\'\'}','${ERROR//\'/\'\'}'); DELETE FROM uploads WHERE filebase = '${FILE//\'/\'\'}';" &>/dev/null
    
    #### END OF MOVE ####
    $(which rm) -rf "${LOGFILE}/${FILE}.txt" &>/dev/null
@@ -421,13 +421,13 @@ function listfiles() {
          STRIPARR_URL="null"
       fi
       if [[ "${STRIPARR_URL}" == "null" ]]; then
-         sqlite3write "INSERT OR IGNORE INTO upload_queue (drive,filedir,filebase,filesize,metadata) SELECT \"${LISTDRIVE}\",\"${LISTDIR}\",\"${LISTFILE}\",\"${LISTSIZE}\","0" WHERE NOT EXISTS (SELECT 1 FROM uploads WHERE filebase = \"${LISTFILE}\");" &>/dev/null
+         sqlite3write "INSERT OR IGNORE INTO upload_queue (drive,filedir,filebase,filesize,metadata) SELECT '${LISTDRIVE//\'/\'\'}','${LISTDIR//\'/\'\'}','${LISTFILE//\'/\'\'}','${LISTSIZE}','0' WHERE NOT EXISTS (SELECT 1 FROM uploads WHERE filebase = '${LISTFILE//\'/\'\'}');" &>/dev/null
       else
          if [[ "${CHECKMETA}" == "1" ]]; then
-            sqlite3write "INSERT OR IGNORE INTO upload_queue (drive,filedir,filebase,filesize,metadata) SELECT \"${LISTDRIVE}\",\"${LISTDIR}\",\"${LISTFILE}\",\"${LISTSIZE}\",\"${CHECKMETA}\" WHERE NOT EXISTS (SELECT 1 FROM uploads WHERE filebase = \"${LISTFILE}\");" &>/dev/null
+            sqlite3write "INSERT OR IGNORE INTO upload_queue (drive,filedir,filebase,filesize,metadata) SELECT '${LISTDRIVE//\'/\'\'}','${LISTDIR//\'/\'\'}','${LISTFILE//\'/\'\'}','${LISTSIZE}','${CHECKMETA}' WHERE NOT EXISTS (SELECT 1 FROM uploads WHERE filebase = '${LISTFILE//\'/\'\'}');" &>/dev/null
             $(which curl) -sf -X POST -H "Content-Type: application/json" -d '{"eventType": "Download", "series": {"path": "'"${DLFOLDER}/${LISTDIR}"'"}, "episodeFile": {"relativePath": "'"${LISTFILE}"'"}}' "${STRIPARR_URL}"
          else
-            sqlite3write "INSERT OR IGNORE INTO upload_queue (drive,filedir,filebase,filesize,metadata) SELECT \"${LISTDRIVE}\",\"${LISTDIR}\",\"${LISTFILE}\",\"${LISTSIZE}\",\"${CHECKMETA}\" WHERE NOT EXISTS (SELECT 1 FROM uploads WHERE filebase = \"${LISTFILE}\");" &>/dev/null
+            sqlite3write "INSERT OR IGNORE INTO upload_queue (drive,filedir,filebase,filesize,metadata) SELECT '${LISTDRIVE//\'/\'\'}','${LISTDIR//\'/\'\'}','${LISTFILE//\'/\'\'}','${LISTSIZE}','${CHECKMETA}' WHERE NOT EXISTS (SELECT 1 FROM uploads WHERE filebase = '${LISTFILE//\'/\'\'}');" &>/dev/null
          fi
       fi
    done
@@ -440,8 +440,8 @@ function checkmeta() {
    METAFILES=$(sqlite3read "SELECT COUNT(*) FROM upload_queue WHERE metadata = 1;")
    if [[ "${METAFILES}" -ge "1" ]]; then
       METAFILE=$(sqlite3read "SELECT filebase FROM upload_queue WHERE metadata = 1 ORDER BY time LIMIT 1;" 2>/dev/null)
-      METADIR=$(sqlite3read "SELECT filedir FROM upload_queue WHERE filebase = \"${METAFILE}\";" 2>/dev/null)
-      METACHECK=$($(which exiftool) -m -q -q -Title "${DLFOLDER}/${METADIR}/${METAFILE}" 2>/dev/null | $(which grep) -qE * && echo 1 || echo 0)
+      METADIR=$(sqlite3read "SELECT filedir FROM upload_queue WHERE filebase = '${METAFILE//\'/\'\'}';" 2>/dev/null)
+      METACHECK=$($(which exiftool) -m -q -q -Title "${DLFOLDER}/${METADIR}/${METAFILE}" 2>/dev/null | $(which grep) -qE '[A-Za-z]' && echo 1 || echo 0)
       if [[ "${METACHECK}" == "0" ]]; then
          METAOLD="60"
          METACUR=$($(which date) +%s)
@@ -449,7 +449,7 @@ function checkmeta() {
          METADIFF=$($(which expr) "${METACUR}" - "${METATIME}")
          if [[ "${METADIFF}" -gt "${METAOLD}" ]]; then
             METASIZE=$($(which stat) -c %s "${DLFOLDER}/${METADIR}/${METAFILE}" 2>/dev/null)
-            sqlite3write "UPDATE upload_queue SET filesize = \"${METASIZE}\", metadata = \"${METACHECK}\" WHERE filebase = \"${METAFILE}\";" &>/dev/null
+            sqlite3write "UPDATE upload_queue SET filesize = '${METASIZE}', metadata = '${METACHECK}' WHERE filebase = '${METAFILE//\'/\'\'}';" &>/dev/null
             checkmeta
          fi
       fi
@@ -487,7 +487,7 @@ function transfercheck() {
       fi
       if [[ "${ACTIVETRANSFERS}" -lt "${TRANSFERS}" ]]; then
          #### CREATE DATABASE ENTRY ####
-         sqlite3write "DELETE FROM upload_queue WHERE filebase = \"${FILE}\"; INSERT INTO uploads (filebase) VALUES (\"${FILE}\");" &>/dev/null
+         sqlite3write "DELETE FROM upload_queue WHERE filebase = '${FILE//\'/\'\'}'; INSERT INTO uploads (filebase) VALUES ('${FILE//\'/\'\'}');" &>/dev/null
          $(which sleep) 2 && break
       else
          $(which sleep) 10
@@ -545,9 +545,9 @@ function startuploader() {
             SEARCHSTRING="ORDER BY time"
          fi
          FILE=$(sqlite3read "SELECT filebase FROM upload_queue WHERE metadata = 0 ${SEARCHSTRING} LIMIT 1;" 2>/dev/null)
-         DIR=$(sqlite3read "SELECT filedir FROM upload_queue WHERE filebase = \"${FILE}\";" 2>/dev/null)
-         DRIVE=$(sqlite3read "SELECT drive FROM upload_queue WHERE filebase = \"${FILE}\";" 2>/dev/null)
-         SIZEBYTES=$(sqlite3read "SELECT filesize FROM upload_queue WHERE filebase = \"${FILE}\";" 2>/dev/null)
+         DIR=$(sqlite3read "SELECT filedir FROM upload_queue WHERE filebase = '${FILE//\'/\'\'}';" 2>/dev/null)
+         DRIVE=$(sqlite3read "SELECT drive FROM upload_queue WHERE filebase = '${FILE//\'/\'\'}';" 2>/dev/null)
+         SIZEBYTES=$(sqlite3read "SELECT filesize FROM upload_queue WHERE filebase = '${FILE//\'/\'\'}';" 2>/dev/null)
             #### TO CHECK IS IT A FILE OR NOT ####
             if [[ -f "${DLFOLDER}/${DIR}/${FILE}" ]]; then
                #### REPULL SOURCE FILE FOR LIVE EDITS ####
