@@ -329,7 +329,7 @@ function rcloneupload() {
    #### TOUCH LOG FILE FOR UI READING ####
    touch "${LOGFILE}/${FILE}.txt" &>/dev/null
    #### UPDATE DATABASE ENTRY ####
-   sqlite3write "INSERT OR REPLACE INTO uploads (drive,filedir,filebase,filesize,logfile,gdsa) VALUES ('${DRIVE//\'/\'\'}','${DIR//\'/\'\'}','${FILE//\'/\'\'}','${SIZE}','${LOGFILE}/${FILE//\'/\'\'}.txt','${KEYNOTI}${CRYPTED}');" &>/dev/null
+   sqlite3write "INSERT OR REPLACE INTO uploads (drive,filedir,filebase,filesize,logfile,gdsa) VALUES ('${DRIVE//\'/\'\'}','${DIR//\'/\'\'}','${FILE//\'/\'\'}','${SIZE}','${LOGFILE}/${FILE//\'/\'\'}.txt','${REMOTENAME//\'/\'\'}');" &>/dev/null
    #### READ BWLIMIT ####
    if [[ "${BANDWIDTH_LIMIT}" == "" ]]; then
       BANDWIDTH_LIMIT="null"
