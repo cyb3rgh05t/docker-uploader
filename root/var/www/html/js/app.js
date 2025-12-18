@@ -1013,29 +1013,46 @@ function updateSystemOverview() {
           const $statusIcon = $("#system-status-icon");
           const $statusIconI = $statusIcon.find("i");
 
+          // Check if there are active uploads
+          const activeUploads =
+            $("#uploadsTable tbody tr").not(':contains("No uploads")').length ||
+            0;
+
           // Remove all color classes
-          $statusValue.removeClass("value-green value-red value-orange");
+          $statusValue.removeClass(
+            "value-green value-red value-orange value-blue"
+          );
           $statusIcon.removeClass(
-            "gradient-green gradient-red gradient-orange"
+            "gradient-green gradient-red gradient-orange gradient-blue"
           );
 
           if (data.status === "STARTED") {
-            $statusValue.text("Online").addClass("value-green");
-            $statusIcon.addClass("gradient-green");
-            $statusIconI
-              .removeClass("fa-times-circle fa-pause-circle")
-              .addClass("fa-check-circle");
+            if (activeUploads > 0) {
+              // Uploading state - green with arrow-up icon
+              $statusValue.text("Uploading").addClass("value-green");
+              $statusIcon.addClass("gradient-green");
+              $statusIconI
+                .removeClass("fa-times-circle fa-pause-circle fa-check-circle")
+                .addClass("fa-arrow-up");
+            } else {
+              // Online but idle - green with check-circle icon
+              $statusValue.text("Online").addClass("value-green");
+              $statusIcon.addClass("gradient-green");
+              $statusIconI
+                .removeClass("fa-times-circle fa-pause-circle fa-arrow-up")
+                .addClass("fa-check-circle");
+            }
           } else if (data.status === "STOPPED") {
             $statusValue.text("Stopped").addClass("value-orange");
             $statusIcon.addClass("gradient-orange");
             $statusIconI
-              .removeClass("fa-check-circle fa-times-circle")
+              .removeClass("fa-check-circle fa-times-circle fa-arrow-up")
               .addClass("fa-pause-circle");
           } else {
             $statusValue.text("Offline").addClass("value-red");
             $statusIcon.addClass("gradient-red");
             $statusIconI
-              .removeClass("fa-check-circle fa-pause-circle")
+              .removeClass("fa-check-circle fa-pause-circle fa-arrow-up")
               .addClass("fa-times-circle");
           }
         }

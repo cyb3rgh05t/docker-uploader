@@ -865,6 +865,10 @@ a:hover {
   background: linear-gradient(135deg, #3f51b5 0%, #5c6bc0 100%);
 }
 
+.gradient-cyan {
+  background: linear-gradient(135deg, #00bcd4 0%, #26c6da 100%);
+}
+
 /* Stat Badges */
 .stat-badge {
   display: inline-flex;
@@ -1304,9 +1308,6 @@ a:hover {
   font-weight: 700;
   color: var(--text-primary);
   line-height: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 /* Colored Values Matching Icon Gradients */
@@ -1332,6 +1333,10 @@ a:hover {
 
 .value-red {
   color: #f44336;
+}
+
+.value-cyan {
+  color: #00bcd4;
 }
 
 /* Mini Subtitle for Additional Info */
