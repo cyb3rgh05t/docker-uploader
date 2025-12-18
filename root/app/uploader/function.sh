@@ -331,7 +331,7 @@ function rcloneupload() {
    checkerror
    #### ECHO END-PARTS FOR UI READING ####
    $(which find) "${DLFOLDER}/${SETDIR}" -mindepth 1 -type d -empty -delete &>/dev/null
-   sqlite3write "INSERT INTO completed_uploads (drive,filedir,filebase,filesize,gdsa,starttime,endtime,status,error) VALUES ('${DRIVE//\'/\'\'}','${DIR//\'/\'\'}','${FILE//\'/\'\'}','${SIZE}','${REMOTENAME//\'/\'\'}','${STARTZ}','${ENDZ}','${STATUS//\'/\'\'}','${ERROR//\'/\'\'}'); DELETE FROM uploads WHERE filebase = '${FILE//\'/\'\'}';" &>/dev/null
+   sqlite3write "INSERT INTO completed_uploads (drive,filedir,filebase,filesize,gdsa,starttime,endtime,status,error) VALUES ('${DRIVE//\'/\\''}','${DIR//\'/\\''}','${FILE//\'/\\''}','${SIZE//\'/\\''}','${REMOTENAME//\'/\\''}','${STARTZ}','${ENDZ}','${STATUS//\'/\\''}','${ERROR//\'/\\''}'); DELETE FROM uploads WHERE filebase = '${FILE//\'/\\''}';" &>/dev/null
    #### END OF MOVE ####
    $(which rm) -rf "${LOGFILE}/${FILE}.txt" &>/dev/null
    #### REMOVE CUSTOM RCLONE.CONF ####

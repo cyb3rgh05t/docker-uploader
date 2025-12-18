@@ -365,7 +365,7 @@ function rcloneupload() {
    fi
    
    # Insert into completed_uploads with the filesize_bytes field
-   sqlite3write "INSERT INTO completed_uploads (drive,filedir,filebase,filesize,filesize_bytes,gdsa,starttime,endtime,status,error) VALUES (\"${DRIVE}\",\"${DIR}\",\"${FILE}\",\"${SIZE}\",\"${SIZEBYTES}\",\"${REMOTENAME}\",\"${STARTZ}\",\"${ENDZ}\",\"${STATUS}\",\"${ERROR}\"); DELETE FROM uploads WHERE filebase = \"${FILE}\";" &>/dev/null
+   sqlite3write "INSERT INTO completed_uploads (drive,filedir,filebase,filesize,filesize_bytes,gdsa,starttime,endtime,status,error) VALUES ('${DRIVE//\'/\\''}','${DIR//\'/\\''}','${FILE//\'/\\''}','${SIZE//\'/\\''}','${SIZEBYTES}','${REMOTENAME//\'/\\''}','${STARTZ}','${ENDZ}','${STATUS//\'/\\''}','${ERROR//\'/\\''}'); DELETE FROM uploads WHERE filebase = '${FILE//\'/\\''}';" &>/dev/null
    
    #### END OF MOVE ####
    $(which rm) -rf "${LOGFILE}/${FILE}.txt" &>/dev/null
