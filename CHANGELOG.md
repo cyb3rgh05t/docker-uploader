@@ -1,5 +1,25 @@
 # Changelog
 
+## [5.3.23.2] - 2025-12-18
+
+### Fixed
+
+- **SQLite Compatibility**: Updated all SQL statements across uploader scripts to use single-quote string syntax instead of double quotes for compatibility with newer SQLite versions
+  - Applied to function.sh, function-db.sh, and function-gdsa.sh
+  - Implemented proper SQL escaping pattern `${VAR//\'/\'\'}` for single quotes in values
+  - Affected ~30+ SQL statements (SELECT, INSERT, UPDATE, DELETE operations)
+- **Logfile Path Bug**: Fixed space character before `.txt` extension in logfile path generation that caused incorrect log file references
+- **CSS Text Overflow**: Removed `overflow: hidden` and `text-overflow: ellipsis` from `.overview-mini-value` class to prevent text truncation in dashboard cards
+- **TRANSFERS Validation**: Improved validation and consistency of TRANSFERS environment variable across all uploader function files
+
+### Technical Improvements
+
+- Enhanced SQL statement compatibility for SQLite 3.44.0+
+- Improved database field escaping and sanitization
+- Standardized TRANSFERS validation logic across backend variants (generic, Dropbox, Google Drive SA)
+
+---
+
 ## [5.0.0] - 2025-12-17
 
 ### Added
