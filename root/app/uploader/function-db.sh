@@ -328,8 +328,7 @@ function rcloneupload() {
    $(which rclone) moveto "${DLFOLDER}/${DIR}/${FILE}" "${REMOTENAME}:/${DIR}/${FILE}" \
       --config="${CONFIG}" \
       --stats=1s --checkers=4 \
-      --dropbox-chunk-size=128M --use-mmap \
-      --no-sparse-to-sd-card \
+      --dropbox-chunk-size=128M \
       --log-level="${LOG_LEVEL}" \
       --user-agent="${USERAGENT}" ${BWLIMIT} \
       --log-file="${LOGFILE}/${FILE}.txt" \
