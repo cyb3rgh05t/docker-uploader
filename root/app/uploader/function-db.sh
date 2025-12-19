@@ -329,6 +329,7 @@ function rcloneupload() {
       --config="${CONFIG}" \
       --stats=1s --checkers=4 \
       --dropbox-chunk-size=128M --use-mmap \
+      --no-sparse-to-sd-card \
       --log-level="${LOG_LEVEL}" \
       --user-agent="${USERAGENT}" ${BWLIMIT} \
       --log-file="${LOGFILE}/${FILE}.txt" \
