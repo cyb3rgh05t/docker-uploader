@@ -49,6 +49,14 @@
         <a href="#history" class="nav-item" data-section="history">
           <i class="fas fa-history"></i>
           <span>History</span>
+          <span
+            class="nav-badge failed-badge"
+            id="failed-count-badge"
+            style="display: none"
+          >
+            <i class="fas fa-exclamation-circle"></i>
+            <span id="failed-badge-count">0</span>
+          </span>
         </a>
         <a href="#settings" class="nav-item" data-section="settings">
           <i class="fas fa-cog"></i>
@@ -559,6 +567,29 @@
               Completed Uploads
             </div>
             <div class="card-actions">
+              <div class="filter-buttons" style="margin-right: 15px">
+                <button
+                  class="filter-btn active"
+                  data-filter="all"
+                  id="filter-all"
+                >
+                  <i class="fas fa-list"></i> All
+                </button>
+                <button
+                  class="filter-btn"
+                  data-filter="success"
+                  id="filter-success"
+                >
+                  <i class="fas fa-check"></i> Successful
+                </button>
+                <button
+                  class="filter-btn"
+                  data-filter="failed"
+                  id="filter-failed"
+                >
+                  <i class="fas fa-exclamation-circle"></i> Failed
+                </button>
+              </div>
               <span id="clnHist" class="action-button">
                 <i class="fas fa-trash-alt"></i>
                 Clear History

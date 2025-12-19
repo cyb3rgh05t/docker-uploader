@@ -363,6 +363,28 @@ a:hover {
   border-radius: var(--radius-md);
 }
 
+.nav-badge {
+  margin-left: auto;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.nav-badge.failed-badge {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.nav-badge i {
+  font-size: 0.65rem;
+}
+
 .nav-item::before {
   content: "";
   position: absolute;
@@ -2106,6 +2128,57 @@ a:hover {
   background: var(--accent-transparent);
   color: var(--accent-color);
   border-radius: 999px;
+}
+
+/* Filter Buttons */
+.filter-buttons {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+.filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all var(--transition);
+}
+
+.filter-btn:hover {
+  background: var(--accent-transparent);
+  color: var(--accent-color);
+  border-color: var(--accent-color);
+}
+
+.filter-btn.active {
+  background: var(--accent-color);
+  color: var(--bg-primary);
+  border-color: var(--accent-color);
+  font-weight: 600;
+}
+
+.filter-btn i {
+  font-size: 0.85rem;
+}
+
+/* Error indicators in tables */
+.table-danger {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.table td.has-error {
+  cursor: help;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-decoration-color: #ef4444;
+}
   font-size: 0.75rem;
   font-weight: 600;
   border: 1px solid var(--accent-color);

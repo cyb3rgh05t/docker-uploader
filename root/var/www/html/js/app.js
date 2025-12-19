@@ -13,12 +13,15 @@ const uploaderApp = {
   completedTodaySize: 0,
   // Store env settings loaded from the API
   envSettings: {},
+  // Current filter in history section
+  historyFilter: "all",
   // Interval IDs for periodic updates
   intervals: {
     inProgress: null,
     completed: null,
     stats: null,
     queue: null,
+    failedCount: null,
   },
 };
 
@@ -60,6 +63,8 @@ function initializeApp() {
   updateRealTimeStats();
   // Load dashboard recent activity
   loadDashboardActivity();
+  // Load failed uploads count
+  updateFailedCount();
 }
 
 /**
@@ -188,6 +193,30 @@ function compareVersions(v1, v2) {
 }
 
 /**
+ * Update failed uploads count badge
+ */
+function updateFailedCount() {
+  fetch("srv/api/jobs/failed_count.php")
+    .then((response) => response.json())
+    .then((data) => {
+      const count = data.count || 0;
+      const $badge = $("#failed-count-badge");
+      const $badgeCount = $("#failed-badge-count");
+
+      $badgeCount.text(count);
+
+      if (count > 0) {
+        $badge.show();
+      } else {
+        $badge.hide();
+      }
+    })
+    .catch((error) => {
+      console.error("Failed to fetch failed uploads count:", error);
+    });
+}
+
+/**
  * Set up all event listeners
  */
 function setupEventListeners() {
@@ -257,6 +286,14 @@ function setupEventListeners() {
     $(this).addClass("active");
     uploaderApp.pageSize = parseInt($(this).find("a").text());
     saveUserSetting("pageSize", uploaderApp.pageSize);
+    handleCompletedJobList();
+  });
+
+  // History filter buttons
+  $(".filter-btn").on("click", function () {
+    $(".filter-btn").removeClass("active");
+    $(this).addClass("active");
+    uploaderApp.historyFilter = $(this).data("filter");
     handleCompletedJobList();
   });
 
@@ -574,9 +611,15 @@ function handleCompletedJobList() {
   $("#pageSize > li.page-item").removeClass("active");
   $(`#pageSize > li.page-item:contains("${savedPageSize}")`).addClass("active");
 
+  // Determine which API endpoint to use based on filter
+  let apiEndpoint = "srv/api/jobs/completed.php";
+  if (uploaderApp.historyFilter === "failed") {
+    apiEndpoint = "srv/api/jobs/failed.php";
+  }
+
   // Initialize pagination
   $("#page").pagination({
-    dataSource: "srv/api/jobs/completed.php",
+    dataSource: apiEndpoint,
     locator: "jobs",
     ulClassName: "pagination pagination-sm",
     totalNumberLocator: function (response) {
@@ -603,6 +646,8 @@ function handleCompletedJobList() {
     afterPaging: function () {
       // After page changes, fetch complete upload stats for today
       fetchCompletedTodayStats();
+      // Also update failed count
+      updateFailedCount();
     },
     callback: function (data, pagination) {
       // Add Bootstrap classes to pagination links
@@ -612,8 +657,12 @@ function handleCompletedJobList() {
       $completedTableBody.empty();
 
       if (!data || data.length === 0) {
+        const message =
+          uploaderApp.historyFilter === "failed"
+            ? "No failed uploads"
+            : "No completed uploads";
         $completedTableBody.append(
-          '<tr><td colspan="7" class="no-uploads-message text-center">No completed uploads</td></tr>'
+          `<tr><td colspan="7" class="no-uploads-message text-center">${message}</td></tr>`
         );
         $("#clnHist").hide();
         return;
@@ -658,7 +707,15 @@ function handleCompletedJobList() {
             .attr("data-title", "Time spent")
             .text(job.time_elapsed || "n/a")
         );
-        row.append($("<td>").attr("data-title", "Uploaded").text(endTime));
+
+        // Show error message in tooltip for failed uploads
+        let uploadedCell = $("<td>")
+          .attr("data-title", "Uploaded")
+          .text(endTime);
+        if (!job.successful && job.error_message) {
+          uploadedCell.attr("title", job.error_message).addClass("has-error");
+        }
+        row.append(uploadedCell);
 
         $completedTableBody.append(row);
       });
