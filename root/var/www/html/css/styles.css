@@ -1460,14 +1460,14 @@ a:hover {
 }
 
 .active-uploads-badge {
-  background: rgba(255, 255, 255, 0.3);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
   color: white;
-  padding: 0.125rem 0.5rem;
+  padding: var(--space-sm) var(--space-lg);
   border-radius: 999px;
-  font-size: 0.75rem;
-  min-width: 20px;
-  text-align: center;
-  font-weight: 700;
+  font-size: 0.875rem;
+  font-weight: 600;
   border: 1px solid var(--accent-dark);
 }
 
