@@ -39,6 +39,9 @@ $(document).ready(function () {
   // Setup event listeners
   setupEventListeners();
 
+  // Initialize styled selects in settings
+  initStyledSelects();
+
   // Start periodic updates
   startPeriodicUpdates();
 
@@ -267,10 +270,10 @@ function setupEventListeners() {
       url: "srv/api/system/clean_history.php",
       success: function () {
         handleCompletedJobList();
-        showStatusMessage("Upload history cleared successfully");
+        showToast("Upload history cleared successfully", "success", 2500);
       },
       error: function () {
-        showStatusMessage("Failed to clear upload history", true);
+        showToast("Failed to clear upload history", "error", 3000);
       },
     });
   });
@@ -432,6 +435,81 @@ function setupFormSubmissions() {
     const formData = collectFormData($form);
     console.log("Submitting unified settings:", formData);
     updateEnvSettings("unified-settings-form", formData);
+  });
+}
+
+/**
+ * Initialize styled selects in the settings form using a dropdown
+ * layout similar to the theme selector. Keeps the original select hidden
+ * and syncs value changes to trigger auto-save.
+ */
+function initStyledSelects() {
+  const $form = $("#unified-settings-form");
+  if ($form.length === 0) return;
+
+  // Enhance each select with a styled dropdown
+  $form.find(".form-group select").each(function () {
+    const $select = $(this);
+    if ($select.data("styled")) return; // avoid double init
+
+    // Build dropdown structure
+    const currentText = $select.find("option:selected").text();
+    const $dropdown = $(`
+      <div class="settings-dropdown">
+        <button type="button" class="settings-select-btn" aria-haspopup="listbox" aria-expanded="false">
+          <span class="selected-text"></span>
+          <i class="fas fa-chevron-down"></i>
+        </button>
+        <div class="settings-dropdown-menu" role="listbox"></div>
+      </div>
+    `);
+
+    $dropdown.find(".selected-text").text(currentText);
+
+    const $menu = $dropdown.find(".settings-dropdown-menu");
+    $select.find("option").each(function () {
+      const value = $(this).attr("value");
+      const label = $(this).text();
+      const isSelected = $(this).is(":selected");
+      const $item = $(
+        `<div class="settings-dropdown-item" role="option" data-value="${value}">${label}</div>`
+      );
+      if (isSelected) $item.addClass("active");
+      $menu.append($item);
+    });
+
+    // Hide original select and insert dropdown after it
+    $select.hide().after($dropdown);
+    $select.data("styled", true);
+
+    // Toggle menu
+    const $btn = $dropdown.find(".settings-select-btn");
+    $btn.on("click", function (e) {
+      e.stopPropagation();
+      const expanded = $(this).attr("aria-expanded") === "true";
+      $(this).attr("aria-expanded", expanded ? "false" : "true");
+      $menu.toggleClass("active", !expanded);
+    });
+
+    // Close when clicking outside
+    $(document).on("click", function () {
+      $menu.removeClass("active");
+      $btn.attr("aria-expanded", "false");
+    });
+
+    // Select item
+    $menu.on("click", ".settings-dropdown-item", function (e) {
+      e.stopPropagation();
+      const value = $(this).data("value");
+      const label = $(this).text();
+      $menu.find(".settings-dropdown-item").removeClass("active");
+      $(this).addClass("active");
+      $dropdown.find(".selected-text").text(label);
+      $menu.removeClass("active");
+      $btn.attr("aria-expanded", "false");
+      // Update original select and trigger change for auto-save
+      $select.val(value).trigger("change");
+    });
   });
 }
 
@@ -896,7 +974,7 @@ function alignPauseControl(status, fromUserAction = false) {
     $control.attr("aria-label", "Pause uploads");
 
     if (fromUserAction) {
-      showStatusMessage("Uploader is running");
+      showToast("Uploader is running", "success");
       updateStatusIndicator("active", "Active");
     }
   } else if (status === "STOPPED") {
@@ -907,7 +985,7 @@ function alignPauseControl(status, fromUserAction = false) {
     $control.attr("aria-label", "Resume uploads");
 
     if (fromUserAction) {
-      showStatusMessage("Uploader is paused");
+      showToast("Uploader is paused", "warning");
       updateStatusIndicator("paused", "Paused");
     }
   }
@@ -974,9 +1052,9 @@ function setupPauseControl() {
       error: function (xhr, status, error) {
         console.error("Failed to update status:", error);
         console.log("Response:", xhr.responseText);
-        showStatusMessage(
+        showToast(
           "Failed to update status. Check console for details.",
-          true
+          "error"
         );
       },
       complete: function () {
@@ -1213,10 +1291,24 @@ function populateFormFields(settings) {
     if ($field.length) {
       if ($field.is("select")) {
         $field.val(value.toString());
+        // If this select is styled, sync the visible dropdown text and active item
+        const $dropdown = $field.next(".settings-dropdown");
+        if ($dropdown.length) {
+          const label = $field.find(`option[value="${value}"]`).text() || value;
+          $dropdown.find(".selected-text").text(label);
+          const $menu = $dropdown.find(".settings-dropdown-menu");
+          $menu.find(".settings-dropdown-item").removeClass("active");
+          $menu
+            .find(`.settings-dropdown-item[data-value="${value}"]`)
+            .addClass("active");
+        }
       } else if ($field.is(":checkbox")) {
         $field.prop("checked", value === true || value === "true");
       } else {
-        $field.val(value);
+        // Strip quotes from string values like "null"
+        const cleanVal =
+          typeof value === "string" ? value.replace(/"/g, "") : value;
+        $field.val(cleanVal);
       }
     }
   });
@@ -1240,6 +1332,22 @@ function updateUIFromSettings(settings) {
     const cleanBwLimit = bwLimit.replace(/"/g, "");
     $("#rate-limit").text(`Limit per Transfer: ${cleanBwLimit}`);
   }
+
+  // Refresh styled selects to reflect updated values
+  $("#unified-settings-form select").each(function () {
+    const $select = $(this);
+    const $dropdown = $select.next(".settings-dropdown");
+    if ($dropdown.length) {
+      const value = $select.val();
+      const label = $select.find(`option[value="${value}"]`).text() || value;
+      $dropdown.find(".selected-text").text(label);
+      const $menu = $dropdown.find(".settings-dropdown-menu");
+      $menu.find(".settings-dropdown-item").removeClass("active");
+      $menu
+        .find(`.settings-dropdown-item[data-value="${value}"]`)
+        .addClass("active");
+    }
+  });
 }
 
 /**
@@ -1285,7 +1393,7 @@ function updateEnvSettings(formId, settings) {
       console.log("API response:", response);
 
       if (response.success) {
-        showStatusMessage("Settings updated successfully!");
+        showToast("Settings updated successfully!", "success");
 
         // Update local settings
         Object.assign(uploaderApp.envSettings, settings);
@@ -1325,10 +1433,10 @@ function updateEnvSettings(formId, settings) {
           originalText,
           function (success) {
             if (!success) {
-              showStatusMessage(
+              showToast(
                 "Failed to update settings: " +
                   (response.message || "Unknown error"),
-                true
+                "error"
               );
             }
           }
@@ -1345,7 +1453,7 @@ function updateEnvSettings(formId, settings) {
         originalText,
         function (success) {
           if (!success) {
-            showStatusMessage("Failed to communicate with the server", true);
+            showToast("Failed to communicate with the server", "error", 3000);
             console.error("Response:", xhr.responseText);
           }
         }
@@ -1390,7 +1498,7 @@ function updateEnvSettingsLegacy(
     dataType: "json",
     success: function (response) {
       if (response.success) {
-        showStatusMessage("Settings updated successfully!");
+        showToast("Settings updated successfully!", "success");
 
         // Update local settings
         Object.assign(uploaderApp.envSettings, settings);

@@ -119,6 +119,12 @@ function updateEnvSettings()
             error_log("Added M suffix to bandwidth limit: $value");
         }
 
+        // Ensure PROXY is stored as an empty quoted string when blank or null-ish
+        if ($key === 'PROXY' && ($value === 'null' || $value === null || $value === '')) {
+            $value = '""';
+            error_log("Normalized PROXY value to explicit empty quotes");
+        }
+
         error_log("Processed setting: $key=$value");
     }
     // Important: unset the reference to avoid issues

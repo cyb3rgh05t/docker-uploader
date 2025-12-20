@@ -125,7 +125,7 @@ async function fetchWithErrorHandling(url, options = {}) {
     return await response.json();
   } catch (error) {
     console.error("Fetch error:", error);
-    showStatusMessage(`Failed to fetch data: ${error.message}`, true);
+    showToast(`Failed to fetch data: ${error.message}`, "error");
     throw error;
   }
 }

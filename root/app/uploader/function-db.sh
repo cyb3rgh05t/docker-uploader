@@ -78,6 +78,7 @@ function autoscan() {
                   $(which curl) -sfG -X POST --data-urlencode "dir=${SUNION}/${DIR}" "${AUTOSCAN_URL}/triggers/manual"
                else
          #### Fill available transfer slots in this cycle ####
+         LOGGED_CAPACITY=false
          while true; do
             ACTIVETRANSFERS=$(sqlite3read "SELECT COUNT(*) FROM uploads;" 2>/dev/null)
             source /system/uploader/uploader.env
@@ -85,7 +86,9 @@ function autoscan() {
                TRANSFERS="1"
             fi
             if [[ "${ACTIVETRANSFERS}" -ge "${TRANSFERS}" ]]; then
-               log "Capacity reached: ${ACTIVETRANSFERS}/${TRANSFERS}. Waiting for slots."
+               if [[ "${LOGGED_CAPACITY}" == "false" ]]; then
+                  log "Capacity reached: ${ACTIVETRANSFERS}/${TRANSFERS}. Waiting for slots."
+               fi
                break
             fi
 

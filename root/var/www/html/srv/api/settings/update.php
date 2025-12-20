@@ -19,6 +19,11 @@ function updateEnvFile($settings)
 
     // Update the values
     foreach ($settings as $key => $value) {
+        // Normalize PROXY to explicit empty quotes when blank/null-ish
+        if ($key === 'PROXY' && ($value === 'null' || $value === null || $value === '')) {
+            $value = '""';
+        }
+
         $found = false;
         foreach ($lines as &$line) {
             if (preg_match('/^' . $key . '=/', $line)) {
@@ -79,7 +84,9 @@ function updateEnvFile($settings)
 
                     // Format the value
                     $valueFormatted = $value;
-                    if ($value !== 'true' && $value !== 'false' && $value !== 'null' && !is_numeric($value)) {
+                    if ($value === '""') {
+                        $valueFormatted = '""';
+                    } elseif ($value !== 'true' && $value !== 'false' && $value !== 'null' && !is_numeric($value)) {
                         $valueFormatted = '"' . $value . '"';
                     }
 
