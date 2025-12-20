@@ -397,11 +397,7 @@ function setupFormSubmissions() {
   }
 
   function showAutoSaveIndicator() {
-    const $indicator = $(".auto-save-indicator");
-    $indicator.fadeIn(300);
-    setTimeout(() => {
-      $indicator.fadeOut(300);
-    }, 2000);
+    showToast("Settings auto-saved successfully", "success", 2500);
   }
 
   $("#unified-settings-form").on(

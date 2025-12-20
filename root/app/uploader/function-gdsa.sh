@@ -562,10 +562,28 @@ function startuploader() {
          else
             SEARCHSTRING="ORDER BY time"
          fi
-         FILE=$(sqlite3read "SELECT filebase FROM upload_queue WHERE metadata = 0 ${SEARCHSTRING} LIMIT 1;" 2>/dev/null)
-         DIR=$(sqlite3read "SELECT filedir FROM upload_queue WHERE filebase = '${FILE//\'/\'\'}';" 2>/dev/null)
-         DRIVE=$(sqlite3read "SELECT drive FROM upload_queue WHERE filebase = '${FILE//\'/\'\'}';" 2>/dev/null)
-         SIZEBYTES=$(sqlite3read "SELECT filesize FROM upload_queue WHERE filebase = '${FILE//\'/\'\'}';" 2>/dev/null)
+
+         #### Fill available transfer slots in this cycle ####
+         while true; do
+            ACTIVETRANSFERS=$(sqlite3read "SELECT COUNT(*) FROM uploads;" 2>/dev/null)
+            source /system/uploader/uploader.env
+            if [[ "${TRANSFERS}" != +([0-9.]) ]] || [ "${TRANSFERS}" -gt "99" ] || [ "${TRANSFERS}" -eq "0" ]; then
+               TRANSFERS="1"
+            fi
+            if [[ "${ACTIVETRANSFERS}" -ge "${TRANSFERS}" ]]; then
+               log "Capacity reached: ${ACTIVETRANSFERS}/${TRANSFERS}. Waiting for slots."
+               break
+            fi
+
+            FILE=$(sqlite3read "SELECT filebase FROM upload_queue WHERE metadata = 0 ${SEARCHSTRING} LIMIT 1;" 2>/dev/null)
+            if [[ -z "${FILE}" ]]; then
+               log "Queue empty while filling slots. No files to start."
+               break
+            fi
+            DIR=$(sqlite3read "SELECT filedir FROM upload_queue WHERE filebase = '${FILE//\'\/\'\'}';" 2>/dev/null)
+            DRIVE=$(sqlite3read "SELECT drive FROM upload_queue WHERE filebase = '${FILE//\'\/\'\'}';" 2>/dev/null)
+            SIZEBYTES=$(sqlite3read "SELECT filesize FROM upload_queue WHERE filebase = '${FILE//\'\/\'\'}';" 2>/dev/null)
+
             #### TO CHECK IS IT A FILE OR NOT ####
             if [[ -f "${DLFOLDER}/${DIR}/${FILE}" ]]; then
                #### REPULL SOURCE FILE FOR LIVE EDITS ####
@@ -579,16 +597,28 @@ function startuploader() {
                #### UPLOAD FUNCTIONS STARTUP ####
                if [[ "${TRANSFERS}" -eq "1" ]]; then 
                   #### SINGLE UPLOAD ####
+                  log "Starting upload (single mode): ${DRIVE}/${DIR}/${FILE}"
                   rcloneupload
                else
                   #### DEMONISED UPLOAD ####
+                  log "Starting upload in background: ${DRIVE}/${DIR}/${FILE} (active ${ACTIVETRANSFERS}/${TRANSFERS})"
                   rcloneupload &
                fi
             else
                #### WHEN NOT THEN DELETE ENTRY ####
-               sqlite3write "DELETE FROM upload_queue WHERE filebase = \"${FILE}\";" &>/dev/null
+               log "File missing, removing from queue: ${DRIVE}/${DIR}/${FILE}"
+               sqlite3write "DELETE FROM upload_queue WHERE filebase = '${FILE//\'\/\'\'}';" &>/dev/null
                $(which sleep) 2
             fi
+
+            #### Recompute remaining queue count ####
+            CHECKFILES=$(sqlite3read "SELECT COUNT(*) FROM upload_queue WHERE metadata = 0;")
+            if [[ "${CHECKFILES}" -lt "1" ]]; then
+               log "Finished filling slots; queue now empty."
+               break
+            fi
+         done
+
          #### CLEANUP COMPLETED HISTORY ####
          cleanuplog
       else

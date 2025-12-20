@@ -195,6 +195,73 @@ function getQueryParams() {
 }
 
 /**
+ * Show a toast notification
+ * @param {string} message - Message to display
+ * @param {string} type - Type of toast (success, error, info, warning)
+ * @param {number} duration - Duration in milliseconds (default: 3000)
+ */
+function showToast(message, type = "info", duration = 3000) {
+  // Create toast container if it doesn't exist
+  let container = document.querySelector(".toast-container");
+  if (!container) {
+    container = document.createElement("div");
+    container.className = "toast-container";
+    document.body.appendChild(container);
+  }
+
+  // Create toast element
+  const toast = document.createElement("div");
+  toast.className = `toast toast-${type}`;
+
+  // Set icon based on type
+  const icons = {
+    success: "fa-check-circle",
+    error: "fa-exclamation-circle",
+    info: "fa-info-circle",
+    warning: "fa-exclamation-triangle",
+  };
+
+  toast.innerHTML = `
+    <div class="toast-icon">
+      <i class="fas ${icons[type] || icons.info}"></i>
+    </div>
+    <div class="toast-content">
+      <div class="toast-message">${message}</div>
+    </div>
+    <button class="toast-close" aria-label="Close">
+      <i class="fas fa-times"></i>
+    </button>
+  `;
+
+  // Add to container
+  container.appendChild(toast);
+
+  // Close button handler
+  const closeBtn = toast.querySelector(".toast-close");
+  closeBtn.addEventListener("click", () => {
+    removeToast(toast);
+  });
+
+  // Auto-remove after duration
+  setTimeout(() => {
+    removeToast(toast);
+  }, duration);
+}
+
+/**
+ * Remove a toast notification
+ * @param {HTMLElement} toast - Toast element to remove
+ */
+function removeToast(toast) {
+  toast.classList.add("removing");
+  setTimeout(() => {
+    if (toast.parentNode) {
+      toast.parentNode.removeChild(toast);
+    }
+  }, 300);
+}
+
+/**
  * Save a user setting to localStorage
  * @param {string} key - Setting key
  * @param {any} value - Setting value
