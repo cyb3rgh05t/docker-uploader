@@ -79,6 +79,7 @@ function autoscan() {
                else
          #### Fill available transfer slots in this cycle ####
          LOGGED_CAPACITY=false
+         CAPACITY_FLAG="/tmp/uploader_capacity_logged"
          while true; do
             ACTIVETRANSFERS=$(sqlite3read "SELECT COUNT(*) FROM uploads;" 2>/dev/null)
             source /system/uploader/uploader.env
@@ -86,12 +87,16 @@ function autoscan() {
                TRANSFERS="1"
             fi
             if [[ "${ACTIVETRANSFERS}" -ge "${TRANSFERS}" ]]; then
-               if [[ "${LOGGED_CAPACITY}" == "false" ]]; then
+               if [[ ! -f "${CAPACITY_FLAG}" ]]; then
                   log "Capacity reached: ${ACTIVETRANSFERS}/${TRANSFERS}. Waiting for slots."
-                  LOGGED_CAPACITY=true
+                  : > "${CAPACITY_FLAG}"
                fi
+               $(which sleep) 2
                break
             fi
+
+            # Capacity available again; clear flag so future capacity states can log once
+            [ -f "${CAPACITY_FLAG}" ] && $(which rm) -f "${CAPACITY_FLAG}" 2>/dev/null
 
             FILE=$(sqlite3read "SELECT filebase FROM upload_queue WHERE metadata = 0 ${SEARCHSTRING} LIMIT 1;" 2>/dev/null)
             if [[ -z "${FILE}" ]]; then
