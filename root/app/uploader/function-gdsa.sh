@@ -351,7 +351,6 @@ function rcloneupload() {
       --config="${CONFIG}" \
       --stats=1s --checkers=4 \
       --drive-chunk-size=32M \
-      --no-preallocate \
       --log-level="${LOG_LEVEL}" \
       --user-agent="${USERAGENT}" ${BWLIMIT} \
       --log-file="${LOGFILE}/${FILE}.txt" \
@@ -567,7 +566,6 @@ function startuploader() {
          #### Fill available transfer slots in this cycle ####
          LOGGED_CAPACITY=false
          CAPACITY_FLAG="/tmp/uploader_capacity_logged"
-         CAPACITY_COOLDOWN=30
          while true; do
             ACTIVETRANSFERS=$(sqlite3read "SELECT COUNT(*) FROM uploads;" 2>/dev/null)
             source /system/uploader/uploader.env
@@ -575,20 +573,15 @@ function startuploader() {
                TRANSFERS="1"
             fi
             if [[ "${ACTIVETRANSFERS}" -ge "${TRANSFERS}" ]]; then
-               NOW=$($(which date) +%s)
-               LAST=0
-               if [[ -f "${CAPACITY_FLAG}" ]]; then
-                  LAST=$($(which cat) "${CAPACITY_FLAG}" 2>/dev/null || echo 0)
-               fi
-               if (( NOW - LAST >= CAPACITY_COOLDOWN )); then
+               if [[ ! -f "${CAPACITY_FLAG}" ]]; then
                   log "Capacity reached: ${ACTIVETRANSFERS}/${TRANSFERS}. Waiting for slots."
-                  echo "${NOW}" > "${CAPACITY_FLAG}"
+                  : > "${CAPACITY_FLAG}"
                fi
                $(which sleep) 2
                break
             fi
 
-            # Capacity available again; clear flag so future capacity states can log after cooldown
+            # Capacity available again; clear flag so future capacity states can log once
             [ -f "${CAPACITY_FLAG}" ] && $(which rm) -f "${CAPACITY_FLAG}" 2>/dev/null
 
             FILE=$(sqlite3read "SELECT filebase FROM upload_queue WHERE metadata = 0 ${SEARCHSTRING} LIMIT 1;" 2>/dev/null)
