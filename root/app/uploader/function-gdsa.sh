@@ -611,7 +611,8 @@ function startuploader() {
                #### WHEN NOT THEN DELETE ENTRY ####
                log "File missing, removing from queue: ${DRIVE}/${DIR}/${FILE}"
                sqlite3write "DELETE FROM upload_queue WHERE filebase = '${FILE//\'\/\'\'}';" &>/dev/null
-               $(which sleep) 2
+               # Skip to next file in queue
+               continue
             fi
 
             #### Recompute remaining queue count ####
