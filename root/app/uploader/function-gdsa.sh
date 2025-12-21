@@ -574,6 +574,7 @@ function startuploader() {
             if [[ "${ACTIVETRANSFERS}" -ge "${TRANSFERS}" ]]; then
                if [[ "${LOGGED_CAPACITY}" == "false" ]]; then
                   log "Capacity reached: ${ACTIVETRANSFERS}/${TRANSFERS}. Waiting for slots."
+                  LOGGED_CAPACITY=true
                fi
                break
             fi
