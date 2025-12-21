@@ -584,9 +584,9 @@ function startuploader() {
                log "Queue empty while filling slots. No files to start."
                break
             fi
-            DIR=$(sqlite3read "SELECT filedir FROM upload_queue WHERE filebase = '${FILE//\'\/\'\'}';" 2>/dev/null)
-            DRIVE=$(sqlite3read "SELECT drive FROM upload_queue WHERE filebase = '${FILE//\'\/\'\'}';" 2>/dev/null)
-            SIZEBYTES=$(sqlite3read "SELECT filesize FROM upload_queue WHERE filebase = '${FILE//\'\/\'\'}';" 2>/dev/null)
+            DIR=$(sqlite3read "SELECT filedir FROM upload_queue WHERE filebase = '${FILE//\'/\'\'}';" 2>/dev/null)
+            DRIVE=$(sqlite3read "SELECT drive FROM upload_queue WHERE filebase = '${FILE//\'/\'\'}';" 2>/dev/null)
+            SIZEBYTES=$(sqlite3read "SELECT filesize FROM upload_queue WHERE filebase = '${FILE//\'/\'\'}';" 2>/dev/null)
 
             #### TO CHECK IS IT A FILE OR NOT ####
             if [[ -f "${DLFOLDER}/${DIR}/${FILE}" ]]; then
@@ -611,7 +611,10 @@ function startuploader() {
             else
                #### WHEN NOT THEN DELETE ENTRY ####
                log "File missing, removing from queue: ${DRIVE}/${DIR}/${FILE}"
-               sqlite3write "DELETE FROM upload_queue WHERE filebase = '${FILE//\'\/\'\'}';" &>/dev/null
+               FULLPATH="${DLFOLDER}/${DIR}/${FILE}"
+               DBINFO=$(sqlite3read "SELECT drive||'|'||filedir FROM upload_queue WHERE filebase = '${FILE//\'/\'\'}' LIMIT 1;" 2>/dev/null)
+               log "Debug: missing-check fullpath='${FULLPATH}' (DLFOLDER='${DLFOLDER}', DIR='${DIR}', FILE='${FILE}', DB='${DBINFO}')"
+               sqlite3write "DELETE FROM upload_queue WHERE filebase = '${FILE//\'/\'\'}';" &>/dev/null
                # Skip to next file in queue
                continue
             fi
