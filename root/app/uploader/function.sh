@@ -337,7 +337,7 @@ function rcloneupload() {
    checkerror
    #### ECHO END-PARTS FOR UI READING ####
    $(which find) "${DLFOLDER}/${SETDIR}" -mindepth 1 -type d -empty -delete &>/dev/null
-   sqlite3write "INSERT INTO completed_uploads (drive,filedir,filebase,filesize,gdsa,starttime,endtime,status,error) VALUES ('${DRIVE//\'/\\''}','${DIR//\'/\\''}','${FILE//\'/\\''}','${SIZE//\'/\\''}','${REMOTENAME//\'/\\''}','${STARTZ}','${ENDZ}','${STATUS//\'/\\''}','${ERROR//\'/\\''}'); DELETE FROM uploads WHERE filebase = '${FILE//\'/\\''}';" &>/dev/null
+   sqlite3write "INSERT INTO completed_uploads (drive,filedir,filebase,filesize,gdsa,starttime,endtime,status,error) VALUES ('${DRIVE//\'/\\''}','${DIR//\'/\\''}','${FILE//\'/\\''}','${SIZE//\'/\\''}','${REMOTENAME//\'/\\''}','${STARTZ}','${ENDZ}','${STATUS//\'/\\''}','${ERROR//\'/\\''}'); DELETE FROM uploads WHERE filebase = '${FILE//\'/\\''}'; DELETE FROM upload_queue WHERE filebase = '${FILE//\'/\\''}';" &>/dev/null
    #### END OF MOVE ####
    $(which rm) -rf "${LOGFILE}/${FILE}.txt" &>/dev/null
    #### REMOVE CUSTOM RCLONE.CONF ####
@@ -362,7 +362,7 @@ function listfiles() {
    fi
    
    #### CREATE TEMP_FILE ####
-   sqlite3read "SELECT filebase FROM upload_queue UNION ALL SELECT filebase FROM uploads;" > "${TEMPFILES}"
+   sqlite3read "SELECT filebase FROM upload_queue UNION ALL SELECT filebase FROM uploads UNION ALL SELECT filebase FROM completed_uploads;" > "${TEMPFILES}"
    #### FIND NEW FILES ####
    IFS=$'\n'
    mapfile -t "FILEBASE" < <($(which find) "${DLFOLDER}" -mindepth 2 -type f -size +0b -cmin +"${MIN_AGE_UPLOAD}" -printf "%P\n" | $(which grep) -Evf "${EXCLUDE}" | $(which grep) -Fvf "${TEMPFILES}")
