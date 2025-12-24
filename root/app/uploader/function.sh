@@ -337,7 +337,7 @@ function rcloneupload() {
    checkerror
    #### ECHO END-PARTS FOR UI READING ####
    $(which find) "${DLFOLDER}/${SETDIR}" -mindepth 1 -type d -empty -delete &>/dev/null
-   sqlite3write "INSERT INTO completed_uploads (drive,filedir,filebase,filesize,gdsa,starttime,endtime,status,error) VALUES ('${DRIVE//\'/\\''}','${DIR//\'/\\''}','${FILE//\'/\\''}','${SIZE//\'/\\''}','${REMOTENAME//\'/\\''}','${STARTZ}','${ENDZ}','${STATUS//\'/\\''}','${ERROR//\'/\\''}'); DELETE FROM uploads WHERE filebase = '${FILE//\'/\\''}'; DELETE FROM upload_queue WHERE filebase = '${FILE//\'/\\''}';" &>/dev/null
+   sqlite3write "INSERT INTO completed_uploads (drive,filedir,filebase,filesize,gdsa,starttime,endtime,status,error) VALUES ('${DRIVE//\'/\'\'}','${DIR//\'/\'\'}','${FILE//\'/\'\'}','${SIZE}','${REMOTENAME//\'/\'\'}','${STARTZ}','${ENDZ}','${STATUS//\'/\'\'}','${ERROR//\'/\'\'}'); DELETE FROM uploads WHERE filebase = '${FILE//\'/\'\'}';" &>/dev/null
    #### END OF MOVE ####
    $(which rm) -rf "${LOGFILE}/${FILE}.txt" &>/dev/null
    #### REMOVE CUSTOM RCLONE.CONF ####
@@ -362,7 +362,7 @@ function listfiles() {
    fi
    
    #### CREATE TEMP_FILE ####
-   sqlite3read "SELECT filebase FROM upload_queue UNION ALL SELECT filebase FROM uploads UNION ALL SELECT filebase FROM completed_uploads;" > "${TEMPFILES}"
+   sqlite3read "SELECT filebase FROM upload_queue UNION ALL SELECT filebase FROM uploads;" > "${TEMPFILES}"
    #### FIND NEW FILES ####
    IFS=$'\n'
    mapfile -t "FILEBASE" < <($(which find) "${DLFOLDER}" -mindepth 2 -type f -size +0b -cmin +"${MIN_AGE_UPLOAD}" -printf "%P\n" | $(which grep) -Evf "${EXCLUDE}" | $(which grep) -Fvf "${TEMPFILES}")
@@ -379,7 +379,7 @@ function listfiles() {
       LISTSIZE=$($(which stat) -c %s "${DLFOLDER}/${NAME}" 2>/dev/null)
       LISTTYPE="${NAME##*.}"
       if [[ "${LISTTYPE}" == "mkv" ]] || [[ "${LISTTYPE}" == "mp4" ]] || [[ "${LISTTYPE}" == "avi" ]] || [[ "${LISTTYPE}" == "mov" ]] || [[ "${LISTTYPE}" == "mpeg" ]] || [[ "${LISTTYPE}" == "mpegts" ]] || [[ "${LISTTYPE}" == "ts" ]]; then
-         CHECKMETA=$($(which exiftool) -m -q -q -Title "${DLFOLDER}/${NAME}" 2>/dev/null | $(which grep) -qE * && echo 1 || echo 0)
+         CHECKMETA=$($(which exiftool) -m -q -q -Title "${DLFOLDER}/${NAME}" 2>/dev/null | $(which grep) -qE '[A-Za-z]' && echo 1 || echo 0)
       else
          CHECKMETA="0"
       fi
