@@ -312,17 +312,11 @@ function rcloneupload() {
    USERAGENT=$($(which cat) /dev/urandom | $(which tr) -dc 'a-zA-Z0-9' | $(which fold) -w 32 | $(which head) -n 1)
    #### START TIME UPLOAD ####
    STARTZ=$($(which date) +%s)
-   # Avoid preallocate failures on small text/subtitle files
-   RCLONE_PREALLOC_FLAG=""
-   case "${FILE,,}" in
-      *.srt|*.sub|*.idx|*.ssa|*.ass|*.sup) RCLONE_PREALLOC_FLAG="--no-preallocate" ;;
-   esac
    #### RUN RCLONE UPLOAD COMMAND ####
    $(which rclone) moveto "${DLFOLDER}/${DIR}/${FILE}" "${REMOTENAME}:/${DIR}/${FILE}" \
       --config="${CONFIG}" \
       --stats=1s --checkers=4 \
-      --drive-chunk-size=32M \
-      ${RCLONE_PREALLOC_FLAG} \
+      --drive-chunk-size=32M --use-mmap \
       --log-level="${LOG_LEVEL}" \
       --user-agent="${USERAGENT}" ${BWLIMIT} \
       --log-file="${LOGFILE}/${FILE}.txt" \
