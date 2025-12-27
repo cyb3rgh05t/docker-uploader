@@ -316,8 +316,7 @@ function rcloneupload() {
    $(which rclone) moveto "${DLFOLDER}/${DIR}/${FILE}" "${REMOTENAME}:/${DIR}/${FILE}" \
       --config="${CONFIG}" \
       --stats=1s --checkers=4 \
-      --drive-chunk-size=32M --use-mmap \
-      --no-preallocate \
+      --drive-chunk-size=32M \
       --log-level="${LOG_LEVEL}" \
       --user-agent="${USERAGENT}" ${BWLIMIT} \
       --log-file="${LOGFILE}/${FILE}.txt" \
