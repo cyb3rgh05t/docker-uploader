@@ -148,7 +148,7 @@ function autoscan() {
 
 function checkerror() {
    source /system/uploader/uploader.env
-   CHECKERROR=$($(which tail) -n 25 "${LOGFILE}/${FILE}.txt" | $(which grep) -E -wi "Failed|ERROR|Source doesn't exist or is a directory and destination is a file|The filename or extension is too long|file name too long|Filename too long")
+   CHECKERROR=$($(which tail) -n 25 "${LOGFILE}/${FILE}.txt" | $(which grep) -v "preAllocate" | $(which grep) -E -wi "Failed|ERROR|Source doesn't exist or is a directory and destination is a file|The filename or extension is too long|file name too long|Filename too long")
    DATEDIFF="$(( ${ENDZ} - ${STARTZ} ))"
    HOUR="$(( ${DATEDIFF} / 3600 ))"
    MINUTE="$(( (${DATEDIFF} % 3600) / 60 ))"
@@ -168,7 +168,7 @@ function checkerror() {
    #### CHECK ERROR ON UPLOAD ####
    if [[ "${CHECKERROR}" != "" ]]; then
       STATUS="0"
-      ERROR=$($(which tail) -n 25 "${LOGFILE}/${FILE}.txt" | $(which grep) -E -wi "Failed|ERROR|Source doesn't exist or is a directory and destination is a file|The filename or extension is too long|file name too long|Filename too long" | $(which head) -n 1 | $(which tr) -d '"')
+      ERROR=$($(which tail) -n 25 "${LOGFILE}/${FILE}.txt" | $(which grep) -v "preAllocate" | $(which grep) -E -wi "Failed|ERROR|Source doesn't exist or is a directory and destination is a file|The filename or extension is too long|file name too long|Filename too long" | $(which head) -n 1 | $(which tr) -d '"')
       NOTIFYTYPE="failure"
       if [[ "${NOTIFICATION_LEVEL}" == "ALL" ]] || [[ ${NOTIFICATION_LEVEL} == "ERROR" ]]; then
          MSG="-> ❌ Upload failed ${FILE} with Error ${ERROR} <-"
