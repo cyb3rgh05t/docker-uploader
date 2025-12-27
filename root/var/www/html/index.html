@@ -12,7 +12,7 @@
       referrerpolicy="no-referrer"
     />
     <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="stylesheet" href="css/styles.css?v=4.2.8" />
+    <link rel="stylesheet" href="css/styles.css?v=5.3.23.7" />
   </head>
   <body>
     <!-- Mobile Menu Toggle -->
@@ -49,6 +49,14 @@
         <a href="#history" class="nav-item" data-section="history">
           <i class="fas fa-history"></i>
           <span>History</span>
+          <span
+            class="nav-badge failed-badge"
+            id="failed-count-badge"
+            style="display: none"
+          >
+            <i class="fas fa-exclamation-circle"></i>
+            <span id="failed-badge-count">0</span>
+          </span>
         </a>
         <a href="#settings" class="nav-item" data-section="settings">
           <i class="fas fa-cog"></i>
@@ -559,6 +567,29 @@
               Completed Uploads
             </div>
             <div class="card-actions">
+              <div class="filter-buttons" style="margin-right: 15px">
+                <button
+                  class="filter-btn active"
+                  data-filter="all"
+                  id="filter-all"
+                >
+                  <i class="fas fa-list"></i> All
+                </button>
+                <button
+                  class="filter-btn"
+                  data-filter="success"
+                  id="filter-success"
+                >
+                  <i class="fas fa-check"></i> Successful
+                </button>
+                <button
+                  class="filter-btn"
+                  data-filter="failed"
+                  id="filter-failed"
+                >
+                  <i class="fas fa-exclamation-circle"></i> Failed
+                </button>
+              </div>
               <span id="clnHist" class="action-button">
                 <i class="fas fa-trash-alt"></i>
                 Clear History
@@ -600,52 +631,48 @@
                     </td>
                   </tr>
                 </tbody>
-                <tfoot>
-                  <tr>
-                    <td colspan="6">
-                      <div class="pagination-container">
-                        <div id="page"></div>
-                        <nav aria-label="Page size selection">
-                          <ul id="pageSize" class="pagination pagination-sm">
-                            <li class="page-item">
-                              <a
-                                class="page-link"
-                                href="#"
-                                aria-label="Show 5 items per page"
-                                >5</a
-                              >
-                            </li>
-                            <li class="page-item active">
-                              <a
-                                class="page-link"
-                                href="#"
-                                aria-label="Show 10 items per page"
-                                >10</a
-                              >
-                            </li>
-                            <li class="page-item">
-                              <a
-                                class="page-link"
-                                href="#"
-                                aria-label="Show 25 items per page"
-                                >25</a
-                              >
-                            </li>
-                            <li class="page-item">
-                              <a
-                                class="page-link"
-                                href="#"
-                                aria-label="Show 50 items per page"
-                                >50</a
-                              >
-                            </li>
-                          </ul>
-                        </nav>
-                      </div>
-                    </td>
-                  </tr>
-                </tfoot>
               </table>
+            </div>
+          </div>
+          <div class="card-footer pagination-card">
+            <div class="pagination-container pagination-standalone">
+              <div id="page"></div>
+              <nav aria-label="Page size selection">
+                <ul id="pageSize" class="pagination pagination-sm">
+                  <li class="page-item">
+                    <a
+                      class="page-link"
+                      href="#"
+                      aria-label="Show 5 items per page"
+                      >5</a
+                    >
+                  </li>
+                  <li class="page-item active">
+                    <a
+                      class="page-link"
+                      href="#"
+                      aria-label="Show 10 items per page"
+                      >10</a
+                    >
+                  </li>
+                  <li class="page-item">
+                    <a
+                      class="page-link"
+                      href="#"
+                      aria-label="Show 25 items per page"
+                      >25</a
+                    >
+                  </li>
+                  <li class="page-item">
+                    <a
+                      class="page-link"
+                      href="#"
+                      aria-label="Show 50 items per page"
+                      >50</a
+                    >
+                  </li>
+                </ul>
+              </nav>
             </div>
           </div>
         </div>
@@ -672,12 +699,119 @@
             </span>
           </div>
           <div class="settings-grid">
-            <!-- Transfer Settings -->
+            <!-- System Settings -->
             <div class="card">
               <div class="card-header">
                 <div class="card-title">
-                  <i class="fas fa-exchange-alt"></i>
-                  Transfer Settings
+                  <i class="fas fa-cogs"></i>
+                  System Settings
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="form-group">
+                  <label for="puid">PUID</label>
+                  <input
+                    type="number"
+                    id="puid"
+                    name="puid"
+                    class="form-control"
+                    placeholder="1000"
+                    min="0"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="pgid">PGID</label>
+                  <input
+                    type="number"
+                    id="pgid"
+                    name="pgid"
+                    class="form-control"
+                    placeholder="1000"
+                    min="0"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="timezone">Timezone</label>
+                  <input
+                    type="text"
+                    id="timezone"
+                    name="timezone"
+                    class="form-control"
+                    placeholder="UTC or Region/City"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="language">Language</label>
+                  <select id="language" name="language" class="form-control">
+                    <option value="en" selected>English</option>
+                    <option value="de">German</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- User Settings -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">
+                  <i class="fas fa-user-cog"></i>
+                  User Settings
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="form-group">
+                  <label for="driveusedspace">Drive Used Space</label>
+                  <input
+                    type="text"
+                    id="driveusedspace"
+                    name="driveusedspace"
+                    class="form-control"
+                    placeholder="null or e.g. 500GB"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="folder_depth">Folder Depth</label>
+                  <input
+                    type="number"
+                    id="folder_depth"
+                    name="folder_depth"
+                    class="form-control"
+                    value="1"
+                    min="1"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="folder_priority"
+                    >Folder Priority (comma-separated drives)</label
+                  >
+                  <input
+                    type="text"
+                    id="folder_priority"
+                    name="folder_priority"
+                    class="form-control"
+                    placeholder="driveA,driveB,driveC or null"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="min_age_upload">Min Age Upload (minutes)</label>
+                  <input
+                    type="number"
+                    id="min_age_upload"
+                    name="min_age_upload"
+                    class="form-control"
+                    value="0"
+                    min="0"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Rclone Settings -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">
+                  <i class="fas fa-hdd"></i>
+                  Rclone Settings
                 </div>
               </div>
               <div class="card-body">
@@ -692,7 +826,7 @@
                   />
                 </div>
                 <div class="form-group">
-                  <label for="transfers">Max Transfers</label>
+                  <label for="transfers">Transfers</label>
                   <input
                     type="number"
                     id="transfers"
@@ -704,80 +838,121 @@
                   />
                 </div>
                 <div class="form-group">
-                  <label for="min_age_upload">Min Age Upload (minutes)</label>
+                  <label for="google_ip">Google IP</label>
                   <input
-                    type="number"
-                    id="min_age_upload"
-                    name="min_age_upload"
+                    type="text"
+                    id="google_ip"
+                    name="google_ip"
                     class="form-control"
-                    value="0"
-                    min="0"
+                    placeholder="142.250.74.78"
                   />
                 </div>
                 <div class="form-group">
-                  <label for="folder_depth">Folder Depth</label>
+                  <label for="proxy">Proxy</label>
                   <input
-                    type="number"
-                    id="folder_depth"
-                    name="folder_depth"
+                    type="text"
+                    id="proxy"
+                    name="proxy"
                     class="form-control"
-                    value="1"
-                    min="1"
+                    placeholder="http://user:pass@host:port or null"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="dlfolder">Download Folder</label>
+                  <input
+                    type="text"
+                    id="dlfolder"
+                    name="dlfolder"
+                    class="form-control"
+                    placeholder="/mnt/downloads"
+                  />
+                </div>
+                <div class="form-group toggle-group">
+                  <label for="vfs_refresh_enable">VFS Refresh</label>
+                  <label class="toggle-switch">
+                    <input
+                      type="checkbox"
+                      id="vfs_refresh_enable"
+                      name="vfs_refresh_enable"
+                      checked
+                    />
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                <div class="form-group">
+                  <label for="mount">Mount Target</label>
+                  <input
+                    type="text"
+                    id="mount"
+                    name="mount"
+                    class="form-control"
+                    placeholder="mount:8554"
                   />
                 </div>
               </div>
             </div>
 
-            <!-- Notification Settings -->
+            <!-- Encryption Settings -->
             <div class="card">
               <div class="card-header">
                 <div class="card-title">
-                  <i class="fas fa-bell"></i>
-                  Notifications
+                  <i class="fas fa-shield-alt"></i>
+                  Encryption Settings
                 </div>
               </div>
               <div class="card-body">
                 <div class="form-group">
-                  <label for="notification_level">Notification Level</label>
+                  <label for="hashpassword">Hash Password (Google)</label>
                   <select
-                    id="notification_level"
-                    name="notification_level"
+                    id="hashpassword"
+                    name="hashpassword"
                     class="form-control"
                   >
-                    <option value="ALL" selected>ALL</option>
-                    <option value="ERROR">ERROR</option>
-                    <option value="NONE">NONE</option>
+                    <option value="hashed" selected>Hashed</option>
+                    <option value="plain">Plain</option>
                   </select>
                 </div>
                 <div class="form-group">
-                  <label for="notification_servername">Server Name</label>
+                  <label for="gdsa_name">GDSA Name (Google)</label>
                   <input
                     type="text"
-                    id="notification_servername"
-                    name="notification_servername"
+                    id="gdsa_name"
+                    name="gdsa_name"
                     class="form-control"
-                    value="Drive-Upload"
+                    value="encrypt"
                   />
                 </div>
                 <div class="form-group">
-                  <label for="notification_url">Notification URL</label>
+                  <label for="db_name">DB Name (Dropbox)</label>
                   <input
                     type="text"
-                    id="notification_url"
-                    name="notification_url"
+                    id="db_name"
+                    name="db_name"
                     class="form-control"
-                    placeholder="discord://webhook-url"
+                    value="encrypt"
                   />
+                </div>
+                <div class="form-group toggle-group">
+                  <label for="db_team">DB Team (Dropbox)</label>
+                  <label class="toggle-switch">
+                    <input
+                      type="checkbox"
+                      id="db_team"
+                      name="db_team"
+                      checked
+                    />
+                    <span class="toggle-slider"></span>
+                  </label>
                 </div>
               </div>
             </div>
 
-            <!-- System Settings -->
+            <!-- Log Settings -->
             <div class="card">
               <div class="card-header">
                 <div class="card-title">
-                  <i class="fas fa-cogs"></i>
-                  System
+                  <i class="fas fa-clipboard-list"></i>
+                  Log Settings
                 </div>
               </div>
               <div class="card-body">
@@ -801,24 +976,16 @@
                     min="100"
                   />
                 </div>
-                <div class="form-group toggle-group">
-                  <label for="vfs_refresh_enable">VFS Refresh</label>
-                  <label class="toggle-switch">
-                    <input
-                      type="checkbox"
-                      id="vfs_refresh_enable"
-                      name="vfs_refresh_enable"
-                      checked
-                    />
-                    <span class="toggle-slider"></span>
-                  </label>
-                </div>
                 <div class="form-group">
-                  <label for="language">Language</label>
-                  <select id="language" name="language" class="form-control">
-                    <option value="en" selected>English</option>
-                    <option value="de">German</option>
-                  </select>
+                  <label for="log_retention_days">Log Retention (days)</label>
+                  <input
+                    type="number"
+                    id="log_retention_days"
+                    name="log_retention_days"
+                    class="form-control"
+                    placeholder="null or number"
+                    min="0"
+                  />
                 </div>
               </div>
             </div>
@@ -828,7 +995,7 @@
               <div class="card-header">
                 <div class="card-title">
                   <i class="fas fa-search"></i>
-                  AutoScan
+                  AutoScan Settings
                 </div>
               </div>
               <div class="card-body">
@@ -865,57 +1032,68 @@
               </div>
             </div>
 
-            <!-- Security Settings -->
+            <!-- Striparr Settings -->
             <div class="card">
               <div class="card-header">
                 <div class="card-title">
-                  <i class="fas fa-shield-alt"></i>
-                  Security
+                  <i class="fas fa-cut"></i>
+                  Striparr Settings
                 </div>
               </div>
               <div class="card-body">
                 <div class="form-group">
-                  <label for="hashpassword">Hash Password</label>
+                  <label for="striparr_url">Striparr URL</label>
+                  <input
+                    type="text"
+                    id="striparr_url"
+                    name="striparr_url"
+                    class="form-control"
+                    placeholder="http://striparr:xxxx or null"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Notification Settings -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">
+                  <i class="fas fa-bell"></i>
+                  Notification Settings
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="form-group">
+                  <label for="notification_url">Notification URL</label>
+                  <input
+                    type="text"
+                    id="notification_url"
+                    name="notification_url"
+                    class="form-control"
+                    placeholder="discord://webhook-url"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="notification_level">Notification Level</label>
                   <select
-                    id="hashpassword"
-                    name="hashpassword"
+                    id="notification_level"
+                    name="notification_level"
                     class="form-control"
                   >
-                    <option value="hashed" selected>Hashed</option>
-                    <option value="plain">Plain</option>
+                    <option value="ALL" selected>ALL</option>
+                    <option value="ERROR">ERROR</option>
+                    <option value="NONE">NONE</option>
                   </select>
                 </div>
                 <div class="form-group">
-                  <label for="gdsa_name">GDSA Name</label>
+                  <label for="notification_servername">Server Name</label>
                   <input
                     type="text"
-                    id="gdsa_name"
-                    name="gdsa_name"
+                    id="notification_servername"
+                    name="notification_servername"
                     class="form-control"
-                    value="encrypt"
+                    value="Drive-Upload"
                   />
-                </div>
-                <div class="form-group">
-                  <label for="db_name">DB Name</label>
-                  <input
-                    type="text"
-                    id="db_name"
-                    name="db_name"
-                    class="form-control"
-                    value="encrypt"
-                  />
-                </div>
-                <div class="form-group toggle-group">
-                  <label for="db_team">DB Team</label>
-                  <label class="toggle-switch">
-                    <input
-                      type="checkbox"
-                      id="db_team"
-                      name="db_team"
-                      checked
-                    />
-                    <span class="toggle-slider"></span>
-                  </label>
                 </div>
               </div>
             </div>
@@ -1206,9 +1384,9 @@
 
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="js/ui/pagination.js?v=4.2.8"></script>
-    <script src="js/utils.js?v=4.2.8"></script>
-    <script src="js/app.js?v=4.2.8"></script>
+    <script src="js/ui/pagination.js?v=5.3.23.7"></script>
+    <script src="js/utils.js?v=5.3.23.7"></script>
+    <script src="js/app.js?v=5.3.23.7"></script>
 
     <script>
       $(document).ready(function () {

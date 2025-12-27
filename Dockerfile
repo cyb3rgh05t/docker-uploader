@@ -40,5 +40,5 @@ COPY release.json /var/www/html/release.json
 
 RUN chown abc:abc /var/www/html/release.json && chmod 644 /var/www/html/release.json
 
-ENTRYPOINT /init
+ENTRYPOINT ["/init"]
 ##EOF

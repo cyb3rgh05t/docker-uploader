@@ -17,4 +17,5 @@ class UploadJobStatus
     public $time_end_clean;
     public $time_elapsed;
     public $successful;
+    public $error_message;
 }

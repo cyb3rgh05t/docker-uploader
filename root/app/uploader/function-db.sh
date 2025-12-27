@@ -77,36 +77,78 @@ function autoscan() {
                if [[ "${AUTOSCAN_USER}" == "null" ]]; then
                   $(which curl) -sfG -X POST --data-urlencode "dir=${SUNION}/${DIR}" "${AUTOSCAN_URL}/triggers/manual"
                else
-                  $(which curl) -sfG -X POST -u "${AUTOSCAN_USER}:${AUTOSCAN_PASS}" --data-urlencode "dir=${SUNION}/${DIR}" "${AUTOSCAN_URL}/triggers/manual"
-               fi
+         #### Fill available transfer slots in this cycle ####
+         LOGGED_CAPACITY=false
+         CAPACITY_FLAG="/tmp/uploader_capacity_logged"
+         while true; do
+            ACTIVETRANSFERS=$(sqlite3read "SELECT COUNT(*) FROM uploads;" 2>/dev/null)
+            source /system/uploader/uploader.env
+            if [[ "${TRANSFERS}" != +([0-9.]) ]] || [ "${TRANSFERS}" -gt "99" ] || [ "${TRANSFERS}" -eq "0" ]; then
+               TRANSFERS="1"
             fi
-      fi
-   fi
-}
+            if [[ "${ACTIVETRANSFERS}" -ge "${TRANSFERS}" ]]; then
+               if [[ ! -f "${CAPACITY_FLAG}" ]]; then
+                  log "Capacity reached: ${ACTIVETRANSFERS}/${TRANSFERS}. Waiting for slots."
+                  : > "${CAPACITY_FLAG}"
+               fi
+               $(which sleep) 2
+               break
+            fi
 
-function notification() {
-   source /system/uploader/uploader.env
-   #### CHECK NOTIFICATION TYPE ####
-   if [[ "${NOTIFYTYPE}" == "" ]]; then
-     NOTIFYTYPE="info"
-   fi
-   #### CHECK NOTIFICATON SERVERNAME ####
-   if [[ "${NOTIFICATION_SERVERNAME}" == "null" ]]; then
-     NOTIFICATION_NAME="Docker"
-   else
-     NOTIFICATION_NAME="${NOTIFICATION_SERVERNAME}"
-   fi
-   #### SEND NOTIFICATION ####
-   if [[ "${NOTIFICATION_URL}" != "null" ]]; then
-      log "${MSG}" && apprise --notification-type="${NOTIFYTYPE}" --title="Uploader - ${NOTIFICATION_NAME}" --body="${MSGAPP}" "${NOTIFICATION_URL}/?format=markdown"
-   else
-      log "${MSG}"
-   fi
+            # Capacity available again; clear flag so future capacity states can log once
+            [ -f "${CAPACITY_FLAG}" ] && $(which rm) -f "${CAPACITY_FLAG}" 2>/dev/null
+
+            FILE=$(sqlite3read "SELECT filebase FROM upload_queue WHERE metadata = 0 ${SEARCHSTRING} LIMIT 1;" 2>/dev/null)
+            if [[ -z "${FILE}" ]]; then
+               log "Queue empty while filling slots. No files to start."
+               break
+            fi
+            DIR=$(sqlite3read "SELECT filedir FROM upload_queue WHERE filebase = '${FILE//\'/\'\'}';" 2>/dev/null)
+            DRIVE=$(sqlite3read "SELECT drive FROM upload_queue WHERE filebase = '${FILE//\'/\'\'}';" 2>/dev/null)
+            SIZEBYTES=$(sqlite3read "SELECT filesize FROM upload_queue WHERE filebase = '${FILE//\'/\'\'}';" 2>/dev/null)
+
+            #### TO CHECK IS IT A FILE OR NOT ####
+            if [[ -f "${DLFOLDER}/${DIR}/${FILE}" ]]; then
+               #### REPULL SOURCE FILE FOR LIVE EDITS ####
+               source /system/uploader/uploader.env
+               #### RUN TRANSFERS CHECK ####
+               transfercheck
+               #### UPLOAD FUNCTIONS STARTUP ####
+               if [[ "${TRANSFERS}" -eq "1" ]]; then 
+                  #### SINGLE UPLOAD ####
+                  log "Starting upload (single mode): ${DRIVE}/${DIR}/${FILE}"
+                  rcloneupload
+               else
+                  #### DEMONISED UPLOAD ####
+                  log "Starting upload in background: ${DRIVE}/${DIR}/${FILE} (active ${ACTIVETRANSFERS}/${TRANSFERS})"
+                  rcloneupload &
+               fi
+            else
+               #### WHEN NOT THEN DELETE ENTRY ####
+               log "File missing, removing from queue: ${DRIVE}/${DIR}/${FILE}"
+               FULLPATH="${DLFOLDER}/${DIR}/${FILE}"
+               DBINFO=$(sqlite3read "SELECT drive||'|'||filedir FROM upload_queue WHERE filebase = '${FILE//\'/\'\'}' LIMIT 1;" 2>/dev/null)
+               log "Debug: missing-check fullpath='${FULLPATH}' (DLFOLDER='${DLFOLDER}', DIR='${DIR}', FILE='${FILE}', DB='${DBINFO}')"
+               sqlite3write "DELETE FROM upload_queue WHERE filebase = '${FILE//\'/\'\'}';" &>/dev/null
+               # Skip to next file in queue
+               continue
+            fi
+
+            #### Recompute remaining queue count ####
+            CHECKFILES=$(sqlite3read "SELECT COUNT(*) FROM upload_queue WHERE metadata = 0;")
+            if [[ "${CHECKFILES}" -lt "1" ]]; then
+               log "Finished filling slots; queue now empty."
+               break
+            fi
+         done
+
+         #### CLEANUP COMPLETED HISTORY ####
+         cleanuplog
 }
 
 function checkerror() {
    source /system/uploader/uploader.env
-   CHECKERROR=$($(which tail) -n 25 "${LOGFILE}/${FILE}.txt" | $(which grep) -E -wi "Failed|ERROR|Source doesn't exist or is a directory and destination is a file|The filename or extension is too long|file name too long|Filename too long")
+   CHECKERROR=$($(which tail) -n 25 "${LOGFILE}/${FILE}.txt" | $(which grep) -v "preAllocate" | $(which grep) -E -wi "Failed|ERROR|Source doesn't exist or is a directory and destination is a file|The filename or extension is too long|file name too long|Filename too long")
    DATEDIFF="$(( ${ENDZ} - ${STARTZ} ))"
    HOUR="$(( ${DATEDIFF} / 3600 ))"
    MINUTE="$(( (${DATEDIFF} % 3600) / 60 ))"
@@ -126,7 +168,7 @@ function checkerror() {
    #### CHECK ERROR ON UPLOAD ####
    if [[ "${CHECKERROR}" != "" ]]; then
       STATUS="0"
-      ERROR=$($(which tail) -n 25 "${LOGFILE}/${FILE}.txt" | $(which grep) -E -wi "Failed|ERROR|Source doesn't exist or is a directory and destination is a file|The filename or extension is too long|file name too long|Filename too long" | $(which head) -n 1 | $(which tr) -d '"')
+      ERROR=$($(which tail) -n 25 "${LOGFILE}/${FILE}.txt" | $(which grep) -v "preAllocate" | $(which grep) -E -wi "Failed|ERROR|Source doesn't exist or is a directory and destination is a file|The filename or extension is too long|file name too long|Filename too long" | $(which head) -n 1 | $(which tr) -d '"')
       NOTIFYTYPE="failure"
       if [[ "${NOTIFICATION_LEVEL}" == "ALL" ]] || [[ ${NOTIFICATION_LEVEL} == "ERROR" ]]; then
          MSG="-> ❌ Upload failed ${FILE} with Error ${ERROR} <-"
@@ -328,7 +370,7 @@ function rcloneupload() {
    $(which rclone) moveto "${DLFOLDER}/${DIR}/${FILE}" "${REMOTENAME}:/${DIR}/${FILE}" \
       --config="${CONFIG}" \
       --stats=1s --checkers=4 \
-      --dropbox-chunk-size=128M --use-mmap \
+      --dropbox-chunk-size=128M \
       --log-level="${LOG_LEVEL}" \
       --user-agent="${USERAGENT}" ${BWLIMIT} \
       --log-file="${LOGFILE}/${FILE}.txt" \
@@ -365,7 +407,7 @@ function rcloneupload() {
    fi
    
    # Insert into completed_uploads with the filesize_bytes field
-   sqlite3write "INSERT INTO completed_uploads (drive,filedir,filebase,filesize,filesize_bytes,gdsa,starttime,endtime,status,error) VALUES (\"${DRIVE}\",\"${DIR}\",\"${FILE}\",\"${SIZE}\",\"${SIZEBYTES}\",\"${REMOTENAME}\",\"${STARTZ}\",\"${ENDZ}\",\"${STATUS}\",\"${ERROR}\"); DELETE FROM uploads WHERE filebase = \"${FILE}\";" &>/dev/null
+   sqlite3write "INSERT INTO completed_uploads (drive,filedir,filebase,filesize,filesize_bytes,gdsa,starttime,endtime,status,error) VALUES ('${DRIVE//\'/\'\'}','${DIR//\'/\'\'}','${FILE//\'/\'\'}','${SIZE}','${SIZEBYTES}','${REMOTENAME//\'/\'\'}','${STARTZ}','${ENDZ}','${STATUS//\'/\'\'}','${ERROR//\'/\'\'}'); DELETE FROM uploads WHERE filebase = '${FILE//\'/\'\'}';" &>/dev/null
    
    #### END OF MOVE ####
    $(which rm) -rf "${LOGFILE}/${FILE}.txt" &>/dev/null
@@ -377,6 +419,19 @@ function rcloneupload() {
 
 function listfiles() {
    source /system/uploader/uploader.env
+   
+   # Validate MIN_AGE_UPLOAD
+   if [[ -z "${MIN_AGE_UPLOAD}" || ! "${MIN_AGE_UPLOAD}" =~ ^[0-9]+$ ]]; then
+      MIN_AGE_UPLOAD=1
+      log "Warning: MIN_AGE_UPLOAD was invalid, reset to 1"
+   fi
+   
+   # Validate FOLDER_DEPTH
+   if [[ -z "${FOLDER_DEPTH}" || ! "${FOLDER_DEPTH}" =~ ^[0-9]+$ || "${FOLDER_DEPTH}" -lt 1 ]]; then
+      FOLDER_DEPTH=1
+      log "Warning: FOLDER_DEPTH was invalid, reset to 1"
+   fi
+   
    #### CREATE TEMP_FILE ####
    sqlite3read "SELECT filebase FROM upload_queue UNION ALL SELECT filebase FROM uploads;" > "${TEMPFILES}"
    #### FIND NEW FILES ####
@@ -386,11 +441,16 @@ function listfiles() {
    for NAME in ${FILEBASE[@]}; do
       LISTFILE=$($(which basename) "${NAME}")
       LISTDIR=$($(which dirname) "${NAME}")
-      LISTDRIVE=$($(which echo) "${LISTDIR}" | $(which cut) -d/ -f-"${FOLDER_DEPTH}" | $(which xargs) -I {} $(which basename) {})
+      # Ensure FOLDER_DEPTH is valid
+      if [[ -z "${FOLDER_DEPTH}" || "${FOLDER_DEPTH}" -lt 1 ]]; then
+        FOLDER_DEPTH=1
+        log "Warning: FOLDER_DEPTH was invalid, reset to 1"
+      fi
+      LISTDRIVE=$($(which echo) "${LISTDIR}" | $(which cut) -d/ -f1-"${FOLDER_DEPTH}" | $(which xargs) -I {} $(which basename) {})
       LISTSIZE=$($(which stat) -c %s "${DLFOLDER}/${NAME}" 2>/dev/null)
       LISTTYPE="${NAME##*.}"
       if [[ "${LISTTYPE}" == "mkv" ]] || [[ "${LISTTYPE}" == "mp4" ]] || [[ "${LISTTYPE}" == "avi" ]] || [[ "${LISTTYPE}" == "mov" ]] || [[ "${LISTTYPE}" == "mpeg" ]] || [[ "${LISTTYPE}" == "mpegts" ]] || [[ "${LISTTYPE}" == "ts" ]]; then
-         CHECKMETA=$($(which exiftool) -m -q -q -Title "${DLFOLDER}/${NAME}" 2>/dev/null | $(which grep) -qE * && echo 1 || echo 0)
+         CHECKMETA=$($(which exiftool) -m -q -q -Title "${DLFOLDER}/${NAME}" 2>/dev/null | $(which grep) -qE '[A-Za-z]' && echo 1 || echo 0)
       else
          CHECKMETA="0"
       fi
@@ -436,7 +496,7 @@ function checkmeta() {
 function checkspace() {
    source /system/uploader/uploader.env
    #### CHECK DRIVEUSEDSPACE ####
-   if [[ "${DRIVEUSEDSPACE}" =~ ^[0-9][0-9]+([.][0-9]+)?$ ]]; then
+   if [[ "${DRIVEUSEDSPACE}" != "null" && "${DRIVEUSEDSPACE}" =~ ^[0-9][0-9]+([.][0-9]+)?$ ]]; then
       while true; do
         LCT=$($(which df) --output=pcent "${DLFOLDER}" | tr -dc '0-9')
         if [[ "${DRIVEUSEDSPACE}" =~ ^[0-9][0-9]+([.][0-9]+)?$ ]]; then

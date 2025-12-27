@@ -124,7 +124,7 @@ log "**** install build packages from requirements ****" && \
    done
 
 log "**** install pip packages ****"
-   pip3 install --no-cache-dir -U apprise &>/dev/null
+   pip3 install --break-system-packages --no-cache-dir -U apprise &>/dev/null
 
 log "**** install rclone ****"
    $(which wget) -qO- https://rclone.org/install.sh | bash &>/dev/null
