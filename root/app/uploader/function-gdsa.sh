@@ -346,17 +346,12 @@ function rcloneupload() {
    USERAGENT=$($(which cat) /dev/urandom | $(which tr) -dc 'a-zA-Z0-9' | $(which fold) -w 32 | $(which head) -n 1)
    #### START TIME UPLOAD ####
    STARTZ=$($(which date) +%s)
-   # Avoid preallocate failures on small text/subtitle files
-   RCLONE_PREALLOC_FLAG=""
-   case "${FILE,,}" in
-      *.srt|*.sub|*.idx|*.ssa|*.ass|*.sup) RCLONE_PREALLOC_FLAG="--no-preallocate" ;;
-   esac
    #### RUN RCLONE UPLOAD COMMAND ####
    $(which rclone) moveto "${DLFOLDER}/${DIR}/${FILE}" "${REMOTENAME}:/${DIR}/${FILE}" \
       --config="${CONFIG}" \
       --stats=1s --checkers=4 \
-      --drive-chunk-size=32M \
-      ${RCLONE_PREALLOC_FLAG} \
+      --drive-chunk-size=32M --use-mmap \
+      --no-preallocate \
       --log-level="${LOG_LEVEL}" \
       --user-agent="${USERAGENT}" ${BWLIMIT} \
       --log-file="${LOGFILE}/${FILE}.txt" \
@@ -394,7 +389,7 @@ function rcloneupload() {
    fi
    
    # Insert into completed_uploads with the filesize_bytes field
-   sqlite3write "INSERT INTO completed_uploads (drive,filedir,filebase,filesize,filesize_bytes,gdsa,starttime,endtime,status,error) VALUES ('${DRIVE//\'/\\''}','${DIR//\'/\\''}','${FILE//\'/\\''}','${SIZE//\'/\\''}','${SIZEBYTES}','${KEYNOTI//\'/\\''}${CRYPTED//\'/\\''}','${STARTZ}','${ENDZ}','${STATUS//\'/\\''}','${ERROR//\'/\\''}'); DELETE FROM uploads WHERE filebase = '${FILE//\'/\\''}'; DELETE FROM upload_queue WHERE filebase = '${FILE//\'/\\''}';" &>/dev/null
+   sqlite3write "INSERT INTO completed_uploads (drive,filedir,filebase,filesize,filesize_bytes,gdsa,starttime,endtime,status,error) VALUES ('${DRIVE//\'/\'\'}','${DIR//\'/\'\'}','${FILE//\'/\'\'}','${SIZE}','${SIZEBYTES}','${KEYNOTI//\'/\'\'}${CRYPTED//\'/\'\'}','${STARTZ}','${ENDZ}','${STATUS//\'/\'\'}','${ERROR//\'/\'\'}'); DELETE FROM uploads WHERE filebase = '${FILE//\'/\'\'}';" &>/dev/null
    
    #### END OF MOVE ####
    $(which rm) -rf "${LOGFILE}/${FILE}.txt" &>/dev/null
@@ -420,7 +415,7 @@ function listfiles() {
    fi
    
    #### CREATE TEMP_FILE ####
-   sqlite3read "SELECT filebase FROM upload_queue UNION ALL SELECT filebase FROM uploads UNION ALL SELECT filebase FROM completed_uploads;" > "${TEMPFILES}"
+   sqlite3read "SELECT filebase FROM upload_queue UNION ALL SELECT filebase FROM uploads;" > "${TEMPFILES}"
    #### FIND NEW FILES ####
    IFS=$'\n'
    mapfile -t "FILEBASE" < <($(which find) "${DLFOLDER}" -mindepth 2 -type f -size +0b -cmin +"${MIN_AGE_UPLOAD}" -printf "%P\n" | $(which grep) -Evf "${EXCLUDE}" | $(which grep) -Fvf "${TEMPFILES}")
@@ -437,7 +432,7 @@ function listfiles() {
       LISTSIZE=$($(which stat) -c %s "${DLFOLDER}/${NAME}" 2>/dev/null)
       LISTTYPE="${NAME##*.}"
       if [[ "${LISTTYPE}" == "mkv" ]] || [[ "${LISTTYPE}" == "mp4" ]] || [[ "${LISTTYPE}" == "avi" ]] || [[ "${LISTTYPE}" == "mov" ]] || [[ "${LISTTYPE}" == "mpeg" ]] || [[ "${LISTTYPE}" == "mpegts" ]] || [[ "${LISTTYPE}" == "ts" ]]; then
-         CHECKMETA=$($(which exiftool) -m -q -q -Title "${DLFOLDER}/${NAME}" 2>/dev/null | $(which grep) -qE * && echo 1 || echo 0)
+         CHECKMETA=$($(which exiftool) -m -q -q -Title "${DLFOLDER}/${NAME}" 2>/dev/null | $(which grep) -qE '[A-Za-z]' && echo 1 || echo 0)
       else
          CHECKMETA="0"
       fi
