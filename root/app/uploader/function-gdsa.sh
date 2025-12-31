@@ -67,21 +67,31 @@ function refreshVFS() {
 
 function autoscan() {
    source /system/uploader/uploader.env
-   #### TRIGGER AUTOSCAN ####
-   if [[ "${AUTOSCAN_URL}" != "null" ]]; then
-      if [[ "${AUTOSCAN_USER}" == "null" ]]; then
-         STATUSCODE=$($(which curl) -s -o /dev/null -w "%{http_code}" "${AUTOSCAN_URL}/triggers/manual")
-      else
-         STATUSCODE=$($(which curl) -s -o /dev/null -w "%{http_code}" -u "${AUTOSCAN_USER}:${AUTOSCAN_PASS}" "${AUTOSCAN_URL}/triggers/manual")
-            if [[ "${STATUSCODE}" == "200" ]]; then
-               if [[ "${AUTOSCAN_USER}" == "null" ]]; then
-                  $(which curl) -sfG -X POST --data-urlencode "dir=${SUNION}/${DIR}" "${AUTOSCAN_URL}/triggers/manual"
-               else
-                  $(which curl) -sfG -X POST -u "${AUTOSCAN_USER}:${AUTOSCAN_PASS}" --data-urlencode "dir=${SUNION}/${DIR}" "${AUTOSCAN_URL}/triggers/manual"
+   #### ONLY TRIGGER AUTOSCAN FOR VIDEO FILES ####
+   FILEEXT="${FILE##*.}"
+   FILEEXT_LOWER=$(echo "${FILEEXT}" | tr '[:upper:]' '[:lower:]')
+   case "${FILEEXT_LOWER}" in
+      mkv|mp4|avi|mov|wmv|flv|webm|m4v|mpg|mpeg|ts|m2ts|iso|img)
+         #### TRIGGER AUTOSCAN ####
+         if [[ "${AUTOSCAN_URL}" != "null" ]]; then
+            if [[ "${AUTOSCAN_USER}" == "null" ]]; then
+               STATUSCODE=$($(which curl) -s -o /dev/null -w "%{http_code}" "${AUTOSCAN_URL}/triggers/manual")
+            else
+               STATUSCODE=$($(which curl) -s -o /dev/null -w "%{http_code}" -u "${AUTOSCAN_USER}:${AUTOSCAN_PASS}" "${AUTOSCAN_URL}/triggers/manual")
+               if [[ "${STATUSCODE}" == "200" ]]; then
+                  if [[ "${AUTOSCAN_USER}" == "null" ]]; then
+                     $(which curl) -sfG -X POST --data-urlencode "dir=${SUNION}/${DIR}" "${AUTOSCAN_URL}/triggers/manual"
+                  else
+                     $(which curl) -sfG -X POST -u "${AUTOSCAN_USER}:${AUTOSCAN_PASS}" --data-urlencode "dir=${SUNION}/${DIR}" "${AUTOSCAN_URL}/triggers/manual"
+                  fi
                fi
             fi
-      fi
-   fi
+         fi
+         ;;
+      *)
+         #### SKIP AUTOSCAN FOR NON-VIDEO FILES (srt, sub, idx, txt, nfo, etc.) ####
+         ;;
+   esac
 }
 
 function notification() {

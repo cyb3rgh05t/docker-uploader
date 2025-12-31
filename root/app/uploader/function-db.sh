@@ -67,83 +67,31 @@ function refreshVFS() {
 
 function autoscan() {
    source /system/uploader/uploader.env
-   #### TRIGGER AUTOSCAN ####
-   if [[ "${AUTOSCAN_URL}" != "null" ]]; then
-      if [[ "${AUTOSCAN_USER}" == "null" ]]; then
-         STATUSCODE=$($(which curl) -s -o /dev/null -w "%{http_code}" "${AUTOSCAN_URL}/triggers/manual")
-      else
-         STATUSCODE=$($(which curl) -s -o /dev/null -w "%{http_code}" -u "${AUTOSCAN_USER}:${AUTOSCAN_PASS}" "${AUTOSCAN_URL}/triggers/manual")
-            if [[ "${STATUSCODE}" == "200" ]]; then
-               if [[ "${AUTOSCAN_USER}" == "null" ]]; then
-                  $(which curl) -sfG -X POST --data-urlencode "dir=${SUNION}/${DIR}" "${AUTOSCAN_URL}/triggers/manual"
-               else
-         #### Fill available transfer slots in this cycle ####
-         LOGGED_CAPACITY=false
-         CAPACITY_FLAG="/tmp/uploader_capacity_logged"
-         while true; do
-            ACTIVETRANSFERS=$(sqlite3read "SELECT COUNT(*) FROM uploads;" 2>/dev/null)
-            source /system/uploader/uploader.env
-            if [[ "${TRANSFERS}" != +([0-9.]) ]] || [ "${TRANSFERS}" -gt "99" ] || [ "${TRANSFERS}" -eq "0" ]; then
-               TRANSFERS="1"
-            fi
-            if [[ "${ACTIVETRANSFERS}" -ge "${TRANSFERS}" ]]; then
-               if [[ ! -f "${CAPACITY_FLAG}" ]]; then
-                  log "Capacity reached: ${ACTIVETRANSFERS}/${TRANSFERS}. Waiting for slots."
-                  : > "${CAPACITY_FLAG}"
-               fi
-               $(which sleep) 2
-               break
-            fi
-
-            # Capacity available again; clear flag so future capacity states can log once
-            [ -f "${CAPACITY_FLAG}" ] && $(which rm) -f "${CAPACITY_FLAG}" 2>/dev/null
-
-            FILE=$(sqlite3read "SELECT filebase FROM upload_queue WHERE metadata = 0 ${SEARCHSTRING} LIMIT 1;" 2>/dev/null)
-            if [[ -z "${FILE}" ]]; then
-               log "Queue empty while filling slots. No files to start."
-               break
-            fi
-            DIR=$(sqlite3read "SELECT filedir FROM upload_queue WHERE filebase = '${FILE//\'/\'\'}';" 2>/dev/null)
-            DRIVE=$(sqlite3read "SELECT drive FROM upload_queue WHERE filebase = '${FILE//\'/\'\'}';" 2>/dev/null)
-            SIZEBYTES=$(sqlite3read "SELECT filesize FROM upload_queue WHERE filebase = '${FILE//\'/\'\'}';" 2>/dev/null)
-
-            #### TO CHECK IS IT A FILE OR NOT ####
-            if [[ -f "${DLFOLDER}/${DIR}/${FILE}" ]]; then
-               #### REPULL SOURCE FILE FOR LIVE EDITS ####
-               source /system/uploader/uploader.env
-               #### RUN TRANSFERS CHECK ####
-               transfercheck
-               #### UPLOAD FUNCTIONS STARTUP ####
-               if [[ "${TRANSFERS}" -eq "1" ]]; then 
-                  #### SINGLE UPLOAD ####
-                  log "Starting upload (single mode): ${DRIVE}/${DIR}/${FILE}"
-                  rcloneupload
-               else
-                  #### DEMONISED UPLOAD ####
-                  log "Starting upload in background: ${DRIVE}/${DIR}/${FILE} (active ${ACTIVETRANSFERS}/${TRANSFERS})"
-                  rcloneupload &
-               fi
+   #### ONLY TRIGGER AUTOSCAN FOR VIDEO FILES ####
+   FILEEXT="${FILE##*.}"
+   FILEEXT_LOWER=$(echo "${FILEEXT}" | tr '[:upper:]' '[:lower:]')
+   case "${FILEEXT_LOWER}" in
+      mkv|mp4|avi|mov|wmv|flv|webm|m4v|mpg|mpeg|ts|m2ts|iso|img)
+         #### TRIGGER AUTOSCAN ####
+         if [[ "${AUTOSCAN_URL}" != "null" ]]; then
+            if [[ "${AUTOSCAN_USER}" == "null" ]]; then
+               STATUSCODE=$($(which curl) -s -o /dev/null -w "%{http_code}" "${AUTOSCAN_URL}/triggers/manual")
             else
-               #### WHEN NOT THEN DELETE ENTRY ####
-               log "File missing, removing from queue: ${DRIVE}/${DIR}/${FILE}"
-               FULLPATH="${DLFOLDER}/${DIR}/${FILE}"
-               DBINFO=$(sqlite3read "SELECT drive||'|'||filedir FROM upload_queue WHERE filebase = '${FILE//\'/\'\'}' LIMIT 1;" 2>/dev/null)
-               log "Debug: missing-check fullpath='${FULLPATH}' (DLFOLDER='${DLFOLDER}', DIR='${DIR}', FILE='${FILE}', DB='${DBINFO}')"
-               sqlite3write "DELETE FROM upload_queue WHERE filebase = '${FILE//\'/\'\'}';" &>/dev/null
-               # Skip to next file in queue
-               continue
+               STATUSCODE=$($(which curl) -s -o /dev/null -w "%{http_code}" -u "${AUTOSCAN_USER}:${AUTOSCAN_PASS}" "${AUTOSCAN_URL}/triggers/manual")
+               if [[ "${STATUSCODE}" == "200" ]]; then
+                  if [[ "${AUTOSCAN_USER}" == "null" ]]; then
+                     $(which curl) -sfG -X POST --data-urlencode "dir=${SUNION}/${DIR}" "${AUTOSCAN_URL}/triggers/manual"
+                  else
+                     $(which curl) -sfG -X POST -u "${AUTOSCAN_USER}:${AUTOSCAN_PASS}" --data-urlencode "dir=${SUNION}/${DIR}" "${AUTOSCAN_URL}/triggers/manual"
+                  fi
+               fi
             fi
-
-            #### Recompute remaining queue count ####
-            CHECKFILES=$(sqlite3read "SELECT COUNT(*) FROM upload_queue WHERE metadata = 0;")
-            if [[ "${CHECKFILES}" -lt "1" ]]; then
-               log "Finished filling slots; queue now empty."
-               break
-            fi
-         done
-
-         #### CLEANUP COMPLETED HISTORY ####
-         cleanuplog
+         fi
+         ;;
+      *)
+         #### SKIP AUTOSCAN FOR NON-VIDEO FILES (srt, sub, idx, txt, nfo, etc.) ####
+         ;;
+   esac
 }
 
 function checkerror() {
