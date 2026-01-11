@@ -94,6 +94,26 @@ function autoscan() {
    esac
 }
 
+function notification() {
+   source /system/uploader/uploader.env
+   #### CHECK NOTIFICATION TYPE ####
+   if [[ "${NOTIFYTYPE}" == "" ]]; then
+     NOTIFYTYPE="info"
+   fi
+   #### CHECK NOTIFICATON SERVERNAME ####
+   if [[ "${NOTIFICATION_SERVERNAME}" == "null" ]]; then
+     NOTIFICATION_NAME="Docker"
+   else
+     NOTIFICATION_NAME="${NOTIFICATION_SERVERNAME}"
+   fi
+   #### SEND NOTIFICATION ####
+   if [[ "${NOTIFICATION_URL}" != "null" ]]; then
+      log "${MSG}" && apprise --notification-type="${NOTIFYTYPE}" --title="Uploader - ${NOTIFICATION_NAME}" --body="${MSGAPP}" "${NOTIFICATION_URL}/?format=markdown"
+   else
+      log "${MSG}"
+   fi
+}
+
 function checkerror() {
    source /system/uploader/uploader.env
    CHECKERROR=$($(which tail) -n 25 "${LOGFILE}/${FILE}.txt" | $(which grep) -v "preAllocate" | $(which grep) -E -wi "Failed|ERROR|Source doesn't exist or is a directory and destination is a file|The filename or extension is too long|file name too long|Filename too long")
@@ -318,7 +338,7 @@ function rcloneupload() {
    $(which rclone) moveto "${DLFOLDER}/${DIR}/${FILE}" "${REMOTENAME}:/${DIR}/${FILE}" \
       --config="${CONFIG}" \
       --stats=1s --checkers=4 \
-      --dropbox-chunk-size=128M \
+      --dropbox-chunk-size=128M --use-mmap \
       --log-level="${LOG_LEVEL}" \
       --user-agent="${USERAGENT}" ${BWLIMIT} \
       --log-file="${LOGFILE}/${FILE}.txt" \
