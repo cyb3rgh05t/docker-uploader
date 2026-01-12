@@ -5,6 +5,7 @@
   "newversion": "5.3.23.2",
   "baseimage": "ghcr.io/linuxserver/baseimage-alpine",
   "baseversion": "3.23-6580b7f6-ls2",
-  "body": "Upgrading docker-uploader to ",
-  "user": "dockserver image update[bot]"
+  "description": "VOD Uploader container for automated media uploads",
+  "body": "Alpine 3.23.2, Baseimage 3.23-6580b7f6-ls2",
+  "user": "github-actions[bot]"
 }
