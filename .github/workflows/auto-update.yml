@@ -1,0 +1,182 @@
+name: Auto Update Versions
+
+on:
+  schedule:
+    # Run daily at 3:00 AM UTC
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+    inputs:
+      force_update:
+        description: "Force update even if no changes detected"
+        required: false
+        type: boolean
+        default: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  check-updates:
+    name: Check for Updates
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+
+    outputs:
+      has_updates: ${{ steps.check.outputs.has_updates }}
+      alpine_version: ${{ steps.versions.outputs.alpine_version }}
+      baseimage_version: ${{ steps.versions.outputs.baseimage_version }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get latest versions
+        id: versions
+        run: |
+          # Get latest Alpine version
+          ALPINE_VERSION=$(curl -sX GET "https://registry.hub.docker.com/v2/repositories/library/alpine/tags" \
+            | jq -r 'select(.results != null) | .results[]["name"]' \
+            | sort -t "." -k1,1n -k2,2n -k3,3n | grep "^3\." | grep -v "edge" | tail -n1)
+          echo "alpine_version=${ALPINE_VERSION}" >> $GITHUB_OUTPUT
+
+          # Get latest LinuxServer Alpine baseimage version
+          BASEIMAGE_VERSION=$(curl -sX GET "https://api.github.com/repos/linuxserver/docker-baseimage-alpine/releases/latest" \
+            | jq -r '.tag_name')
+          echo "baseimage_version=${BASEIMAGE_VERSION}" >> $GITHUB_OUTPUT
+
+          echo "Latest Alpine: ${ALPINE_VERSION}"
+          echo "Latest Baseimage: ${BASEIMAGE_VERSION}"
+
+      - name: Check for updates
+        id: check
+        run: |
+          # Read current release.json
+          CURRENT_ALPINE=$(jq -r '.newversion' release.json | sed 's/^5\.//')
+          CURRENT_BASEIMAGE=$(jq -r '.baseversion' release.json)
+
+          NEW_ALPINE="${{ steps.versions.outputs.alpine_version }}"
+          NEW_BASEIMAGE="${{ steps.versions.outputs.baseimage_version }}"
+
+          echo "Current: Alpine=${CURRENT_ALPINE}, Baseimage=${CURRENT_BASEIMAGE}"
+          echo "New: Alpine=${NEW_ALPINE}, Baseimage=${NEW_BASEIMAGE}"
+
+          if [[ "$CURRENT_ALPINE" != "$NEW_ALPINE" ]] || \
+             [[ "$CURRENT_BASEIMAGE" != "$NEW_BASEIMAGE" ]] || \
+             [[ "${{ github.event.inputs.force_update }}" == "true" ]]; then
+            echo "has_updates=true" >> $GITHUB_OUTPUT
+            echo "Updates available!"
+          else
+            echo "has_updates=false" >> $GITHUB_OUTPUT
+            echo "No updates needed."
+          fi
+
+  update-and-build:
+    name: Update and Build
+    needs: check-updates
+    if: needs.check-updates.outputs.has_updates == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update release.json
+        run: |
+          ALPINE_VERSION="${{ needs.check-updates.outputs.alpine_version }}"
+          BASEIMAGE_VERSION="${{ needs.check-updates.outputs.baseimage_version }}"
+
+          # Update release.json (version prefixed with 5. for uploader)
+          jq --arg alpine "5.${ALPINE_VERSION}" \
+             --arg baseimage "$BASEIMAGE_VERSION" \
+             '.newversion = $alpine | .baseversion = $baseimage | .body = "Auto-update: Alpine \($alpine), Baseimage \($baseimage)"' \
+             release.json > release.json.tmp && mv release.json.tmp release.json
+
+          cat release.json
+
+      - name: Update Dockerfile
+        run: |
+          BASEIMAGE_VERSION="${{ needs.check-updates.outputs.baseimage_version }}"
+
+          # Update base image version in Dockerfile
+          sed -i "s|FROM ghcr.io/linuxserver/baseimage-alpine:.*|FROM ghcr.io/linuxserver/baseimage-alpine:${BASEIMAGE_VERSION}|" Dockerfile
+
+          # Update ALPINE_VERSION ARG
+          sed -i "s|ARG ALPINE_VERSION=.*|ARG ALPINE_VERSION=${BASEIMAGE_VERSION}|" Dockerfile
+
+          echo "Updated Dockerfile:"
+          head -30 Dockerfile
+
+      - name: Commit changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+          if [[ -n $(git status --porcelain) ]]; then
+            git add -A
+            git commit -m "[Auto Update] Alpine ${{ needs.check-updates.outputs.alpine_version }}, Baseimage ${{ needs.check-updates.outputs.baseimage_version }}"
+            git push
+          fi
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Lowercase repository name
+        run: echo "REPO_LC=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.REPO_LC }}:latest
+            ${{ env.REGISTRY }}/${{ env.REPO_LC }}:${{ needs.check-updates.outputs.alpine_version }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v5.${{ needs.check-updates.outputs.alpine_version }}
+          name: "VOD Uploader v5.${{ needs.check-updates.outputs.alpine_version }}"
+          body: |
+            ## 🚀 Auto-Update Release
+            
+            ### Version Changes
+            - **Alpine**: ${{ needs.check-updates.outputs.alpine_version }}
+            - **Baseimage**: ${{ needs.check-updates.outputs.baseimage_version }}
+            
+            ### Docker Image
+            ```bash
+            docker pull ghcr.io/${{ env.REPO_LC }}:latest
+            docker pull ghcr.io/${{ env.REPO_LC }}:${{ needs.check-updates.outputs.alpine_version }}
+            ```
+            
+            ### Changes
+            This is an automated release triggered by upstream version updates.
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

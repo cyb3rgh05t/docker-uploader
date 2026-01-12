@@ -1,0 +1,47 @@
+name: Update Package List
+
+on:
+  schedule:
+    # Run weekly on Sunday at 4:00 AM UTC
+    - cron: "0 4 * * 0"
+  workflow_dispatch:
+
+jobs:
+  update-packages:
+    name: Update Package List
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image for package extraction
+        run: |
+          docker build -t package-check:latest .
+
+      - name: Extract package list
+        run: |
+          docker run --rm package-check:latest apk info -v | sort > package.txt
+          echo "Packages installed:"
+          cat package.txt
+
+      - name: Commit package list
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+          if [[ -n $(git diff --name-only package.txt) ]]; then
+            git add package.txt
+            git commit -m "[Auto Update] Update package list"
+            git push
+            echo "Package list updated!"
+          else
+            echo "No changes to package list."
+          fi
