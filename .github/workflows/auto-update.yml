@@ -162,17 +162,17 @@ jobs:
           name: "VOD Uploader v5.${{ needs.check-updates.outputs.alpine_version }}"
           body: |
             ## 🚀 Auto-Update Release
-            
+
             ### Version Changes
             - **Alpine**: ${{ needs.check-updates.outputs.alpine_version }}
             - **Baseimage**: ${{ needs.check-updates.outputs.baseimage_version }}
-            
+
             ### Docker Image
             ```bash
             docker pull ghcr.io/${{ env.REPO_LC }}:latest
             docker pull ghcr.io/${{ env.REPO_LC }}:${{ needs.check-updates.outputs.alpine_version }}
             ```
-            
+
             ### Changes
             This is an automated release triggered by upstream version updates.
           draft: false
