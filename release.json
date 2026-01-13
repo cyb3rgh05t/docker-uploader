@@ -4,8 +4,8 @@
   "appfolder": "./",
   "newversion": "5.3.23.2",
   "baseimage": "ghcr.io/linuxserver/baseimage-alpine",
-  "baseversion": "3.23-6580b7f6-ls2",
+  "baseversion": "3.23-d34fa4d2-ls4",
   "description": "VOD Uploader container for automated media uploads",
-  "body": "Alpine 3.23.2, Baseimage 3.23-6580b7f6-ls2",
+  "body": "Auto-update: Alpine 5.3.23.2, Baseimage 3.23-d34fa4d2-ls4",
   "user": "github-actions[bot]"
 }
