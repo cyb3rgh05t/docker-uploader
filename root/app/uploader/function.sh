@@ -37,6 +37,75 @@ BWLIMIT=""
 USERAGENT=""
 
 #########################################
+# STALE UPLOAD CLEANUP                  #
+# Cleans up uploads that are stuck      #
+# in active state without running       #
+# rclone process                        #
+#########################################
+function cleanup_stale_uploads() {
+   source /system/uploader/uploader.env
+   #### CHECK FOR STALE ENTRIES IN UPLOADS TABLE ####
+   # Get entries with their timestamp (added_time column, or fallback to rowid for age estimation)
+   STALE_UPLOADS=$(sqlite3read "SELECT filebase FROM uploads;" 2>/dev/null)
+   if [[ -n "${STALE_UPLOADS}" ]]; then
+      while IFS= read -r STALE_FILE; do
+         if [[ -n "${STALE_FILE}" ]]; then
+            #### ESCAPE SPECIAL CHARACTERS FOR GREP/PGREP ####
+            ESCAPED_FILE=$(printf '%s' "${STALE_FILE}" | sed 's/[][\.*^$()+?{}|]/\\&/g')
+            
+            #### CHECK IF ANY RCLONE PROCESS IS RUNNING ####
+            # First check: is there ANY rclone copy/move process running?
+            if $(which pgrep) -f "rclone (copy|move)" &>/dev/null; then
+               #### RCLONE IS RUNNING - CHECK IF IT'S FOR THIS FILE ####
+               # Use a more relaxed pattern match - check if filename appears in any rclone process
+               if $(which pgrep) -af "rclone" 2>/dev/null | $(which grep) -qF "${STALE_FILE}"; then
+                  # File is being actively uploaded, skip it
+                  continue
+               fi
+               
+               #### ADDITIONAL CHECK: Look for the log file being written to ####
+               if [[ -f "${LOGFILE}/${STALE_FILE}.txt" ]]; then
+                  # Check if log file was modified in the last 5 minutes (300 seconds)
+                  LOG_AGE=$(( $(date +%s) - $(stat -c %Y "${LOGFILE}/${STALE_FILE}.txt" 2>/dev/null || echo 0) ))
+                  if [[ "${LOG_AGE}" -lt 300 ]]; then
+                     # Log file is recent, upload is likely still active
+                     continue
+                  fi
+               fi
+               
+               #### FILE NOT FOUND IN ACTIVE RCLONE - BUT RCLONE IS RUNNING ####
+               #### WAIT A BIT TO AVOID RACE CONDITIONS WITH NEWLY STARTED UPLOADS ####
+               # Check if file exists in upload_queue (means it's being prepared)
+               QUEUE_CHECK=$(sqlite3read "SELECT COUNT(*) FROM upload_queue WHERE filebase = '${STALE_FILE//\'/\'\'}';" 2>/dev/null)
+               if [[ "${QUEUE_CHECK}" -gt "0" ]]; then
+                  # Still in queue, might be about to start
+                  continue
+               fi
+            fi
+            
+            #### FINAL CHECK: No rclone running OR file not in any process ####
+            # Double-check with a direct pgrep (handles edge cases)
+            if ! $(which pgrep) -af "rclone" 2>/dev/null | $(which grep) -qF "${STALE_FILE}"; then
+               # Also verify no rclone process at all, or this specific file is truly orphaned
+               RCLONE_COUNT=$($(which pgrep) -c "rclone" 2>/dev/null || echo "0")
+               if [[ "${RCLONE_COUNT}" -eq "0" ]]; then
+                  # No rclone processes at all - safe to clean up
+                  log "-> ⚠️ Found stale upload entry: ${STALE_FILE}, cleaning up <-"
+                  sqlite3write "DELETE FROM uploads WHERE filebase = '${STALE_FILE//\'/\'\'}';" &>/dev/null
+                  #### REMOVE LOG FILE IF EXISTS ####
+                  if [[ -f "${LOGFILE}/${STALE_FILE}.txt" ]]; then
+                     $(which rm) -rf "${LOGFILE}/${STALE_FILE}.txt" &>/dev/null
+                  fi
+               fi
+               # If rclone IS running but not for this file, we still wait
+               # to avoid race conditions with background uploads starting up
+            fi
+         fi
+      done <<< "${STALE_UPLOADS}"
+   fi
+}
+
+#########################################
 # From here on out, you probably don't  #
 #   want to change anything unless you  #
 #   know what you're doing.             #
@@ -322,17 +391,50 @@ function rcloneupload() {
    USERAGENT=$($(which cat) /dev/urandom | $(which tr) -dc 'a-zA-Z0-9' | $(which fold) -w 32 | $(which head) -n 1)
    #### START TIME UPLOAD ####
    STARTZ=$($(which date) +%s)
-   #### RUN RCLONE UPLOAD COMMAND ####
-   $(which rclone) moveto "${DLFOLDER}/${DIR}/${FILE}" "${REMOTENAME}:/${DIR}/${FILE}" \
+   #### CALCULATE TIMEOUT BASED ON FILE SIZE (minimum 30min, +10min per GB) ####
+   TIMEOUT_BASE=1800
+   TIMEOUT_PER_GB=600
+   SIZE_GB=$((${SIZEBYTES} / 1073741824))
+   UPLOAD_TIMEOUT=$((${TIMEOUT_BASE} + (${SIZE_GB} * ${TIMEOUT_PER_GB})))
+   #### RUN RCLONE UPLOAD COMMAND WITH TIMEOUT ####
+   $(which timeout) --signal=KILL ${UPLOAD_TIMEOUT} $(which rclone) moveto "${DLFOLDER}/${DIR}/${FILE}" "${REMOTENAME}:/${DIR}/${FILE}" \
       --config="${CONFIG}" \
       --stats=1s --checkers=4 \
       --drive-chunk-size=32M \
       --log-level="${LOG_LEVEL}" \
       --user-agent="${USERAGENT}" ${BWLIMIT} \
       --log-file="${LOGFILE}/${FILE}.txt" \
-      --tpslimit=10 &>/dev/null
+      --tpslimit=10 \
+      --retries=3 \
+      --low-level-retries=10 \
+      --timeout=300s \
+      --contimeout=60s &>/dev/null
+   RCLONE_EXIT=$?
    #### END TIME UPLOAD ####
    ENDZ=$($(which date) +%s)
+   #### CHECK IF UPLOAD WAS KILLED BY TIMEOUT ####
+   if [[ "${RCLONE_EXIT}" -eq 137 ]] || [[ "${RCLONE_EXIT}" -eq 124 ]]; then
+      log "-> ⚠️ Upload timeout after ${UPLOAD_TIMEOUT}s for ${FILE} <-"
+      STATUS="0"
+      ERROR="Upload timeout - mount possibly unresponsive"
+      NOTIFYTYPE="failure"
+      if [[ "${NOTIFICATION_LEVEL}" == "ALL" ]] || [[ ${NOTIFICATION_LEVEL} == "ERROR" ]]; then
+         MSG="-> ⚠️ Upload timeout ${FILE} after ${UPLOAD_TIMEOUT}s <-"
+         MSGAPP="### ⚠️ Upload Timeout
+${FILE}
+#### Folder
+${DRIVE}
+#### Timeout
+${UPLOAD_TIMEOUT}s - Mount may be unresponsive" && notification
+      fi
+      #### CLEANUP AND RETURN - SKIP NORMAL ERROR CHECK ####
+      sqlite3write "INSERT INTO completed_uploads (drive,filedir,filebase,filesize,gdsa,starttime,endtime,status,error) VALUES ('${DRIVE//\'/\'\'}','${DIR//\'/\'\'}','${FILE//\'/\'\'}','${SIZE}','${REMOTENAME//\'/\'\'}','${STARTZ}','${ENDZ}','${STATUS//\'/\'\'}','${ERROR//\'/\'\'}'); DELETE FROM uploads WHERE filebase = '${FILE//\'/\'\'}';" &>/dev/null
+      $(which rm) -rf "${LOGFILE}/${FILE}.txt" &>/dev/null
+      if [[ -f "${CUSTOM}/${FILE}.conf" ]]; then
+         $(which rm) -rf "${CUSTOM}/${FILE}.conf" &>/dev/null
+      fi
+      return
+   fi
    #### SEND TO AUTOSCAN DOCKER ####
    autoscan
    #### SEND REFRESH AND FORGET TO MOUNT DOCKER ####
@@ -485,7 +587,18 @@ function sqlite3read() {
 
 #### START HERE UPLOADER ####
 function startuploader() {
+   #### CLEANUP STALE UPLOADS ON STARTUP ####
+   log "-> Checking for stale upload entries <-"
+   cleanup_stale_uploads
+   LAST_STALE_CHECK=$(date +%s)
+   STALE_CHECK_INTERVAL=300  # Check for stale uploads every 5 minutes
    while true; do
+      #### RUN PERIODIC STALE CLEANUP (every 5 minutes, not every loop) ####
+      CURRENT_TIME=$(date +%s)
+      if [[ $((CURRENT_TIME - LAST_STALE_CHECK)) -ge ${STALE_CHECK_INTERVAL} ]]; then
+         cleanup_stale_uploads
+         LAST_STALE_CHECK=${CURRENT_TIME}
+      fi
       #### RUN CHECK SPACE ####
       checkspace
       #### RUN LIST FILES ####
