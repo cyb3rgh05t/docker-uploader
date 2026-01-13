@@ -45,18 +45,60 @@ USERAGENT=""
 function cleanup_stale_uploads() {
    source /system/uploader/uploader.env
    #### CHECK FOR STALE ENTRIES IN UPLOADS TABLE ####
+   # Get entries with their timestamp (added_time column, or fallback to rowid for age estimation)
    STALE_UPLOADS=$(sqlite3read "SELECT filebase FROM uploads;" 2>/dev/null)
    if [[ -n "${STALE_UPLOADS}" ]]; then
       while IFS= read -r STALE_FILE; do
          if [[ -n "${STALE_FILE}" ]]; then
-            #### CHECK IF RCLONE PROCESS IS RUNNING FOR THIS FILE ####
-            if ! $(which pgrep) -f "rclone.*${STALE_FILE}" &>/dev/null; then
-               log "-> ⚠️ Found stale upload entry: ${STALE_FILE}, cleaning up <-"
-               sqlite3write "DELETE FROM uploads WHERE filebase = '${STALE_FILE//\'/\'\'}';" &>/dev/null
-               #### REMOVE LOG FILE IF EXISTS ####
-               if [[ -f "${LOGFILE}/${STALE_FILE}.txt" ]]; then
-                  $(which rm) -rf "${LOGFILE}/${STALE_FILE}.txt" &>/dev/null
+            #### ESCAPE SPECIAL CHARACTERS FOR GREP/PGREP ####
+            ESCAPED_FILE=$(printf '%s' "${STALE_FILE}" | sed 's/[][\.*^$()+?{}|]/\\&/g')
+            
+            #### CHECK IF ANY RCLONE PROCESS IS RUNNING ####
+            # First check: is there ANY rclone copy/move process running?
+            if $(which pgrep) -f "rclone (copy|move)" &>/dev/null; then
+               #### RCLONE IS RUNNING - CHECK IF IT'S FOR THIS FILE ####
+               # Use a more relaxed pattern match - check if filename appears in any rclone process
+               if $(which pgrep) -af "rclone" 2>/dev/null | $(which grep) -qF "${STALE_FILE}"; then
+                  # File is being actively uploaded, skip it
+                  continue
                fi
+               
+               #### ADDITIONAL CHECK: Look for the log file being written to ####
+               if [[ -f "${LOGFILE}/${STALE_FILE}.txt" ]]; then
+                  # Check if log file was modified in the last 5 minutes (300 seconds)
+                  LOG_AGE=$(( $(date +%s) - $(stat -c %Y "${LOGFILE}/${STALE_FILE}.txt" 2>/dev/null || echo 0) ))
+                  if [[ "${LOG_AGE}" -lt 300 ]]; then
+                     # Log file is recent, upload is likely still active
+                     continue
+                  fi
+               fi
+               
+               #### FILE NOT FOUND IN ACTIVE RCLONE - BUT RCLONE IS RUNNING ####
+               #### WAIT A BIT TO AVOID RACE CONDITIONS WITH NEWLY STARTED UPLOADS ####
+               # Check if file exists in upload_queue (means it's being prepared)
+               QUEUE_CHECK=$(sqlite3read "SELECT COUNT(*) FROM upload_queue WHERE filebase = '${STALE_FILE//\'/\'\'}';" 2>/dev/null)
+               if [[ "${QUEUE_CHECK}" -gt "0" ]]; then
+                  # Still in queue, might be about to start
+                  continue
+               fi
+            fi
+            
+            #### FINAL CHECK: No rclone running OR file not in any process ####
+            # Double-check with a direct pgrep (handles edge cases)
+            if ! $(which pgrep) -af "rclone" 2>/dev/null | $(which grep) -qF "${STALE_FILE}"; then
+               # Also verify no rclone process at all, or this specific file is truly orphaned
+               RCLONE_COUNT=$($(which pgrep) -c "rclone" 2>/dev/null || echo "0")
+               if [[ "${RCLONE_COUNT}" -eq "0" ]]; then
+                  # No rclone processes at all - safe to clean up
+                  log "-> ⚠️ Found stale upload entry: ${STALE_FILE}, cleaning up <-"
+                  sqlite3write "DELETE FROM uploads WHERE filebase = '${STALE_FILE//\'/\'\'}';" &>/dev/null
+                  #### REMOVE LOG FILE IF EXISTS ####
+                  if [[ -f "${LOGFILE}/${STALE_FILE}.txt" ]]; then
+                     $(which rm) -rf "${LOGFILE}/${STALE_FILE}.txt" &>/dev/null
+                  fi
+               fi
+               # If rclone IS running but not for this file, we still wait
+               # to avoid race conditions with background uploads starting up
             fi
          fi
       done <<< "${STALE_UPLOADS}"
@@ -548,9 +590,15 @@ function startuploader() {
    #### CLEANUP STALE UPLOADS ON STARTUP ####
    log "-> Checking for stale upload entries <-"
    cleanup_stale_uploads
+   LAST_STALE_CHECK=$(date +%s)
+   STALE_CHECK_INTERVAL=300  # Check for stale uploads every 5 minutes
    while true; do
-      #### RUN PERIODIC STALE CLEANUP (every loop iteration) ####
-      cleanup_stale_uploads
+      #### RUN PERIODIC STALE CLEANUP (every 5 minutes, not every loop) ####
+      CURRENT_TIME=$(date +%s)
+      if [[ $((CURRENT_TIME - LAST_STALE_CHECK)) -ge ${STALE_CHECK_INTERVAL} ]]; then
+         cleanup_stale_uploads
+         LAST_STALE_CHECK=${CURRENT_TIME}
+      fi
       #### RUN CHECK SPACE ####
       checkspace
       #### RUN LIST FILES ####
