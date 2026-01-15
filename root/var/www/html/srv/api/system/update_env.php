@@ -113,16 +113,22 @@ function updateEnvSettings()
         $key = preg_replace('/[^A-Za-z0-9_]/', '', $key);
 
         // Special handling for BANDWIDTH_LIMIT
-        if ($key === 'BANDWIDTH_LIMIT' && !empty($value) && $value !== 'null' && !preg_match('/[KMG]$/i', $value)) {
-            // Append 'M' if no unit is specified
-            $value = $value . 'M';
-            error_log("Added M suffix to bandwidth limit: $value");
+        if ($key === 'BANDWIDTH_LIMIT') {
+            if ($value === '' || $value === null || $value === 'null') {
+                // Empty or null: set to null
+                $value = 'null';
+                error_log("Normalized BANDWIDTH_LIMIT to null");
+            } elseif (!preg_match('/[KMG]$/i', $value)) {
+                // Has value but no unit: append 'M'
+                $value = $value . 'M';
+                error_log("Added M suffix to bandwidth limit: $value");
+            }
         }
 
-        // Ensure PROXY is stored as an empty quoted string when blank or null-ish
+        // Ensure PROXY is stored as quoted null when blank or null-ish
         if ($key === 'PROXY' && ($value === 'null' || $value === null || $value === '')) {
-            $value = '""';
-            error_log("Normalized PROXY value to explicit empty quotes");
+            $value = 'null';
+            error_log("Normalized PROXY value to null");
         }
 
         error_log("Processed setting: $key=$value");
@@ -140,16 +146,22 @@ function updateEnvSettings()
             if (preg_match($pattern, $line)) {
                 $oldLine = $lines[$i];
 
-                // Check if the value needs quotes
-                if ($value === 'true' || $value === 'false' || $value === 'null' || is_numeric($value)) {
-                    $formattedValue = $value;
-                } else {
-                    // If the value already has quotes, keep them
-                    if (preg_match('/^".*"$/', $value) || preg_match("/^'.*'$/", $value)) {
+                // Format value: only BANDWIDTH_LIMIT and PROXY always get quotes
+                if ($upperKey === 'BANDWIDTH_LIMIT' || $upperKey === 'PROXY') {
+                    // Always quote these two variables
+                    if (preg_match('/^".*"$/', $value)) {
+                        // Already has quotes: keep them
                         $formattedValue = $value;
                     } else {
+                        // Add quotes
                         $formattedValue = '"' . $value . '"';
                     }
+                } elseif (preg_match('/^".*"$/', $value)) {
+                    // Other variables: remove quotes if present
+                    $formattedValue = trim($value, '"');
+                } else {
+                    // No quotes for all other variables
+                    $formattedValue = $value;
                 }
 
                 $lines[$i] = $upperKey . '=' . $formattedValue;
@@ -186,15 +198,20 @@ function updateEnvSettings()
                 // Convert key to uppercase for env file
                 $upperKey = strtoupper($key);
 
-                // Check if the value needs quotes
-                if ($value === 'true' || $value === 'false' || $value === 'null' || is_numeric($value)) {
-                    $formattedValue = $value;
-                } else {
-                    if (preg_match('/^".*"$/', $value) || preg_match("/^'.*'$/", $value)) {
+                // Format value: only BANDWIDTH_LIMIT and PROXY always get quotes
+                if ($upperKey === 'BANDWIDTH_LIMIT' || $upperKey === 'PROXY') {
+                    // Always quote these two variables
+                    if (preg_match('/^".*"$/', $value)) {
                         $formattedValue = $value;
                     } else {
                         $formattedValue = '"' . $value . '"';
                     }
+                } elseif (preg_match('/^".*"$/', $value)) {
+                    // Other variables: remove quotes if present
+                    $formattedValue = trim($value, '"');
+                } else {
+                    // No quotes for all other variables
+                    $formattedValue = $value;
                 }
 
                 $newLine = "$upperKey=$formattedValue";
