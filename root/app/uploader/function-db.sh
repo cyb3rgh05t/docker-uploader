@@ -222,10 +222,10 @@ function loopcsv() {
            if [[ "${UPPDIR[2]}" == "" && "${UPPDIR[3]}" == "" ]]; then
               if [[ "${GETCI}" == "" && "${GETCS}" == "" ]]; then
                  $(which rclone) config create DB dropbox server_side_across_configs=true token="${TOKEN}" --config="${CUSTOMCONFIG}" --non-interactive &>/dev/null
-                 $(which rclone) config create DBA alias remote=DB:${DROPBOXTEAM}${UPPDIR[1]} --config="${CUSTOMCONFIG}" &>/dev/null
+                 $(which rclone) config create DBA alias remote=DB:${DROPBOXTEAM}${DB_NAME}/${UPPDIR[1]} --config="${CUSTOMCONFIG}" &>/dev/null
               else
                  $(which rclone) config create DB dropbox server_side_across_configs=true client_id="${GETCI}" client_secret="${GETCS}" token="${TOKEN}" --config="${CUSTOMCONFIG}" --non-interactive &>/dev/null
-                 $(which rclone) config create DBA alias remote=DB:${DROPBOXTEAM}${UPPDIR[1]} --config="${CUSTOMCONFIG}" &>/dev/null
+                 $(which rclone) config create DBA alias remote=DB:${DROPBOXTEAM}${DB_NAME}/${UPPDIR[1]} --config="${CUSTOMCONFIG}" &>/dev/null
               fi
            else
               if [[ "${HASHPASSWORD}" == "plain" && "${HASHPASSWORD}" != "hashed" ]]; then
@@ -237,10 +237,10 @@ function loopcsv() {
               fi
               if [[ "${GETCI}" == "" && "${GETCS}" == "" ]]; then
                  $(which rclone) config create DB dropbox server_side_across_configs=true token="${TOKEN}" --config="${CUSTOMCONFIG}" --non-interactive &>/dev/null
-                 $(which rclone) config create DBC crypt remote=DB:${DROPBOXTEAM}${UPPDIR[1]} filename_encryption=standard filename_encoding=base32768 directory_name_encryption=true password="${ENC_PASSWORD}" password2="${ENC_SALT}" --config="${CUSTOMCONFIG}" &>/dev/null
+                 $(which rclone) config create DBC crypt remote=DB:${DROPBOXTEAM}${DB_NAME}/${UPPDIR[1]} filename_encryption=standard filename_encoding=base32768 directory_name_encryption=true password="${ENC_PASSWORD}" password2="${ENC_SALT}" --config="${CUSTOMCONFIG}" &>/dev/null
               else
                  $(which rclone) config create DB dropbox server_side_across_configs=true client_id="${GETCI}" client_secret="${GETCS}" token="${TOKEN}" --config="${CUSTOMCONFIG}" --non-interactive &>/dev/null
-                 $(which rclone) config create DBC crypt remote=DB:${DROPBOXTEAM}${UPPDIR[1]} filename_encryption=standard filename_encoding=base32768 directory_name_encryption=true password="${ENC_PASSWORD}" password2="${ENC_SALT}" --config="${CUSTOMCONFIG}" &>/dev/null
+                 $(which rclone) config create DBC crypt remote=DB:${DROPBOXTEAM}${DB_NAME}/${UPPDIR[1]} filename_encryption=standard filename_encoding=base32768 directory_name_encryption=true password="${ENC_PASSWORD}" password2="${ENC_SALT}" --config="${CUSTOMCONFIG}" &>/dev/null
               fi
            fi
            done
