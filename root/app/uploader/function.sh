@@ -76,7 +76,8 @@ function cleanup_stale_uploads() {
                #### FILE NOT FOUND IN ACTIVE RCLONE - BUT RCLONE IS RUNNING ####
                #### WAIT A BIT TO AVOID RACE CONDITIONS WITH NEWLY STARTED UPLOADS ####
                # Check if file exists in upload_queue (means it's being prepared)
-               QUEUE_CHECK=$(sqlite3read "SELECT COUNT(*) FROM upload_queue WHERE filebase = '${STALE_FILE//\'/\'\'}';" 2>/dev/null)
+               QUEUE_CHECK=$(sqlite3read "SELECT COUNT(*) FROM upload_queue WHERE filebase = '${STALE_FILE//\'/\'\'}';" 2>/dev/null | $(which head) -n1 | $(which tr) -d '\n')
+               QUEUE_CHECK="${QUEUE_CHECK:-0}"
                if [[ "${QUEUE_CHECK}" -gt "0" ]]; then
                   # Still in queue, might be about to start
                   continue
@@ -87,7 +88,8 @@ function cleanup_stale_uploads() {
             # Double-check with a direct pgrep (handles edge cases)
             if ! $(which pgrep) -af "rclone" 2>/dev/null | $(which grep) -qF "${STALE_FILE}"; then
                # Also verify no rclone process at all, or this specific file is truly orphaned
-               RCLONE_COUNT=$($(which pgrep) -c "rclone" 2>/dev/null || echo "0")
+               RCLONE_COUNT=$($(which pgrep) -c "rclone" 2>/dev/null | $(which head) -n1 | $(which tr) -d '\n' || echo "0")
+               RCLONE_COUNT="${RCLONE_COUNT:-0}"
                if [[ "${RCLONE_COUNT}" -eq "0" ]]; then
                   # No rclone processes at all - safe to clean up
                   log "-> ⚠️ Found stale upload entry: ${STALE_FILE}, cleaning up <-"
