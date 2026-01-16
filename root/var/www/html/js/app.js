@@ -71,20 +71,49 @@ function initializeApp() {
 }
 
 /**
- * Load the application version
+ * Load the application versions (WebUI and Uploader)
  */
 function loadAppVersion() {
-  let currentVersion = null;
+  let webuiVersion = null;
+  let uploaderVersion = null;
 
   // Try dedicated API endpoint first
   fetch("srv/api/system/version.php")
     .then((response) => response.json())
     .then((data) => {
-      if (data && data.version) {
-        currentVersion = data.version;
-        document.getElementById("app-version").textContent = "v" + data.version;
-        console.log("Version loaded from API:", data.version);
-        checkGitHubVersion(currentVersion);
+      if (data && data.webui_version && data.uploader_version) {
+        webuiVersion = data.webui_version;
+        uploaderVersion = data.uploader_version;
+
+        // Update sidebar
+        document.getElementById("webui-version").textContent =
+          "v" + webuiVersion;
+        document.getElementById("uploader-version").textContent =
+          "v" + uploaderVersion;
+
+        // Update about section
+        const aboutWebui = document.getElementById("about-webui-version");
+        const aboutUploader = document.getElementById("about-uploader-version");
+        if (aboutWebui) aboutWebui.textContent = "v" + webuiVersion;
+        if (aboutUploader) aboutUploader.textContent = "v" + uploaderVersion;
+
+        console.log(
+          "Versions loaded from API - WebUI:",
+          webuiVersion,
+          "Uploader:",
+          uploaderVersion
+        );
+        checkGitHubVersion(webuiVersion, uploaderVersion);
+      } else if (data && data.version) {
+        // Legacy single version format
+        webuiVersion = data.version;
+        uploaderVersion = data.version;
+        document.getElementById("webui-version").textContent =
+          "v" + webuiVersion;
+        document.getElementById("uploader-version").textContent =
+          "v" + uploaderVersion;
+        console.log("Legacy version loaded from API:", data.version);
+        checkGitHubVersion(webuiVersion, uploaderVersion);
       }
     })
     .catch((error) => {
@@ -94,23 +123,54 @@ function loadAppVersion() {
       fetch("release.json")
         .then((response) => response.json())
         .then((data) => {
-          if (data && data.newversion) {
-            currentVersion = data.newversion;
-            document.getElementById("app-version").textContent =
-              "v" + data.newversion;
-            console.log("Version loaded from file:", data.newversion);
-            checkGitHubVersion(currentVersion);
+          if (data && data.webui_version && data.uploader_version) {
+            webuiVersion = data.webui_version;
+            uploaderVersion = data.uploader_version;
+
+            document.getElementById("webui-version").textContent =
+              "v" + webuiVersion;
+            document.getElementById("uploader-version").textContent =
+              "v" + uploaderVersion;
+
+            const aboutWebui = document.getElementById("about-webui-version");
+            const aboutUploader = document.getElementById(
+              "about-uploader-version"
+            );
+            if (aboutWebui) aboutWebui.textContent = "v" + webuiVersion;
+            if (aboutUploader)
+              aboutUploader.textContent = "v" + uploaderVersion;
+
+            console.log(
+              "Versions loaded from file - WebUI:",
+              webuiVersion,
+              "Uploader:",
+              uploaderVersion
+            );
+            checkGitHubVersion(webuiVersion, uploaderVersion);
+          } else if (data && data.newversion) {
+            // Legacy format
+            webuiVersion = data.newversion;
+            uploaderVersion = data.newversion;
+            document.getElementById("webui-version").textContent =
+              "v" + webuiVersion;
+            document.getElementById("uploader-version").textContent =
+              "v" + uploaderVersion;
+            console.log("Legacy version loaded from file:", data.newversion);
+            checkGitHubVersion(webuiVersion, uploaderVersion);
           } else {
             throw new Error("Invalid release.json format");
           }
         })
         .catch((fallbackError) => {
           console.error("Version fetch failed:", fallbackError);
-          // Set a hardcoded version as last resort
-          currentVersion = "5.0.0";
-          document.getElementById("app-version").textContent =
-            "v" + currentVersion;
-          checkGitHubVersion(currentVersion);
+          // Set hardcoded versions as last resort
+          webuiVersion = "5.0.0";
+          uploaderVersion = "3.0.0";
+          document.getElementById("webui-version").textContent =
+            "v" + webuiVersion;
+          document.getElementById("uploader-version").textContent =
+            "v" + uploaderVersion;
+          checkGitHubVersion(webuiVersion, uploaderVersion);
         });
     });
 }
@@ -118,7 +178,7 @@ function loadAppVersion() {
 /**
  * Check GitHub for latest release version
  */
-function checkGitHubVersion(currentVersion) {
+function checkGitHubVersion(webuiVersion, uploaderVersion) {
   const $statusBadge = $("#version-status");
 
   fetch(
@@ -128,10 +188,11 @@ function checkGitHubVersion(currentVersion) {
     .then((data) => {
       if (data && data.tag_name) {
         const latestVersion = data.tag_name.replace(/^v/, "");
-        const current = currentVersion.replace(/^v/, "");
+        // Compare using WebUI version as the main version indicator
+        const current = webuiVersion.replace(/^v/, "");
 
         console.log(
-          "Current version:",
+          "Current WebUI version:",
           current,
           "Latest version:",
           latestVersion
@@ -141,14 +202,14 @@ function checkGitHubVersion(currentVersion) {
 
         if (versionComparison < 0) {
           // Update available
-          $statusBadge.html('<i class="fas fa-arrow-up"></i> Update Available');
+          $statusBadge.html('<i class="fas fa-arrow-up"></i>');
           $statusBadge
             .removeClass("up-to-date checking develop")
             .addClass("update-available");
           $statusBadge.attr("title", `New version ${latestVersion} available`);
         } else if (versionComparison > 0) {
           // Development version (ahead of latest release)
-          $statusBadge.html('<i class="fas fa-code-branch"></i> Develop');
+          $statusBadge.html('<i class="fas fa-code-branch"></i>');
           $statusBadge
             .removeClass("update-available checking up-to-date")
             .addClass("develop");
@@ -158,7 +219,7 @@ function checkGitHubVersion(currentVersion) {
           );
         } else {
           // Up to date
-          $statusBadge.html('<i class="fas fa-check"></i> Up to Date');
+          $statusBadge.html('<i class="fas fa-check"></i>');
           $statusBadge
             .removeClass("update-available checking develop")
             .addClass("up-to-date");
@@ -170,7 +231,7 @@ function checkGitHubVersion(currentVersion) {
     })
     .catch((error) => {
       console.error("Failed to check GitHub version:", error);
-      $statusBadge.html('<i class="fas fa-question"></i> Unknown');
+      $statusBadge.html('<i class="fas fa-question"></i>');
       $statusBadge.removeClass("update-available checking up-to-date");
       $statusBadge.attr("title", "Unable to check for updates");
     });
