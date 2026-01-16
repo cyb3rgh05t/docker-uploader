@@ -2,10 +2,11 @@
   "appname": "docker-uploader",
   "apppic": "./images/docker-uploader.png",
   "appfolder": "./",
-  "newversion": "5.3.23.2",
+  "webui_version": "5.0.0",
+  "uploader_version": "3.23.2",
   "baseimage": "ghcr.io/linuxserver/baseimage-alpine",
   "baseversion": "3.23-d34fa4d2-ls4",
   "description": "VOD Uploader container for automated media uploads",
-  "body": "Auto-update: Alpine 5.3.23.2, Baseimage 3.23-d34fa4d2-ls4",
+  "body": "Auto-update: WebUI 5.0.0, Uploader 3.23.2",
   "user": "github-actions[bot]"
 }
