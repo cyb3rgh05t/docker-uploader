@@ -12,4 +12,7 @@
 # NO CODE MIRRORING IS ALLOWED      #
 #####################################
 
+# Ensure cache directory exists for cron
+mkdir -p /root/.cache
+
 /usr/sbin/crond -m off -p -s -n

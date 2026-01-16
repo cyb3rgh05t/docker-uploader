@@ -156,6 +156,8 @@ $(which cp) -r /app/sample/crypt_multi_tdrive-example.csv /system/uploader/sampl
 $(which cp) -r /app/sample/uncrypt_multi_tdrive-example.csv /system/uploader/sample/uncrypt_multi_tdrive-example.csv
 
 if [[ -f "${ENVA}" ]]; then
+   # Load the environment file
+   source "${ENVA}"
    # Validate the environment file
    validate_env_file || {
       log "Creating new environment file due to validation failure"
