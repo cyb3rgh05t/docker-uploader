@@ -2,7 +2,7 @@
   "appname": "docker-uploader",
   "apppic": "./images/docker-uploader.png",
   "appfolder": "./",
-  "webui_version": "5.0.0",
+  "webui_version": "5.1.0",
   "uploader_version": "3.23.2",
   "baseimage": "ghcr.io/linuxserver/baseimage-alpine",
   "baseversion": "3.23-d34fa4d2-ls4",

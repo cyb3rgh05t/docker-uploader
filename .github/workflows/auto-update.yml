@@ -55,18 +55,17 @@ jobs:
       - name: Check for updates
         id: check
         run: |
-          # Read current release.json
-          CURRENT_ALPINE=$(jq -r '.newversion' release.json | sed 's/^5\.//')
+          # Read current release.json (supports both old and new format)
+          CURRENT_UPLOADER=$(jq -r '.uploader_version // .newversion // "3.0.0"' release.json)
           CURRENT_BASEIMAGE=$(jq -r '.baseversion' release.json)
 
           NEW_ALPINE="${{ steps.versions.outputs.alpine_version }}"
           NEW_BASEIMAGE="${{ steps.versions.outputs.baseimage_version }}"
 
-          echo "Current: Alpine=${CURRENT_ALPINE}, Baseimage=${CURRENT_BASEIMAGE}"
+          echo "Current: Uploader=${CURRENT_UPLOADER}, Baseimage=${CURRENT_BASEIMAGE}"
           echo "New: Alpine=${NEW_ALPINE}, Baseimage=${NEW_BASEIMAGE}"
 
-          if [[ "$CURRENT_ALPINE" != "$NEW_ALPINE" ]] || \
-             [[ "$CURRENT_BASEIMAGE" != "$NEW_BASEIMAGE" ]] || \
+          if [[ "$CURRENT_BASEIMAGE" != "$NEW_BASEIMAGE" ]] || \
              [[ "${{ github.event.inputs.force_update }}" == "true" ]]; then
             echo "has_updates=true" >> $GITHUB_OUTPUT
             echo "Updates available!"
@@ -95,11 +94,29 @@ jobs:
           ALPINE_VERSION="${{ needs.check-updates.outputs.alpine_version }}"
           BASEIMAGE_VERSION="${{ needs.check-updates.outputs.baseimage_version }}"
 
-          # Update release.json (version prefixed with 5. for uploader)
-          jq --arg alpine "5.${ALPINE_VERSION}" \
+          # Read current versions
+          CURRENT_WEBUI=$(jq -r '.webui_version // "5.0.0"' release.json)
+          CURRENT_UPLOADER=$(jq -r '.uploader_version // "3.0.0"' release.json)
+
+          # Extract major.minor from Alpine for uploader version
+          UPLOADER_MINOR=$(echo "${ALPINE_VERSION}" | cut -d. -f1,2)
+          NEW_UPLOADER="${UPLOADER_MINOR}.0"
+
+          # Update release.json with dual version format
+          jq --arg webui "$CURRENT_WEBUI" \
+             --arg uploader "$NEW_UPLOADER" \
              --arg baseimage "$BASEIMAGE_VERSION" \
-             '.newversion = $alpine | .baseversion = $baseimage | .body = "Auto-update: Alpine \($alpine), Baseimage \($baseimage)"' \
+             '.webui_version = $webui | .uploader_version = $uploader | .baseversion = $baseimage | .body = "WebUI \($webui) | Uploader \($uploader)"' \
              release.json > release.json.tmp && mv release.json.tmp release.json
+
+          # Also update root/var/www/html/release.json
+          if [ -f "root/var/www/html/release.json" ]; then
+            jq --arg webui "$CURRENT_WEBUI" \
+               --arg uploader "$NEW_UPLOADER" \
+               --arg baseimage "$BASEIMAGE_VERSION" \
+               '.webui_version = $webui | .uploader_version = $uploader | .baseversion = $baseimage | .body = "WebUI \($webui) | Uploader \($uploader)"' \
+               root/var/www/html/release.json > root/var/www/html/release.json.tmp && mv root/var/www/html/release.json.tmp root/var/www/html/release.json
+          fi
 
           cat release.json
 
@@ -143,6 +160,14 @@ jobs:
       - name: Lowercase repository name
         run: echo "REPO_LC=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
+      - name: Get versions for tagging
+        id: tag_versions
+        run: |
+          WEBUI_VERSION=$(jq -r '.webui_version' release.json)
+          UPLOADER_VERSION=$(jq -r '.uploader_version' release.json)
+          echo "webui_version=${WEBUI_VERSION}" >> $GITHUB_OUTPUT
+          echo "uploader_version=${UPLOADER_VERSION}" >> $GITHUB_OUTPUT
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
@@ -151,26 +176,27 @@ jobs:
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.REPO_LC }}:latest
-            ${{ env.REGISTRY }}/${{ env.REPO_LC }}:${{ needs.check-updates.outputs.alpine_version }}
+            ${{ env.REGISTRY }}/${{ env.REPO_LC }}:${{ steps.tag_versions.outputs.webui_version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v5.${{ needs.check-updates.outputs.alpine_version }}
-          name: "VOD Uploader v5.${{ needs.check-updates.outputs.alpine_version }}"
+          tag_name: v${{ steps.tag_versions.outputs.webui_version }}
+          name: "Docker Uploader v${{ steps.tag_versions.outputs.webui_version }}"
           body: |
-            ## 🚀 Auto-Update Release
+            ## 🚀 Release
 
-            ### Version Changes
-            - **Alpine**: ${{ needs.check-updates.outputs.alpine_version }}
+            ### Version Info
+            - **WebUI**: ${{ steps.tag_versions.outputs.webui_version }}
+            - **Uploader**: ${{ steps.tag_versions.outputs.uploader_version }}
             - **Baseimage**: ${{ needs.check-updates.outputs.baseimage_version }}
 
             ### Docker Image
             ```bash
             docker pull ghcr.io/${{ env.REPO_LC }}:latest
-            docker pull ghcr.io/${{ env.REPO_LC }}:${{ needs.check-updates.outputs.alpine_version }}
+            docker pull ghcr.io/${{ env.REPO_LC }}:${{ steps.tag_versions.outputs.webui_version }}
             ```
 
             ### Changes

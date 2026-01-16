@@ -70,7 +70,14 @@
 
       <div class="sidebar-footer">
         <div class="version-check">
-          <span class="version-number" id="app-version">loading...</span>
+          <div class="version-info">
+            <span class="version-label">WebUI</span>
+            <span class="version-number" id="webui-version">loading...</span>
+          </div>
+          <div class="version-info">
+            <span class="version-label">Uploader</span>
+            <span class="version-number" id="uploader-version">loading...</span>
+          </div>
           <span class="version-status" id="version-status">
             <i class="fas fa-circle-notch fa-spin"></i>
           </span>
@@ -1121,12 +1128,22 @@
                 <h2 style="font-size: 2rem; margin-bottom: 0.5rem">
                   Docker Uploader
                 </h2>
-                <p
-                  style="color: var(--accent-color); font-weight: 600"
-                  id="about-version"
-                >
-                  Version 5.0.0
-                </p>
+                <div style="margin-top: 1rem">
+                  <p
+                    style="
+                      color: var(--accent-color);
+                      font-weight: 600;
+                      margin-bottom: 0.25rem;
+                    "
+                  >
+                    <span style="color: var(--text-secondary)">WebUI:</span>
+                    <span id="about-webui-version">v5.0.0</span>
+                  </p>
+                  <p style="color: var(--accent-color); font-weight: 600">
+                    <span style="color: var(--text-secondary)">Uploader:</span>
+                    <span id="about-uploader-version">v3.0.0</span>
+                  </p>
+                </div>
               </div>
 
               <div style="margin-bottom: 2rem">

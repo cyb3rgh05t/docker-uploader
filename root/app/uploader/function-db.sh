@@ -73,13 +73,13 @@ function autoscan() {
          STATUSCODE=$($(which curl) -s -o /dev/null -w "%{http_code}" "${AUTOSCAN_URL}/triggers/manual")
       else
          STATUSCODE=$($(which curl) -s -o /dev/null -w "%{http_code}" -u "${AUTOSCAN_USER}:${AUTOSCAN_PASS}" "${AUTOSCAN_URL}/triggers/manual")
-            if [[ "${STATUSCODE}" == "200" ]]; then
-               if [[ "${AUTOSCAN_USER}" == "null" ]]; then
-                  $(which curl) -sfG -X POST --data-urlencode "dir=${SUNION}/${DIR}" "${AUTOSCAN_URL}/triggers/manual"
-               else
-                  $(which curl) -sfG -X POST -u "${AUTOSCAN_USER}:${AUTOSCAN_PASS}" --data-urlencode "dir=${SUNION}/${DIR}" "${AUTOSCAN_URL}/triggers/manual"
-               fi
-            fi
+      fi
+      if [[ "${STATUSCODE}" == "200" ]]; then
+         if [[ "${AUTOSCAN_USER}" == "null" ]]; then
+            $(which curl) -sfG -X POST --data-urlencode "dir=${SUNION}/${DIR}" "${AUTOSCAN_URL}/triggers/manual"
+         else
+            $(which curl) -sfG -X POST -u "${AUTOSCAN_USER}:${AUTOSCAN_PASS}" --data-urlencode "dir=${SUNION}/${DIR}" "${AUTOSCAN_URL}/triggers/manual"
+         fi
       fi
    fi
 }
@@ -343,7 +343,7 @@ function rcloneupload() {
    checkerror
    #### ECHO END-PARTS FOR UI READING ####
    $(which find) "${DLFOLDER}/${SETDIR}" -mindepth 1 -type d -empty -delete &>/dev/null
-   sqlite3write "INSERT INTO completed_uploads (drive,filedir,filebase,filesize,gdsa,starttime,endtime,status,error) VALUES ('${DRIVE//\'/\'\'}','${DIR//\'/\'\'}','${FILE//\'/\'\'}','${SIZE}','${REMOTENAME//\'/\'\'}','${STARTZ}','${ENDZ}','${STATUS//\'/\'\'}','${ERROR//\'/\'\'}'); DELETE FROM uploads WHERE filebase = '${FILE//\'/\'\'}';" &>/dev/null
+   sqlite3write "INSERT INTO completed_uploads (drive,filedir,filebase,filesize,filesize_bytes,gdsa,starttime,endtime,status,error) VALUES ('${DRIVE//\'/\'\'}','${DIR//\'/\'\'}','${FILE//\'/\'\'}','${SIZE}','${SIZEBYTES}','${REMOTENAME//\'/\'\'}','${STARTZ}','${ENDZ}','${STATUS//\'/\'\'}','${ERROR//\'/\'\'}'); DELETE FROM uploads WHERE filebase = '${FILE//\'/\'\'}';" &>/dev/null
    #### END OF MOVE ####
    $(which rm) -rf "${LOGFILE}/${FILE}.txt" &>/dev/null
    #### REMOVE CUSTOM RCLONE.CONF ####
@@ -354,6 +354,19 @@ function rcloneupload() {
 
 function listfiles() {
    source /system/uploader/uploader.env
+   
+   # Validate MIN_AGE_UPLOAD
+   if [[ -z "${MIN_AGE_UPLOAD}" || ! "${MIN_AGE_UPLOAD}" =~ ^[0-9]+$ ]]; then
+      MIN_AGE_UPLOAD=1
+      log "Warning: MIN_AGE_UPLOAD was invalid, reset to 1"
+   fi
+   
+   # Validate FOLDER_DEPTH
+   if [[ -z "${FOLDER_DEPTH}" || ! "${FOLDER_DEPTH}" =~ ^[0-9]+$ || "${FOLDER_DEPTH}" -lt 1 ]]; then
+      FOLDER_DEPTH=1
+      log "Warning: FOLDER_DEPTH was invalid, reset to 1"
+   fi
+   
    #### CREATE TEMP_FILE ####
    sqlite3read "SELECT filebase FROM upload_queue UNION ALL SELECT filebase FROM uploads;" > "${TEMPFILES}"
    #### FIND NEW FILES ####
@@ -414,10 +427,10 @@ function checkmeta() {
 function checkspace() {
    source /system/uploader/uploader.env
    #### CHECK DRIVEUSEDSPACE ####
-   if [[ "${DRIVEUSEDSPACE}" =~ ^[0-9][0-9]+([.][0-9]+)?$ ]]; then
+   if [[ "${DRIVEUSEDSPACE}" != "null" && "${DRIVEUSEDSPACE}" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
       while true; do
         LCT=$($(which df) --output=pcent "${DLFOLDER}" | tr -dc '0-9')
-        if [[ "${DRIVEUSEDSPACE}" =~ ^[0-9][0-9]+([.][0-9]+)?$ ]]; then
+        if [[ "${DRIVEUSEDSPACE}" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
            if [[ "${LCT}" -ge "${DRIVEUSEDSPACE}" ]]; then
               $(which sleep) 2 && break
            else

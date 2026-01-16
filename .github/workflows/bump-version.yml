@@ -1,0 +1,123 @@
+name: Bump Version
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: "Which version to bump"
+        required: true
+        type: choice
+        options:
+          - webui
+          - uploader
+          - both
+      bump_type:
+        description: "Version bump type"
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  bump-version:
+    name: Bump Version
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Bump versions
+        run: |
+          # Read current versions
+          CURRENT_WEBUI=$(jq -r '.webui_version // "5.0.0"' release.json)
+          CURRENT_UPLOADER=$(jq -r '.uploader_version // "3.0.0"' release.json)
+
+          echo "Current WebUI: $CURRENT_WEBUI"
+          echo "Current Uploader: $CURRENT_UPLOADER"
+
+          # Function to bump version
+          bump_version() {
+            local version=$1
+            local bump_type=$2
+            
+            IFS='.' read -ra PARTS <<< "$version"
+            local major=${PARTS[0]:-0}
+            local minor=${PARTS[1]:-0}
+            local patch=${PARTS[2]:-0}
+            
+            case $bump_type in
+              major)
+                major=$((major + 1))
+                minor=0
+                patch=0
+                ;;
+              minor)
+                minor=$((minor + 1))
+                patch=0
+                ;;
+              patch)
+                patch=$((patch + 1))
+                ;;
+            esac
+            
+            echo "${major}.${minor}.${patch}"
+          }
+
+          NEW_WEBUI=$CURRENT_WEBUI
+          NEW_UPLOADER=$CURRENT_UPLOADER
+
+          if [[ "${{ github.event.inputs.version_type }}" == "webui" ]] || [[ "${{ github.event.inputs.version_type }}" == "both" ]]; then
+            NEW_WEBUI=$(bump_version "$CURRENT_WEBUI" "${{ github.event.inputs.bump_type }}")
+            echo "New WebUI version: $NEW_WEBUI"
+          fi
+
+          if [[ "${{ github.event.inputs.version_type }}" == "uploader" ]] || [[ "${{ github.event.inputs.version_type }}" == "both" ]]; then
+            NEW_UPLOADER=$(bump_version "$CURRENT_UPLOADER" "${{ github.event.inputs.bump_type }}")
+            echo "New Uploader version: $NEW_UPLOADER"
+          fi
+
+          # Update release.json
+          jq --arg webui "$NEW_WEBUI" \
+             --arg uploader "$NEW_UPLOADER" \
+             '.webui_version = $webui | .uploader_version = $uploader | .body = "WebUI \($webui) | Uploader \($uploader)"' \
+             release.json > release.json.tmp && mv release.json.tmp release.json
+
+          # Update root/var/www/html/release.json
+          if [ -f "root/var/www/html/release.json" ]; then
+            jq --arg webui "$NEW_WEBUI" \
+               --arg uploader "$NEW_UPLOADER" \
+               '.webui_version = $webui | .uploader_version = $uploader | .body = "WebUI \($webui) | Uploader \($uploader)"' \
+               root/var/www/html/release.json > root/var/www/html/release.json.tmp && mv root/var/www/html/release.json.tmp root/var/www/html/release.json
+          fi
+
+          echo "NEW_WEBUI=${NEW_WEBUI}" >> $GITHUB_ENV
+          echo "NEW_UPLOADER=${NEW_UPLOADER}" >> $GITHUB_ENV
+
+          cat release.json
+
+      - name: Commit changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+          COMMIT_MSG="[Version Bump] "
+          if [[ "${{ github.event.inputs.version_type }}" == "webui" ]]; then
+            COMMIT_MSG+="WebUI ${NEW_WEBUI}"
+          elif [[ "${{ github.event.inputs.version_type }}" == "uploader" ]]; then
+            COMMIT_MSG+="Uploader ${NEW_UPLOADER}"
+          else
+            COMMIT_MSG+="WebUI ${NEW_WEBUI}, Uploader ${NEW_UPLOADER}"
+          fi
+
+          if [[ -n $(git status --porcelain) ]]; then
+            git add -A
+            git commit -m "$COMMIT_MSG"
+            git push
+          fi
