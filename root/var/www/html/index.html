@@ -1110,282 +1110,187 @@
 
       <!-- About Section -->
       <section class="content-section" id="about-section">
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title">
-              <i class="fas fa-info-circle"></i>
-              About Docker Uploader
+        <div class="about-container">
+          <!-- Hero Section -->
+          <div class="about-hero">
+            <div class="about-logo-wrapper">
+              <img
+                src="logo.png"
+                alt="Docker Uploader Logo"
+                class="about-logo"
+              />
+              <div class="about-logo-glow"></div>
+            </div>
+            <h1 class="about-title">Docker Uploader</h1>
+            <p class="about-tagline">Powerful Cloud Upload Management</p>
+            <div class="about-version-badges">
+              <div class="about-version-badge">
+                <span class="about-version-label">WebUI</span>
+                <span class="about-version-value" id="about-webui-version"
+                  >v5.1.0</span
+                >
+              </div>
+              <div class="about-version-badge">
+                <span class="about-version-label">Uploader</span>
+                <span class="about-version-value" id="about-uploader-version"
+                  >v3.23.2</span
+                >
+              </div>
             </div>
           </div>
-          <div class="card-body">
-            <div style="max-width: 800px; margin: 0 auto">
-              <div style="text-align: center; margin-bottom: 2rem">
-                <img
-                  src="logo.png"
-                  alt="Docker Uploader Logo"
-                  style="width: 120px; height: 120px; margin-bottom: 1rem"
-                />
-                <h2 style="font-size: 2rem; margin-bottom: 0.5rem">
-                  Docker Uploader
-                </h2>
-                <div style="margin-top: 1rem">
-                  <p
-                    style="
-                      color: var(--accent-color);
-                      font-weight: 600;
-                      margin-bottom: 0.25rem;
-                    "
-                  >
-                    <span style="color: var(--text-secondary)">WebUI:</span>
-                    <span id="about-webui-version">v5.0.0</span>
-                  </p>
-                  <p style="color: var(--accent-color); font-weight: 600">
-                    <span style="color: var(--text-secondary)">Uploader:</span>
-                    <span id="about-uploader-version">v3.0.0</span>
-                  </p>
-                </div>
-              </div>
 
-              <div style="margin-bottom: 2rem">
-                <h3
-                  style="
-                    font-size: 1.25rem;
-                    margin-bottom: 1rem;
-                    color: var(--accent-color);
-                  "
-                >
-                  Description
-                </h3>
-                <p style="line-height: 1.8; color: var(--text-secondary)">
-                  Docker Uploader is a powerful and efficient file upload
-                  management system designed to run in Docker containers. It
-                  provides a modern web interface for monitoring and controlling
-                  file uploads with features like bandwidth management,
-                  concurrent transfer control, and real-time progress tracking.
-                </p>
-              </div>
-
-              <div style="margin-bottom: 2rem">
-                <h3
-                  style="
-                    font-size: 1.25rem;
-                    margin-bottom: 1rem;
-                    color: var(--accent-color);
-                  "
-                >
-                  Key Features
-                </h3>
-                <ul
-                  style="
-                    line-height: 2;
-                    color: var(--text-secondary);
-                    list-style-position: inside;
-                  "
-                >
-                  <li>Real-time upload monitoring and progress tracking</li>
-                  <li>Bandwidth limiting and transfer management</li>
-                  <li>Multiple concurrent upload support</li>
-                  <li>Complete upload history with statistics</li>
-                  <li>Pause and resume functionality</li>
-                  <li>17 beautiful theme options</li>
-                  <li>Responsive design for mobile and desktop</li>
-                  <li>Docker containerized deployment</li>
-                </ul>
-              </div>
-
-              <div style="margin-bottom: 2rem">
-                <h3
-                  style="
-                    font-size: 1.25rem;
-                    margin-bottom: 1rem;
-                    color: var(--accent-color);
-                  "
-                >
-                  Technology Stack
-                </h3>
-                <div
-                  style="
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-                    gap: 1rem;
-                  "
-                >
-                  <div
-                    style="
-                      padding: 1rem;
-                      background: var(--bg-tertiary);
-                      border-radius: var(--radius-md);
-                      text-align: center;
-                    "
-                  >
-                    <i
-                      class="fab fa-docker"
-                      style="
-                        font-size: 2rem;
-                        color: var(--accent-color);
-                        margin-bottom: 0.5rem;
-                      "
-                    ></i>
-                    <p style="font-weight: 600">Docker</p>
-                  </div>
-                  <div
-                    style="
-                      padding: 1rem;
-                      background: var(--bg-tertiary);
-                      border-radius: var(--radius-md);
-                      text-align: center;
-                    "
-                  >
-                    <i
-                      class="fab fa-php"
-                      style="
-                        font-size: 2rem;
-                        color: var(--accent-color);
-                        margin-bottom: 0.5rem;
-                      "
-                    ></i>
-                    <p style="font-weight: 600">PHP</p>
-                  </div>
-                  <div
-                    style="
-                      padding: 1rem;
-                      background: var(--bg-tertiary);
-                      border-radius: var(--radius-md);
-                      text-align: center;
-                    "
-                  >
-                    <i
-                      class="fab fa-js"
-                      style="
-                        font-size: 2rem;
-                        color: var(--accent-color);
-                        margin-bottom: 0.5rem;
-                      "
-                    ></i>
-                    <p style="font-weight: 600">JavaScript</p>
-                  </div>
-                  <div
-                    style="
-                      padding: 1rem;
-                      background: var(--bg-tertiary);
-                      border-radius: var(--radius-md);
-                      text-align: center;
-                    "
-                  >
-                    <i
-                      class="fab fa-html5"
-                      style="
-                        font-size: 2rem;
-                        color: var(--accent-color);
-                        margin-bottom: 0.5rem;
-                      "
-                    ></i>
-                    <p style="font-weight: 600">HTML5/CSS3</p>
-                  </div>
-                </div>
-              </div>
-
-              <div style="margin-bottom: 2rem">
-                <h3
-                  style="
-                    font-size: 1.25rem;
-                    margin-bottom: 1rem;
-                    color: var(--accent-color);
-                  "
-                >
-                  Links & Resources
-                </h3>
-                <div style="display: flex; gap: 1rem; flex-wrap: wrap">
-                  <a
-                    href="https://github.com/dockserver"
-                    target="_blank"
-                    class="action-button"
-                    style="text-decoration: none"
-                  >
-                    <i class="fab fa-github"></i>
-                    GitHub Repository
-                  </a>
-                  <a
-                    href="https://dockserver.github.io/dockserver/"
-                    target="_blank"
-                    class="action-button"
-                    style="text-decoration: none"
-                  >
-                    <i class="fas fa-globe"></i>
-                    Official Website
-                  </a>
-                  <a
-                    href="https://github.com/cyb3rgh05t/docker-uploader/issues"
-                    target="_blank"
-                    class="action-button"
-                    style="text-decoration: none"
-                  >
-                    <i class="fas fa-bug"></i>
-                    Report Issue
-                  </a>
-                  <a
-                    href="https://github.com/cyb3rgh05t/docker-uploader/blob/main/CHANGELOG.md"
-                    target="_blank"
-                    class="action-button"
-                    style="text-decoration: none"
-                  >
-                    <i class="fas fa-list-ul"></i>
-                    Changelog
-                  </a>
-                </div>
-              </div>
-
-              <div
-                style="
-                  text-align: center;
-                  padding-top: 2rem;
-                  border-top: 1px solid var(--border-color);
-                "
-              >
-                <p style="color: var(--text-secondary); margin-bottom: 1rem">
-                  <i class="fa-brands fa-github"></i>
-                  <a
-                    href="https://github.com/dockserver"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style="color: var(--accent-color)"
-                  >
-                    dockserver GitHub
-                  </a>
-                  |
-                  <i class="fa-brands fa-wikipedia-w"></i>
-                  <a
-                    href="https://dockserver.github.io/dockserver/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style="color: var(--accent-color)"
-                  >
-                    dockserver wiki
-                  </a>
-                </p>
-                <p style="color: var(--text-tertiary); font-size: 0.875rem">
-                  Copyrights <sup>&copy; &trade;</sup> 2021<span
-                    id="copyright-year-range"
-                  ></span>
-                  <script>
-                    (function () {
-                      var yearSpan = document.getElementById(
-                        "copyright-year-range"
-                      );
-                      if (yearSpan) {
-                        yearSpan.textContent = " - " + new Date().getFullYear();
-                      }
-                    })();
-                  </script>
-                  Developed with
-                  <i
-                    class="fas fa-heart"
-                    style="color: var(--accent-color)"
-                  ></i>
-                  by dockserver.io
-                </p>
-              </div>
+          <!-- Description Card -->
+          <div class="about-card">
+            <div class="about-card-icon">
+              <i class="fas fa-rocket"></i>
             </div>
+            <h3 class="about-card-title">What is Docker Uploader?</h3>
+            <p class="about-card-text">
+              A powerful and efficient cloud upload management system designed
+              for Docker containers. Monitor and control your uploads with a
+              modern web interface featuring bandwidth management, concurrent
+              transfer control, and real-time progress tracking.
+            </p>
+          </div>
+
+          <!-- Features Grid -->
+          <div class="about-section-title">
+            <i class="fas fa-star"></i>
+            <span>Key Features</span>
+          </div>
+          <div class="about-features-grid">
+            <div class="about-feature-item">
+              <i class="fas fa-chart-line"></i>
+              <span>Real-time Monitoring</span>
+            </div>
+            <div class="about-feature-item">
+              <i class="fas fa-tachometer-alt"></i>
+              <span>Bandwidth Control</span>
+            </div>
+            <div class="about-feature-item">
+              <i class="fas fa-layer-group"></i>
+              <span>Concurrent Uploads</span>
+            </div>
+            <div class="about-feature-item">
+              <i class="fas fa-history"></i>
+              <span>Upload History</span>
+            </div>
+            <div class="about-feature-item">
+              <i class="fas fa-pause-circle"></i>
+              <span>Pause & Resume</span>
+            </div>
+            <div class="about-feature-item">
+              <i class="fas fa-palette"></i>
+              <span>12 Themes</span>
+            </div>
+            <div class="about-feature-item">
+              <i class="fas fa-mobile-alt"></i>
+              <span>Responsive Design</span>
+            </div>
+            <div class="about-feature-item">
+              <i class="fab fa-docker"></i>
+              <span>Docker Ready</span>
+            </div>
+          </div>
+
+          <!-- Tech Stack -->
+          <div class="about-section-title">
+            <i class="fas fa-code"></i>
+            <span>Technology Stack</span>
+          </div>
+          <div class="about-tech-grid">
+            <div class="about-tech-item">
+              <i class="fab fa-docker"></i>
+              <span>Docker</span>
+            </div>
+            <div class="about-tech-item">
+              <i class="fab fa-php"></i>
+              <span>PHP</span>
+            </div>
+            <div class="about-tech-item">
+              <i class="fab fa-js"></i>
+              <span>JavaScript</span>
+            </div>
+            <div class="about-tech-item">
+              <i class="fab fa-html5"></i>
+              <span>HTML5/CSS3</span>
+            </div>
+            <div class="about-tech-item">
+              <i class="fas fa-database"></i>
+              <span>SQLite</span>
+            </div>
+            <div class="about-tech-item">
+              <i class="fas fa-cloud"></i>
+              <span>Rclone</span>
+            </div>
+          </div>
+
+          <!-- Links -->
+          <div class="about-section-title">
+            <i class="fas fa-link"></i>
+            <span>Links & Resources</span>
+          </div>
+          <div class="about-links-grid">
+            <a
+              href="https://github.com/cyb3rgh05t/docker-uploader"
+              target="_blank"
+              class="about-link-card"
+            >
+              <i class="fab fa-github"></i>
+              <span>GitHub Repository</span>
+            </a>
+            <a
+              href="https://dockserver.github.io/dockserver/"
+              target="_blank"
+              class="about-link-card"
+            >
+              <i class="fas fa-book"></i>
+              <span>Documentation</span>
+            </a>
+            <a
+              href="https://github.com/cyb3rgh05t/docker-uploader/issues"
+              target="_blank"
+              class="about-link-card"
+            >
+              <i class="fas fa-bug"></i>
+              <span>Report Issue</span>
+            </a>
+            <a
+              href="https://github.com/cyb3rgh05t/docker-uploader/blob/main/CHANGELOG.md"
+              target="_blank"
+              class="about-link-card"
+            >
+              <i class="fas fa-list-ul"></i>
+              <span>Changelog</span>
+            </a>
+          </div>
+
+          <!-- Footer -->
+          <div class="about-footer">
+            <div class="about-footer-links">
+              <a href="https://github.com/dockserver" target="_blank">
+                <i class="fab fa-github"></i> dockserver
+              </a>
+              <span class="about-footer-divider">•</span>
+              <a
+                href="https://dockserver.github.io/dockserver/"
+                target="_blank"
+              >
+                <i class="fas fa-globe"></i> Wiki
+              </a>
+            </div>
+            <p class="about-copyright">
+              © 2021<span id="copyright-year-range"></span> · Developed with
+              <i class="fas fa-heart"></i> by dockserver.io
+            </p>
+            <script>
+              (function () {
+                var yearSpan = document.getElementById("copyright-year-range");
+                if (yearSpan) {
+                  yearSpan.textContent = " - " + new Date().getFullYear();
+                }
+              })();
+            </script>
           </div>
         </div>
       </section>
