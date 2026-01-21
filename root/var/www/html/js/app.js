@@ -71,20 +71,49 @@ function initializeApp() {
 }
 
 /**
- * Load the application version
+ * Load the application versions (WebUI and Uploader)
  */
 function loadAppVersion() {
-  let currentVersion = null;
+  let webuiVersion = null;
+  let uploaderVersion = null;
 
   // Try dedicated API endpoint first
   fetch("srv/api/system/version.php")
     .then((response) => response.json())
     .then((data) => {
-      if (data && data.version) {
-        currentVersion = data.version;
-        document.getElementById("app-version").textContent = "v" + data.version;
-        console.log("Version loaded from API:", data.version);
-        checkGitHubVersion(currentVersion);
+      if (data && data.webui_version && data.uploader_version) {
+        webuiVersion = data.webui_version;
+        uploaderVersion = data.uploader_version;
+
+        // Update sidebar
+        document.getElementById("webui-version").textContent =
+          "v" + webuiVersion;
+        document.getElementById("uploader-version").textContent =
+          "v" + uploaderVersion;
+
+        // Update about section
+        const aboutWebui = document.getElementById("about-webui-version");
+        const aboutUploader = document.getElementById("about-uploader-version");
+        if (aboutWebui) aboutWebui.textContent = "v" + webuiVersion;
+        if (aboutUploader) aboutUploader.textContent = "v" + uploaderVersion;
+
+        console.log(
+          "Versions loaded from API - WebUI:",
+          webuiVersion,
+          "Uploader:",
+          uploaderVersion,
+        );
+        checkGitHubVersion(webuiVersion, uploaderVersion);
+      } else if (data && data.version) {
+        // Legacy single version format
+        webuiVersion = data.version;
+        uploaderVersion = data.version;
+        document.getElementById("webui-version").textContent =
+          "v" + webuiVersion;
+        document.getElementById("uploader-version").textContent =
+          "v" + uploaderVersion;
+        console.log("Legacy version loaded from API:", data.version);
+        checkGitHubVersion(webuiVersion, uploaderVersion);
       }
     })
     .catch((error) => {
@@ -94,23 +123,54 @@ function loadAppVersion() {
       fetch("release.json")
         .then((response) => response.json())
         .then((data) => {
-          if (data && data.newversion) {
-            currentVersion = data.newversion;
-            document.getElementById("app-version").textContent =
-              "v" + data.newversion;
-            console.log("Version loaded from file:", data.newversion);
-            checkGitHubVersion(currentVersion);
+          if (data && data.webui_version && data.uploader_version) {
+            webuiVersion = data.webui_version;
+            uploaderVersion = data.uploader_version;
+
+            document.getElementById("webui-version").textContent =
+              "v" + webuiVersion;
+            document.getElementById("uploader-version").textContent =
+              "v" + uploaderVersion;
+
+            const aboutWebui = document.getElementById("about-webui-version");
+            const aboutUploader = document.getElementById(
+              "about-uploader-version",
+            );
+            if (aboutWebui) aboutWebui.textContent = "v" + webuiVersion;
+            if (aboutUploader)
+              aboutUploader.textContent = "v" + uploaderVersion;
+
+            console.log(
+              "Versions loaded from file - WebUI:",
+              webuiVersion,
+              "Uploader:",
+              uploaderVersion,
+            );
+            checkGitHubVersion(webuiVersion, uploaderVersion);
+          } else if (data && data.newversion) {
+            // Legacy format
+            webuiVersion = data.newversion;
+            uploaderVersion = data.newversion;
+            document.getElementById("webui-version").textContent =
+              "v" + webuiVersion;
+            document.getElementById("uploader-version").textContent =
+              "v" + uploaderVersion;
+            console.log("Legacy version loaded from file:", data.newversion);
+            checkGitHubVersion(webuiVersion, uploaderVersion);
           } else {
             throw new Error("Invalid release.json format");
           }
         })
         .catch((fallbackError) => {
           console.error("Version fetch failed:", fallbackError);
-          // Set a hardcoded version as last resort
-          currentVersion = "5.0.0";
-          document.getElementById("app-version").textContent =
-            "v" + currentVersion;
-          checkGitHubVersion(currentVersion);
+          // Set hardcoded versions as last resort
+          webuiVersion = "5.0.0";
+          uploaderVersion = "3.0.0";
+          document.getElementById("webui-version").textContent =
+            "v" + webuiVersion;
+          document.getElementById("uploader-version").textContent =
+            "v" + uploaderVersion;
+          checkGitHubVersion(webuiVersion, uploaderVersion);
         });
     });
 }
@@ -118,47 +178,48 @@ function loadAppVersion() {
 /**
  * Check GitHub for latest release version
  */
-function checkGitHubVersion(currentVersion) {
+function checkGitHubVersion(webuiVersion, uploaderVersion) {
   const $statusBadge = $("#version-status");
 
   fetch(
-    "https://api.github.com/repos/cyb3rgh05t/docker-uploader/releases/latest"
+    "https://api.github.com/repos/cyb3rgh05t/docker-uploader/releases/latest",
   )
     .then((response) => response.json())
     .then((data) => {
       if (data && data.tag_name) {
         const latestVersion = data.tag_name.replace(/^v/, "");
-        const current = currentVersion.replace(/^v/, "");
+        // Compare using WebUI version as the main version indicator
+        const current = webuiVersion.replace(/^v/, "");
 
         console.log(
-          "Current version:",
+          "Current WebUI version:",
           current,
           "Latest version:",
-          latestVersion
+          latestVersion,
         );
 
         const versionComparison = compareVersions(current, latestVersion);
 
         if (versionComparison < 0) {
           // Update available
-          $statusBadge.html('<i class="fas fa-arrow-up"></i> Update Available');
+          $statusBadge.html('<i class="fas fa-arrow-up"></i>');
           $statusBadge
             .removeClass("up-to-date checking develop")
             .addClass("update-available");
           $statusBadge.attr("title", `New version ${latestVersion} available`);
         } else if (versionComparison > 0) {
           // Development version (ahead of latest release)
-          $statusBadge.html('<i class="fas fa-code-branch"></i> Develop');
+          $statusBadge.html('<i class="fas fa-code-branch"></i>');
           $statusBadge
             .removeClass("update-available checking up-to-date")
             .addClass("develop");
           $statusBadge.attr(
             "title",
-            `Development build (ahead of v${latestVersion})`
+            `Development build (ahead of v${latestVersion})`,
           );
         } else {
           // Up to date
-          $statusBadge.html('<i class="fas fa-check"></i> Up to Date');
+          $statusBadge.html('<i class="fas fa-check"></i>');
           $statusBadge
             .removeClass("update-available checking develop")
             .addClass("up-to-date");
@@ -170,7 +231,7 @@ function checkGitHubVersion(currentVersion) {
     })
     .catch((error) => {
       console.error("Failed to check GitHub version:", error);
-      $statusBadge.html('<i class="fas fa-question"></i> Unknown');
+      $statusBadge.html('<i class="fas fa-question"></i>');
       $statusBadge.removeClass("update-available checking up-to-date");
       $statusBadge.attr("title", "Unable to check for updates");
     });
@@ -263,19 +324,46 @@ function setupEventListeners() {
   // Setup pause control
   setupPauseControl();
 
-  // Clear history button
-  $("#clnHist").on("click", function () {
+  // Clear history dropdown toggle
+  $("#clnHistToggle").on("click", function (e) {
+    e.stopPropagation();
+    $(".clear-history-menu").toggleClass("active");
+    $(this).find(".dropdown-arrow").toggleClass("rotated");
+  });
+
+  // Close dropdown when clicking outside
+  $(document).on("click", function (e) {
+    if (!$(e.target).closest(".clear-history-dropdown").length) {
+      $(".clear-history-menu").removeClass("active");
+      $("#clnHistToggle .dropdown-arrow").removeClass("rotated");
+    }
+  });
+
+  // Clear history menu item click
+  $(".clear-history-item").on("click", function () {
+    const type = $(this).data("type");
+    const message =
+      type === "failed"
+        ? "Failed uploads cleared successfully"
+        : "Upload history cleared successfully";
+
     $.ajax({
       type: "POST",
       url: "srv/api/system/clean_history.php",
+      data: { type: type },
       success: function () {
         handleCompletedJobList();
-        showToast("Upload history cleared successfully", "success", 2500);
+        updateFailedCount();
+        showToast(message, "success", 2500);
       },
       error: function () {
         showToast("Failed to clear upload history", "error", 3000);
       },
     });
+
+    // Close dropdown
+    $(".clear-history-menu").removeClass("active");
+    $("#clnHistToggle .dropdown-arrow").removeClass("rotated");
   });
 
   // Toggle time format
@@ -426,7 +514,7 @@ function setupFormSubmissions() {
           },
         });
       }, 1000);
-    }
+    },
   );
 
   $("#unified-settings-form").on("submit", function (e) {
@@ -472,7 +560,7 @@ function initStyledSelects() {
       const label = $(this).text();
       const isSelected = $(this).is(":selected");
       const $item = $(
-        `<div class="settings-dropdown-item" role="option" data-value="${value}">${label}</div>`
+        `<div class="settings-dropdown-item" role="option" data-value="${value}">${label}</div>`,
       );
       if (isSelected) $item.addClass("active");
       $menu.append($item);
@@ -549,7 +637,7 @@ function handleInProgressJobs() {
 
     if (!json.jobs || json.jobs.length === 0) {
       $tableBody.append(
-        '<tr><td colspan="8" class="no-uploads-message text-center">No uploads in progress</td></tr>'
+        '<tr><td colspan="8" class="no-uploads-message text-center">No uploads in progress</td></tr>',
       );
       $("#download_rate").text("0.00");
       $("#current-rate").text("0.00 MB/s");
@@ -618,7 +706,7 @@ function handleInProgressJobs() {
           "bg-success",
           "bg-warning",
           "bg-danger",
-          "bg-secondary"
+          "bg-secondary",
         );
       rowNode.querySelector(".progress-bar").classList.add(progressClass);
       rowNode
@@ -709,7 +797,7 @@ function handleCompletedJobList() {
         if (!uploaderApp.intervals.completed) {
           uploaderApp.intervals.completed = setInterval(
             handleCompletedJobList,
-            5000
+            5000,
           );
         }
       } else {
@@ -736,7 +824,7 @@ function handleCompletedJobList() {
             ? "No failed uploads"
             : "No completed uploads";
         $completedTableBody.append(
-          `<tr><td colspan="7" class="no-uploads-message text-center">${message}</td></tr>`
+          `<tr><td colspan="7" class="no-uploads-message text-center">${message}</td></tr>`,
         );
         $("#clnHist").hide();
         return;
@@ -763,23 +851,23 @@ function handleCompletedJobList() {
           $("<td>")
             .attr("data-title", "Filename")
             .addClass("truncate")
-            .text(job.file_name)
+            .text(job.file_name),
         );
         row.append($("<td>").attr("data-title", "Folder").text(job.drive));
         row.append(
           $("<td>")
             .attr("data-title", "Directory")
             .addClass("truncate")
-            .text(directory)
+            .text(directory),
         );
         row.append($("<td>").attr("data-title", "Key").text(job.gdsa));
         row.append(
-          $("<td>").attr("data-title", "Filesize").text(job.file_size)
+          $("<td>").attr("data-title", "Filesize").text(job.file_size),
         );
         row.append(
           $("<td>")
             .attr("data-title", "Time spent")
-            .text(job.time_elapsed || "n/a")
+            .text(job.time_elapsed || "n/a"),
         );
 
         // Show error message in tooltip for failed uploads
@@ -867,7 +955,7 @@ function handleQueueList() {
 
     if (!json.success || !json.files || json.files.length === 0) {
       $tableBody.append(
-        '<tr><td colspan="6" class="no-uploads-message text-center">No files in queue</td></tr>'
+        '<tr><td colspan="6" class="no-uploads-message text-center">No files in queue</td></tr>',
       );
       $("#queue-count-badge").text("0");
       return;
@@ -890,7 +978,7 @@ function handleQueueList() {
       row.append(
         $("<td>")
           .addClass("d-none d-lg-table-cell")
-          .text(file.drive || "N/A")
+          .text(file.drive || "N/A"),
       );
 
       // Directory (hidden on mobile) - remove folder prefix
@@ -899,13 +987,13 @@ function handleQueueList() {
         directory = directory.substring(file.drive.length + 1);
       }
       row.append(
-        $("<td>").addClass("d-none d-lg-table-cell truncate").text(directory)
+        $("<td>").addClass("d-none d-lg-table-cell truncate").text(directory),
       );
 
       // Filesize (hidden on mobile) - format the size
       const formattedSize = formatFileSize(parseFileSize(file.filesize));
       row.append(
-        $("<td>").addClass("d-none d-lg-table-cell").text(formattedSize)
+        $("<td>").addClass("d-none d-lg-table-cell").text(formattedSize),
       );
 
       // Added time
@@ -921,7 +1009,7 @@ function handleQueueList() {
     const $tableBody = $("#queueTable > tbody");
     $tableBody.empty();
     $tableBody.append(
-      '<tr><td colspan="6" class="no-uploads-message text-center">Error loading queue</td></tr>'
+      '<tr><td colspan="6" class="no-uploads-message text-center">Error loading queue</td></tr>',
     );
   });
 }
@@ -1002,7 +1090,7 @@ function updateStatusIndicator(state, text) {
 
   // Remove all status classes
   $indicator.removeClass(
-    "status-active status-paused status-stopped status-error"
+    "status-active status-paused status-stopped status-error",
   );
 
   // Add the new status class
@@ -1054,7 +1142,7 @@ function setupPauseControl() {
         console.log("Response:", xhr.responseText);
         showToast(
           "Failed to update status. Check console for details.",
-          "error"
+          "error",
         );
       },
       complete: function () {
@@ -1083,7 +1171,7 @@ function updateRealTimeStats() {
   const bandwidthLimit = parseFloat(
     uploaderApp.envSettings.BANDWIDTH_LIMIT ||
       $("#bandwidth_limit").val() ||
-      "30"
+      "30",
   );
   const rateValue = parseFloat(currentRateStr);
   const ratePercentage = Math.min((rateValue / bandwidthLimit) * 100, 100);
@@ -1110,7 +1198,7 @@ function updateRealTimeStats() {
 
   // Set the bandwidth limit
   $("#rate-limit").html(
-    `<i class="fas fa-gauge-high"></i> Limit: ${bandwidthLimit} MB/s per transfer`
+    `<i class="fas fa-gauge-high"></i> Limit: ${bandwidthLimit} MB/s per transfer`,
   );
 
   // Update system overview
@@ -1151,10 +1239,10 @@ function updateSystemOverview() {
 
           // Remove all color classes
           $statusValue.removeClass(
-            "value-green value-red value-orange value-blue"
+            "value-green value-red value-orange value-blue",
           );
           $statusIcon.removeClass(
-            "gradient-green gradient-red gradient-orange gradient-blue"
+            "gradient-green gradient-red gradient-orange gradient-blue",
           );
 
           if (data.status === "STARTED") {
@@ -1230,14 +1318,14 @@ function loadEnvSettings() {
         updateUIFromSettings(data.settings);
       } else {
         console.warn(
-          "New settings API returned invalid data, falling back to legacy endpoint"
+          "New settings API returned invalid data, falling back to legacy endpoint",
         );
         loadEnvSettingsLegacy();
       }
     })
     .fail(function () {
       console.warn(
-        "New settings API not available, falling back to legacy endpoint"
+        "New settings API not available, falling back to legacy endpoint",
       );
       loadEnvSettingsLegacy();
     });
@@ -1404,7 +1492,7 @@ function updateEnvSettings(formId, settings) {
             // Update transfer settings UI
             $("#active-max").text(`Max: ${settings.TRANSFERS || "2"}`);
             $("#rate-limit").text(
-              `Limit per Transfer: ${settings.BANDWIDTH_LIMIT || "30M"}`
+              `Limit per Transfer: ${settings.BANDWIDTH_LIMIT || "30M"}`,
             );
             break;
 
@@ -1436,10 +1524,10 @@ function updateEnvSettings(formId, settings) {
               showToast(
                 "Failed to update settings: " +
                   (response.message || "Unknown error"),
-                "error"
+                "error",
               );
             }
-          }
+          },
         );
       }
     },
@@ -1456,7 +1544,7 @@ function updateEnvSettings(formId, settings) {
             showToast("Failed to communicate with the server", "error", 3000);
             console.error("Response:", xhr.responseText);
           }
-        }
+        },
       );
     },
     complete: function () {
@@ -1482,7 +1570,7 @@ function updateEnvSettingsLegacy(
   settings,
   $submitBtn,
   originalText,
-  callback
+  callback,
 ) {
   // Convert settings keys to lowercase for legacy API
   const legacySettings = {};
@@ -1508,7 +1596,7 @@ function updateEnvSettingsLegacy(
           case "transfer-form":
             $("#active-max").text(`Max: ${legacySettings.transfers || "2"}`);
             $("#rate-limit").text(
-              `Limit per Transfer: ${legacySettings.bandwidth_limit || "30M"}`
+              `Limit per Transfer: ${legacySettings.bandwidth_limit || "30M"}`,
             );
             break;
         }
@@ -1588,7 +1676,7 @@ function loadDashboardQueue() {
 
     if (!data.files || data.files.length === 0) {
       $tbody.append(
-        '<tr><td colspan="6" class="text-center">No files in queue</td></tr>'
+        '<tr><td colspan="6" class="text-center">No files in queue</td></tr>',
       );
       return;
     }
@@ -1620,7 +1708,7 @@ function loadDashboardQueue() {
     });
   }).fail(function () {
     $("#dashboard-queue-table tbody").html(
-      '<tr><td colspan="6" class="text-center">Failed to load queue</td></tr>'
+      '<tr><td colspan="6" class="text-center">Failed to load queue</td></tr>',
     );
   });
 }
@@ -1635,7 +1723,7 @@ function loadDashboardActive() {
 
     if (!data.jobs || data.jobs.length === 0) {
       $tbody.append(
-        '<tr><td colspan="8" class="text-center">No active uploads</td></tr>'
+        '<tr><td colspan="8" class="text-center">No active uploads</td></tr>',
       );
       return;
     }
@@ -1656,7 +1744,7 @@ function loadDashboardActive() {
       const $row = $(`
         <tr>
           <td class="truncate">${escapeHtml(
-            job.file_name || job.job_name || "Unknown"
+            job.file_name || job.job_name || "Unknown",
           )}</td>
           <td>${escapeHtml(job.drive || "N/A")}</td>
           <td class="truncate">${escapeHtml(directory)}</td>
@@ -1680,7 +1768,7 @@ function loadDashboardActive() {
     });
   }).fail(function () {
     $("#dashboard-active-table tbody").html(
-      '<tr><td colspan="8" class="text-center">Failed to load active uploads</td></tr>'
+      '<tr><td colspan="8" class="text-center">Failed to load active uploads</td></tr>',
     );
   });
 }
@@ -1695,7 +1783,7 @@ function loadDashboardHistory() {
 
     if (!data.jobs || data.jobs.length === 0) {
       $tbody.append(
-        '<tr><td colspan="7" class="text-center">No upload history</td></tr>'
+        '<tr><td colspan="7" class="text-center">No upload history</td></tr>',
       );
       return;
     }
@@ -1727,7 +1815,7 @@ function loadDashboardHistory() {
     });
   }).fail(function () {
     $("#dashboard-history-table tbody").html(
-      '<tr><td colspan="7" class="text-center">Failed to load history</td></tr>'
+      '<tr><td colspan="7" class="text-center">Failed to load history</td></tr>',
     );
   });
 }
