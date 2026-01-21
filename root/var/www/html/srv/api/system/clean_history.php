@@ -11,8 +11,8 @@ try {
     $db->busyTimeout(5000); // Wait up to 5 seconds if database is locked
 
     if ($type === 'failed') {
-        // Only delete failed uploads
-        $count_result = $db->exec("DELETE FROM completed_uploads WHERE status = 'failed'");
+        // Only delete failed uploads (status = 0 means failed)
+        $count_result = $db->exec("DELETE FROM completed_uploads WHERE status = 0");
     } else {
         // Delete all uploads (default behavior)
         $count_result = $db->exec('DELETE FROM completed_uploads');
