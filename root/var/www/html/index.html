@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
@@ -12,7 +12,7 @@
       referrerpolicy="no-referrer"
     />
     <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="stylesheet" href="css/styles.css?v=5.3.23.8" />
+    <link rel="stylesheet" href="css/styles.css?v=6.0" />
   </head>
   <body>
     <!-- Mobile Menu Toggle -->
@@ -597,10 +597,23 @@
                   <i class="fas fa-exclamation-circle"></i> Failed
                 </button>
               </div>
-              <span id="clnHist" class="action-button">
-                <i class="fas fa-trash-alt"></i>
-                Clear History
-              </span>
+              <div class="clear-history-dropdown">
+                <span id="clnHistToggle" class="action-button">
+                  <i class="fas fa-trash-alt"></i>
+                  Clear History
+                  <i class="fas fa-chevron-down dropdown-arrow"></i>
+                </span>
+                <div class="clear-history-menu">
+                  <div class="clear-history-item" data-type="failed">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>Clear Failed Only</span>
+                  </div>
+                  <div class="clear-history-item" data-type="all">
+                    <i class="fas fa-trash-alt"></i>
+                    <span>Clear All History</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           <div class="card-body">
@@ -626,7 +639,7 @@
                         class="fa-solid fa-hourglass-end toggle-time-format"
                         title="Toggle time format"
                         aria-label="Toggle time format"
-                        onclick="$('#prettyEndTime').click();"
+                        onclick="$('#prettyEndTime').click()"
                       ></i>
                     </th>
                   </tr>
@@ -1306,9 +1319,9 @@
 
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="js/ui/pagination.js?v=5.3.23.8"></script>
-    <script src="js/utils.js?v=5.3.23.8"></script>
-    <script src="js/app.js?v=5.3.23.8"></script>
+    <script src="js/ui/pagination.js?v=6.0.0"></script>
+    <script src="js/utils.js?v=6.0.0"></script>
+    <script src="js/app.js?v=6.0.0"></script>
 
     <script>
       $(document).ready(function () {
