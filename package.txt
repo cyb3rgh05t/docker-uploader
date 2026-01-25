@@ -133,8 +133,8 @@ php82-sqlite3-8.2.30-r2
 procps-ng-4.0.5-r0
 py3-packaging-25.0-r0
 py3-packaging-pyc-25.0-r0
-py3-parsing-3.2.3-r0
-py3-parsing-pyc-3.2.3-r0
+py3-parsing-3.2.5-r0
+py3-parsing-pyc-3.2.5-r0
 py3-pip-25.1.1-r1
 py3-pip-pyc-25.1.1-r1
 py3-setuptools-80.9.0-r2
