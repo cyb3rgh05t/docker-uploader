@@ -76,7 +76,7 @@ busybox-binsh-1.37.0-r30
 c-ares-1.34.6-r0
 ca-certificates-20251003-r0
 ca-certificates-bundle-20251003-r0
-caddy-2.10.2-r4
+caddy-2.10.2-r5
 catatonit-0.2.1-r0
 coreutils-9.8-r1
 coreutils-env-9.8-r1
