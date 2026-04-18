@@ -1,7 +1,6 @@
 caddy
 curl
 cronie
-exiftool
 jq
 php82
 php82-fpm

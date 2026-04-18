@@ -48,14 +48,12 @@ function updateEnvFile($settings)
             // Common settings categories
             $sections = [
                 'USER VALUES' => ['PUID', 'PGID', 'TIMEZONE'],
-                'CRITICAL SETUP FOR CRYPT USER' => ['HASHPASSWORD', 'GDSA_NAME', 'DB_NAME', 'DB_TEAM'],
-                'RCLONE - SETTINGS' => ['BANDWIDTH_LIMIT', 'GOOGLE_IP', 'PROXY', 'LOG_LEVEL', 'DLFOLDER', 'TRANSFERS'],
+                'RCLONE - SETTINGS' => ['BANDWIDTH_LIMIT', 'PROXY', 'LOG_LEVEL', 'DLFOLDER', 'TRANSFERS'],
                 'USER - SETTINGS' => ['DRIVEUSEDSPACE', 'FOLDER_DEPTH', 'FOLDER_PRIORITY', 'MIN_AGE_UPLOAD'],
                 'VFS - SETTINGS' => ['VFS_REFRESH_ENABLE', 'MOUNT'],
                 'LOG - SETTINGS' => ['LOG_ENTRY', 'LOG_RETENTION_DAYS'],
                 'AUTOSCAN - SETTINGS' => ['AUTOSCAN_URL', 'AUTOSCAN_USER', 'AUTOSCAN_PASS'],
                 'NOTIFICATION - SETTINGS' => ['NOTIFICATION_URL', 'NOTIFICATION_LEVEL', 'NOTIFICATION_SERVERNAME'],
-                'STRIPARR - SETTINGS' => ['STRIPARR_URL'],
                 'LANGUAGE MESSAGES' => ['LANGUAGE']
             ];
 

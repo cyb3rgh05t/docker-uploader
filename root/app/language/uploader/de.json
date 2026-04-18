@@ -6,18 +6,12 @@
     "packagesend": "-> Paket aktualisierung war erfolgreich <-"
   },
   "startup": {
-    "uploader": "-> Starte Uploader - ALL <-",
-    "uploadergdsa": "-> Starte Uploader - GDSA <-",
-    "uploaderdb": "-> Starte Uploader - DB <-",
+    "uploader": "-> Starte Uploader <-",
     "caddy": "-> Starte Caddy <-",
     "php": "-> Starte PHP-FPM <-"
   },
-  "limit": {
-    "used": "-> Beachten Sie, dass Sie die Google Upload-Limits erreicht haben <-",
-    "switch": "-> Wechsel zum nächsten Service 🔑 ${KEYNOTI} erfolgreich <-"
-  },
   "uploader": {
-    "start": "Upload startet für ${FILE} nutze ${KEYNOTI} auf ${DRIVE}",
+    "start": "Upload startet für ${FILE} auf ${DRIVE}",
     "end": "Upload abgeschlossen für ${FILE} mit Größe${SIZE}",
     "failed": "Upload fehlgeschlagen für ${FILE} mit Größe${SIZE}"
   }

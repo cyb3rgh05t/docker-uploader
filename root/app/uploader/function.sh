@@ -14,7 +14,6 @@
 source /system/uploader/uploader.env
 #SETTINGS
 ENVA=/system/uploader/uploader.env
-CSV=/system/servicekeys/uploader.csv
 EXCLUDE=/system/uploader/rclone.exclude
 ENDCONFIG=/app/rclone/rclone.conf
 DATABASE=/system/uploader/db/uploader.db
@@ -23,16 +22,12 @@ TEMPFILES=/app/rclone/files.txt
 
 #FOLDER
 BASE=/system/uploader
-JSONDIR=/system/servicekeys/keys
 LOGFILE=/system/uploader/logs
 SUNION=/mnt/unionfs
 CUSTOM=/app/custom
 LFOLDER=/app/language/uploader
-ARRAY=$($(which ls) -A "${JSONDIR}" | $(which wc) -l)
 
-#FOR MAPPING CLEANUP
-CONFIG=""
-CRYPTED=""
+#RUNTIME
 BWLIMIT=""
 USERAGENT=""
 
@@ -478,57 +473,19 @@ function listfiles() {
    for NAME in ${FILEBASE[@]}; do
       LISTFILE=$($(which basename) "${NAME}")
       LISTDIR=$($(which dirname) "${NAME}")
-      # Ensure FOLDER_DEPTH is valid
       if [[ -z "${FOLDER_DEPTH}" || "${FOLDER_DEPTH}" -lt 1 ]]; then
         FOLDER_DEPTH=1
         log "Warning: FOLDER_DEPTH was invalid, reset to 1"
       fi
       LISTDRIVE=$($(which echo) "${LISTDIR}" | $(which cut) -d/ -f1-"${FOLDER_DEPTH}" | $(which xargs) -I {} $(which basename) {})
       LISTSIZE=$($(which stat) -c %s "${DLFOLDER}/${NAME}" 2>/dev/null)
-      LISTTYPE="${NAME##*.}"
-      if [[ "${LISTTYPE}" == "mkv" ]] || [[ "${LISTTYPE}" == "mp4" ]] || [[ "${LISTTYPE}" == "avi" ]] || [[ "${LISTTYPE}" == "mov" ]] || [[ "${LISTTYPE}" == "mpeg" ]] || [[ "${LISTTYPE}" == "mpegts" ]] || [[ "${LISTTYPE}" == "ts" ]]; then
-         CHECKMETA=$($(which exiftool) -m -q -q -Title "${DLFOLDER}/${NAME}" 2>/dev/null | $(which grep) -qE '[A-Za-z]' && echo 1 || echo 0)
-      else
-         CHECKMETA="0"
-      fi
-      if [[ "${STRIPARR_URL}" == "" ]]; then
-         STRIPARR_URL="null"
-      fi
-      if [[ "${STRIPARR_URL}" == "null" ]]; then
-         sqlite3write "INSERT OR IGNORE INTO upload_queue (drive,filedir,filebase,filesize,metadata) SELECT '${LISTDRIVE//\'/\'\'}','${LISTDIR//\'/\'\'}','${LISTFILE//\'/\'\'}','${LISTSIZE}','0' WHERE NOT EXISTS (SELECT 1 FROM uploads WHERE filebase = '${LISTFILE//\'/\'\'}');" &>/dev/null
-      else
-         if [[ "${CHECKMETA}" == "1" ]]; then
-            sqlite3write "INSERT OR IGNORE INTO upload_queue (drive,filedir,filebase,filesize,metadata) SELECT '${LISTDRIVE//\'/\'\'}','${LISTDIR//\'/\'\'}','${LISTFILE//\'/\'\'}','${LISTSIZE}','${CHECKMETA}' WHERE NOT EXISTS (SELECT 1 FROM uploads WHERE filebase = '${LISTFILE//\'/\'\'}');" &>/dev/null
-            $(which curl) -sf -X POST -H "Content-Type: application/json" -d '{"eventType": "Download", "series": {"path": "'"${DLFOLDER}/${LISTDIR}"'"}, "episodeFile": {"relativePath": "'"${LISTFILE}"'"}}' "${STRIPARR_URL}"
-         else
-            sqlite3write "INSERT OR IGNORE INTO upload_queue (drive,filedir,filebase,filesize,metadata) SELECT '${LISTDRIVE//\'/\'\'}','${LISTDIR//\'/\'\'}','${LISTFILE//\'/\'\'}','${LISTSIZE}','${CHECKMETA}' WHERE NOT EXISTS (SELECT 1 FROM uploads WHERE filebase = '${LISTFILE//\'/\'\'}');" &>/dev/null
-         fi
-      fi
+      sqlite3write "INSERT OR IGNORE INTO upload_queue (drive,filedir,filebase,filesize,metadata) SELECT '${LISTDRIVE//\'/\'\'}','${LISTDIR//\'/\'\'}','${LISTFILE//\'/\'\'}','${LISTSIZE}','0' WHERE NOT EXISTS (SELECT 1 FROM uploads WHERE filebase = '${LISTFILE//\'/\'\'}');" &>/dev/null
    done
    sqlite3write "COMMIT;" &>/dev/null
    $(which rm) "${TEMPFILES}"
 }
 
-function checkmeta() {
-   source /system/uploader/uploader.env
-   METAFILES=$(sqlite3read "SELECT COUNT(*) FROM upload_queue WHERE metadata = 1;")
-   if [[ "${METAFILES}" -ge "1" ]]; then
-      METAFILE=$(sqlite3read "SELECT filebase FROM upload_queue WHERE metadata = 1 ORDER BY time LIMIT 1;" 2>/dev/null)
-      METADIR=$(sqlite3read "SELECT filedir FROM upload_queue WHERE filebase = '${METAFILE//\'/\'\'}';" 2>/dev/null)
-      METACHECK=$($(which exiftool) -m -q -q -Title "${DLFOLDER}/${METADIR}/${METAFILE}" 2>/dev/null | $(which grep) -qE '[A-Za-z]' && echo 1 || echo 0)
-      if [[ "${METACHECK}" == "0" ]]; then
-         METAOLD="60"
-         METACUR=$($(which date) +%s)
-         METATIME=$($(which stat) -c %Z "${DLFOLDER}/${METADIR}/${METAFILE}" 2>/dev/null)
-         METADIFF=$($(which expr) "${METACUR}" - "${METATIME}")
-         if [[ "${METADIFF}" -gt "${METAOLD}" ]]; then
-            METASIZE=$($(which stat) -c %s "${DLFOLDER}/${METADIR}/${METAFILE}" 2>/dev/null)
-            sqlite3write "UPDATE upload_queue SET filesize = '${METASIZE}', metadata = '${METACHECK}' WHERE filebase = '${METAFILE//\'/\'\'}';" &>/dev/null
-            checkmeta
-         fi
-      fi
-   fi
-}
+
 
 function checkspace() {
    source /system/uploader/uploader.env
@@ -605,8 +562,6 @@ function startuploader() {
       checkspace
       #### RUN LIST FILES ####
       listfiles
-      #### RUN META CHECK ####
-      checkmeta
       #### START UPLOAD ####
       source /system/uploader/uploader.env
       CHECKFILES=$(sqlite3read "SELECT COUNT(*) FROM upload_queue WHERE metadata = 0;")

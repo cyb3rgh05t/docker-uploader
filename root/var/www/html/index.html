@@ -104,77 +104,6 @@
             <span class="status-dot"></span>
             <span class="status-text">Active</span>
           </div>
-          <div class="theme-dropdown">
-            <button
-              class="theme-toggle-btn"
-              id="theme-toggle-btn"
-              aria-label="Change theme"
-            >
-              <i class="fas fa-palette"></i>
-            </button>
-            <div class="theme-dropdown-menu" id="theme-dropdown-menu">
-              <div class="theme-dropdown-item" data-theme="dark">
-                <div class="theme-dot dark"></div>
-                <span>Dark</span>
-                <i class="fas fa-check theme-check"></i>
-              </div>
-              <div class="theme-dropdown-item" data-theme="aquamarine">
-                <div class="theme-dot aquamarine"></div>
-                <span>Aquamarine</span>
-                <i class="fas fa-check theme-check"></i>
-              </div>
-              <div class="theme-dropdown-item" data-theme="organizr">
-                <div class="theme-dot organizr"></div>
-                <span>Organizr</span>
-                <i class="fas fa-check theme-check"></i>
-              </div>
-              <div class="theme-dropdown-item" data-theme="nord">
-                <div class="theme-dot nord"></div>
-                <span>Nord</span>
-                <i class="fas fa-check theme-check"></i>
-              </div>
-              <div class="theme-dropdown-item" data-theme="overseerr">
-                <div class="theme-dot overseerr"></div>
-                <span>Overseerr</span>
-                <i class="fas fa-check theme-check"></i>
-              </div>
-              <div class="theme-dropdown-item" data-theme="onedark">
-                <div class="theme-dot onedark"></div>
-                <span>OneDark</span>
-                <i class="fas fa-check theme-check"></i>
-              </div>
-              <div class="theme-dropdown-item" data-theme="hotline">
-                <div class="theme-dot hotline"></div>
-                <span>Hotline</span>
-                <i class="fas fa-check theme-check"></i>
-              </div>
-              <div class="theme-dropdown-item" data-theme="maroon">
-                <div class="theme-dot maroon"></div>
-                <span>Maroon</span>
-                <i class="fas fa-check theme-check"></i>
-              </div>
-              <div class="theme-dropdown-item" data-theme="dracula">
-                <div class="theme-dot dracula"></div>
-                <span>Dracula</span>
-                <i class="fas fa-check theme-check"></i>
-              </div>
-              <div class="theme-dropdown-item" data-theme="plex">
-                <div class="theme-dot plex"></div>
-                <span>Plex</span>
-                <i class="fas fa-check theme-check"></i>
-              </div>
-              <div class="theme-dropdown-item" data-theme="space-gray">
-                <div class="theme-dot space-gray"></div>
-                <span>Space Gray</span>
-                <i class="fas fa-check theme-check"></i>
-              </div>
-              <div class="theme-dropdown-item" data-theme="hotpink">
-                <div class="theme-dot hotpink"></div>
-                <span>Hot Pink</span>
-                <i class="fas fa-check theme-check"></i>
-              </div>
-            </div>
-          </div>
         </div>
       </header>
 
@@ -858,16 +787,6 @@
                   />
                 </div>
                 <div class="form-group">
-                  <label for="google_ip">Google IP</label>
-                  <input
-                    type="text"
-                    id="google_ip"
-                    name="google_ip"
-                    class="form-control"
-                    placeholder="142.250.74.78"
-                  />
-                </div>
-                <div class="form-group">
                   <label for="proxy">Proxy</label>
                   <input
                     type="text"
@@ -912,60 +831,7 @@
               </div>
             </div>
 
-            <!-- Encryption Settings -->
-            <div class="card">
-              <div class="card-header">
-                <div class="card-title">
-                  <i class="fas fa-shield-alt"></i>
-                  Encryption Settings
-                </div>
-              </div>
-              <div class="card-body">
-                <div class="form-group">
-                  <label for="hashpassword">Hash Password (Google)</label>
-                  <select
-                    id="hashpassword"
-                    name="hashpassword"
-                    class="form-control"
-                  >
-                    <option value="hashed" selected>Hashed</option>
-                    <option value="plain">Plain</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label for="gdsa_name">GDSA Name (Google)</label>
-                  <input
-                    type="text"
-                    id="gdsa_name"
-                    name="gdsa_name"
-                    class="form-control"
-                    value="encrypt"
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="db_name">DB Name (Dropbox)</label>
-                  <input
-                    type="text"
-                    id="db_name"
-                    name="db_name"
-                    class="form-control"
-                    value="encrypt"
-                  />
-                </div>
-                <div class="form-group toggle-group">
-                  <label for="db_team">DB Team (Dropbox)</label>
-                  <label class="toggle-switch">
-                    <input
-                      type="checkbox"
-                      id="db_team"
-                      name="db_team"
-                      checked
-                    />
-                    <span class="toggle-slider"></span>
-                  </label>
-                </div>
-              </div>
-            </div>
+            <!-- Encryption Settings removed - not needed for generic uploader -->
 
             <!-- Log Settings -->
             <div class="card">
@@ -1047,28 +913,6 @@
                     name="autoscan_pass"
                     class="form-control"
                     placeholder="password (leave empty for none)"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <!-- Striparr Settings -->
-            <div class="card">
-              <div class="card-header">
-                <div class="card-title">
-                  <i class="fas fa-cut"></i>
-                  Striparr Settings
-                </div>
-              </div>
-              <div class="card-body">
-                <div class="form-group">
-                  <label for="striparr_url">Striparr URL</label>
-                  <input
-                    type="text"
-                    id="striparr_url"
-                    name="striparr_url"
-                    class="form-control"
-                    placeholder="http://striparr:xxxx or null"
                   />
                 </div>
               </div>

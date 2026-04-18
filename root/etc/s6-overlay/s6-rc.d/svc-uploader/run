@@ -10,9 +10,6 @@
 # NO REBRANDING IS ALLOWED          #
 # NO CODE MIRRORING IS ALLOWED      #
 #####################################
-# RCLONE CONFIG
-ENDCONFIG=/app/rclone/rclone.conf
-CHECKTYPE=$($(which rclone) config dump --config="${ENDCONFIG}" 2>/dev/null | $(which jq) -r 'to_entries | (.[] | select(.value.type!="crypt")) | .value.type')
 
 function log() {
    GRAY="\033[0;37m"
@@ -22,13 +19,7 @@ function log() {
 }
 umask 022
 
-if [[ "${CHECKTYPE}" == "dropbox" ]]; then
-   source /app/uploader/function-db.sh && lang
-elif [[ "${CHECKTYPE}" == "drive" ]]; then
-   source /app/uploader/function-gdsa.sh && lang
-else
-   source /app/uploader/function.sh && lang
-fi
+source /app/uploader/function.sh && lang
 
 log "${startupuploader}"
 

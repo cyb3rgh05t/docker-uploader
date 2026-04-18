@@ -291,8 +291,8 @@ function getUserSetting(key, defaultValue) {
 }
 
 /**
- * Creates a mock Chart.js chart for the upload history if Chart.js is loaded
- * @param {string} chartId - ID of the canvas element
+ * Create a mock upload chart with Chart.js
+ * @param {string} chartId - Canvas element ID for the chart
  * @param {string} timeRange - Time range to display (day, week, month)
  */
 function createMockUploadChart(chartId, timeRange = "week") {
@@ -325,7 +325,7 @@ function createMockUploadChart(chartId, timeRange = "week") {
         const hour = new Date(today);
         hour.setHours(today.getHours() - 23 + i);
         labels.push(
-          hour.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+          hour.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         );
         uploadData.push(Math.floor(Math.random() * 5) + 1); // 1-5 GB/hour
         completedData.push(Math.floor(Math.random() * 4) + 1); // 1-4 files/hour
@@ -339,7 +339,7 @@ function createMockUploadChart(chartId, timeRange = "week") {
         const day = new Date(today);
         day.setDate(today.getDate() - (days - 1) + i);
         labels.push(
-          day.toLocaleDateString([], { month: "short", day: "numeric" })
+          day.toLocaleDateString([], { month: "short", day: "numeric" }),
         );
         uploadData.push(Math.floor(Math.random() * 20) + 5); // 5-25 GB/day
         completedData.push(Math.floor(Math.random() * 15) + 5); // 5-20 files/day
@@ -369,10 +369,10 @@ function createMockUploadChart(chartId, timeRange = "week") {
           label: "Upload Volume (GB)",
           data: uploadData,
           backgroundColor: getComputedStyle(
-            document.documentElement
+            document.documentElement,
           ).getPropertyValue("--accent-transparent"),
           borderColor: getComputedStyle(
-            document.documentElement
+            document.documentElement,
           ).getPropertyValue("--accent-color"),
           borderWidth: 1,
           yAxisID: "y",
@@ -443,142 +443,6 @@ function createMockUploadChart(chartId, timeRange = "week") {
       },
     },
   });
-}
-
-/**
- * Update the theme colors for the chart
- */
-function updateChartThemeColors() {
-  if (!window.uploadChart) return;
-
-  const accentColor = getComputedStyle(document.documentElement)
-    .getPropertyValue("--accent-color")
-    .trim();
-  const accentTransparent = getComputedStyle(document.documentElement)
-    .getPropertyValue("--accent-transparent")
-    .trim();
-
-  window.uploadChart.data.datasets[0].borderColor = accentColor;
-  window.uploadChart.data.datasets[0].backgroundColor = accentTransparent;
-  window.uploadChart.update();
-}
-
-/**
- * Set the theme for the application
- * @param {string} theme - Theme name
- */
-function setTheme(theme) {
-  console.log("Applying theme:", theme);
-
-  // Apply theme attributes
-  document.documentElement.setAttribute("data-theme", theme);
-  document.body.setAttribute("data-theme", theme);
-
-  updateThemeBackground(theme);
-
-  // Update active visual state
-  const themeOptions = document.querySelectorAll(".theme-option");
-  themeOptions.forEach((option) => {
-    if (option.dataset.theme === theme) {
-      option.classList.add("active");
-    } else {
-      option.classList.remove("active");
-    }
-  });
-
-  updateChartThemeColors();
-
-  // Save theme in a single place
-  saveUserSetting("theme", theme);
-}
-
-// Alternative jQuery implementation
-// $(".theme-option").removeClass("active");
-// $(`.theme-option[data-theme="${theme}"]`).addClass("active");
-
-// Update chart colors when theme changes
-
-/**
- * Ensure theme backgrounds apply correctly
- * @param {string} theme - Theme name
- */
-function updateThemeBackground(theme) {
-  const themesWithBackgrounds = [
-    "overseerr",
-    "hotline",
-    "maroon",
-    "plex",
-    "aquamarine",
-    "dark",
-    "nord",
-    "dracula",
-    "space-gray",
-    "hotpink",
-  ];
-
-  // Clear any existing background properties
-  document.body.style.background = "";
-  document.body.style.backgroundImage = "none";
-  document.body.style.backgroundColor = "";
-
-  // Apply the theme data attribute which will activate the CSS rules
-  document.documentElement.setAttribute("data-theme", theme);
-  document.body.setAttribute("data-theme", theme);
-
-  // For themes with custom backgrounds, we need to ensure they get applied
-  if (themesWithBackgrounds.includes(theme)) {
-    // Force a repaint to ensure background styles apply correctly
-    void document.body.offsetWidth;
-  }
-}
-
-/**
- * Initialize theme on page load
- */
-function initializeTheme() {
-  console.log("Initializing theme...");
-
-  // Try both storage methods for backward compatibility
-  let savedTheme;
-
-  try {
-    // First try direct localStorage (used in index.html)
-    const directTheme = localStorage.getItem("uploader_theme");
-    if (directTheme) {
-      savedTheme = JSON.parse(directTheme);
-    } else {
-      // Fallback to getUserSetting method
-      savedTheme = getUserSetting("theme", "dark");
-    }
-  } catch (error) {
-    console.warn("Error loading theme, using default:", error);
-    savedTheme = "dark";
-  }
-
-  setTheme(savedTheme);
-  saveUserSetting("theme", savedTheme);
-}
-
-/**
- * Setup event listeners for theme switching
- */
-function setupThemeEventListeners() {
-  // Theme selection using event delegation for better performance
-  document.addEventListener("click", function (e) {
-    const themeOption = e.target.closest(".theme-option");
-    if (themeOption) {
-      const theme = themeOption.dataset.theme;
-      setTheme(theme);
-      saveUserSetting("theme", theme);
-    }
-  });
-
-  // Alternative jQuery implementation
-  // $(".theme-option").on("click", function () {
-  //   const theme = $(this).data("theme");
-  //   setTheme(theme);
-  //   saveUserSetting("theme", theme);
-  // });
 }
 
 /**

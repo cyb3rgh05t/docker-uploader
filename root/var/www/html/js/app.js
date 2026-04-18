@@ -33,9 +33,6 @@ $(document).ready(function () {
   // Initialize the app
   initializeApp();
 
-  // Load current theme from localStorage or use default
-  initializeTheme();
-
   // Setup event listeners
   setupEventListeners();
 
@@ -296,9 +293,6 @@ function setupEventListeners() {
   });
 
   setupSettingsModal();
-
-  // Theme selection - uses function from utils.js
-  setupThemeEventListeners();
 
   // Sidebar accordion toggles
   $(".sidebar-section-header").on("click", function () {
