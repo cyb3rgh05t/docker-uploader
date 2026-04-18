@@ -297,6 +297,9 @@ function setupEventListeners() {
   // Settings tab switching
   setupSettingsTabs();
 
+  // Remote config editor
+  setupRemoteConfigEditor();
+
   // Sidebar accordion toggles
   $(".sidebar-section-header").on("click", function () {
     const targetId = $(this).data("target");
@@ -487,6 +490,7 @@ function setupSettingsTabs() {
  */
 function loadRcloneRemoteInfo() {
   const $container = $("#remote-info");
+  const $editor = $("#remote-config-editor");
 
   $container.html(
     '<div class="remote-info-loading"><i class="fas fa-spinner fa-spin"></i> Loading remote configuration...</div>',
@@ -503,9 +507,13 @@ function loadRcloneRemoteInfo() {
             <span class="remote-status-badge not-configured">
               <i class="fas fa-times-circle"></i> Not Configured
             </span>
-            <span style="color: var(--text-tertiary);">No rclone remote found. Place your rclone config at <code>/system/servicekeys/rclonegdsa.conf</code></span>
+            <span style="color: var(--text-tertiary);">No rclone remote found. Click <strong>Edit</strong> to add your rclone config.</span>
           </div>
         `);
+        // Pre-fill editor with template
+        $("#remote-config-textarea").val(
+          "[remotename]\ntype = drive\nscope = drive\nteam_drive = \n",
+        );
         return;
       }
 
@@ -559,6 +567,11 @@ function loadRcloneRemoteInfo() {
       }
 
       $container.html(html);
+
+      // Store editable config for the editor
+      if (data.editable_config) {
+        $("#remote-config-textarea").val(data.editable_config);
+      }
     },
     error: function () {
       $container.html(`
@@ -567,6 +580,95 @@ function loadRcloneRemoteInfo() {
         </div>
       `);
     },
+  });
+}
+
+/**
+ * Setup remote config editor toggle and save
+ */
+function setupRemoteConfigEditor() {
+  const $info = $("#remote-info");
+  const $editor = $("#remote-config-editor");
+  const $toggleBtn = $("#remote-edit-toggle");
+
+  // Toggle between view and edit mode
+  $toggleBtn.on("click", function () {
+    const isEditing = $editor.is(":visible");
+    if (isEditing) {
+      $editor.slideUp(200);
+      $info.slideDown(200);
+      $toggleBtn.html('<i class="fas fa-pen"></i> Edit');
+    } else {
+      $info.slideUp(200);
+      $editor.slideDown(200);
+      $toggleBtn.html('<i class="fas fa-eye"></i> View');
+    }
+  });
+
+  // Cancel editing
+  $("#remote-config-cancel").on("click", function () {
+    $editor.slideUp(200);
+    $info.slideDown(200);
+    $toggleBtn.html('<i class="fas fa-pen"></i> Edit');
+    // Reload to reset textarea content
+    loadRcloneRemoteInfo();
+  });
+
+  // Save config
+  $("#remote-config-save").on("click", function () {
+    const configText = $("#remote-config-textarea").val().trim();
+    if (!configText) {
+      showStatusMessage("Configuration cannot be empty", "error");
+      return;
+    }
+
+    // Basic client-side validation
+    if (!configText.match(/^\[.+\]/m)) {
+      showStatusMessage(
+        "Invalid config format. Must contain at least one [remote] section.",
+        "error",
+      );
+      return;
+    }
+
+    const $saveBtn = $(this);
+    $saveBtn
+      .prop("disabled", true)
+      .html('<i class="fas fa-spinner fa-spin"></i> Saving...');
+
+    $.ajax({
+      url: "srv/api/system/rclone_remote.php",
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({ config: configText }),
+      dataType: "json",
+      success: function (data) {
+        if (data.success) {
+          showStatusMessage(
+            "Remote configuration saved successfully!",
+            "success",
+          );
+          // Switch back to view mode and reload info
+          $editor.slideUp(200);
+          $info.slideDown(200);
+          $toggleBtn.html('<i class="fas fa-pen"></i> Edit');
+          loadRcloneRemoteInfo();
+        } else {
+          showStatusMessage(
+            data.error || "Failed to save configuration",
+            "error",
+          );
+        }
+      },
+      error: function () {
+        showStatusMessage("Failed to save configuration", "error");
+      },
+      complete: function () {
+        $saveBtn
+          .prop("disabled", false)
+          .html('<i class="fas fa-save"></i> Save Configuration');
+      },
+    });
   });
 }
 

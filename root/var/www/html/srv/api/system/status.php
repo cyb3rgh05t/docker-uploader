@@ -48,11 +48,11 @@ function checkStatus()
                 $minutes = floor(($processUptime % 3600) / 60);
 
                 $uptimeParts = [];
-                if ($days > 0) $uptimeParts[] = "$days day" . ($days > 1 ? 's' : '');
-                if ($hours > 0) $uptimeParts[] = "$hours hour" . ($hours > 1 ? 's' : '');
-                if ($minutes > 0) $uptimeParts[] = "$minutes minute" . ($minutes > 1 ? 's' : '');
+                if ($days > 0) $uptimeParts[] = "${days}d";
+                if ($hours > 0) $uptimeParts[] = "${hours}h";
+                if ($minutes > 0) $uptimeParts[] = "${minutes}min";
 
-                $response->uptime = !empty($uptimeParts) ? implode(', ', $uptimeParts) : 'Just started';
+                $response->uptime = !empty($uptimeParts) ? implode(' ', $uptimeParts) : 'Just started';
             } else {
                 $response->uptime = "N/A";
             }

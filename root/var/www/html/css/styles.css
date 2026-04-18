@@ -1645,6 +1645,95 @@ a:hover {
   border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
+/* Remote Config Editor */
+.remote-config-editor {
+  margin-top: var(--space-lg);
+  border-top: 1px solid var(--border-color);
+  padding-top: var(--space-lg);
+}
+
+.remote-config-textarea {
+  font-family: "Courier New", monospace;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  resize: vertical;
+  min-height: 200px;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: var(--space-md);
+  white-space: pre;
+  tab-size: 4;
+}
+
+.remote-config-textarea:focus {
+  border-color: var(--accent-color);
+  outline: none;
+  box-shadow: 0 0 0 2px var(--accent-transparent);
+}
+
+.remote-config-hint {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: var(--text-tertiary);
+  font-size: 0.8rem;
+  margin-top: var(--space-sm);
+}
+
+.remote-config-actions {
+  display: flex;
+  gap: var(--space-md);
+  margin-top: var(--space-lg);
+}
+
+.btn-save-config {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-lg);
+  background: var(--accent-color);
+  color: #000;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.btn-save-config:hover {
+  background: var(--accent-light);
+  transform: translateY(-1px);
+}
+
+.btn-save-config:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-cancel-config {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-lg);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.btn-cancel-config:hover {
+  background: var(--bg-secondary);
+  border-color: var(--text-tertiary);
+}
+
 /* Settings Grid */
 .settings-grid {
   display: grid;
@@ -1671,6 +1760,7 @@ a:hover {
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-color);
   padding: var(--space-lg);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
 .settings-grid .card-title {

@@ -794,12 +794,61 @@
                     <i class="fas fa-server"></i>
                     Active Remote
                   </div>
+                  <div class="card-actions">
+                    <button
+                      type="button"
+                      class="action-button"
+                      id="remote-edit-toggle"
+                    >
+                      <i class="fas fa-pen"></i> Edit
+                    </button>
+                  </div>
                 </div>
                 <div class="card-body">
                   <div class="remote-info" id="remote-info">
                     <div class="remote-info-loading">
                       <i class="fas fa-spinner fa-spin"></i>
                       Loading remote configuration...
+                    </div>
+                  </div>
+                  <!-- Config Editor (hidden by default) -->
+                  <div
+                    class="remote-config-editor"
+                    id="remote-config-editor"
+                    style="display: none"
+                  >
+                    <div class="form-group">
+                      <label for="remote-config-textarea"
+                        >Rclone Configuration</label
+                      >
+                      <textarea
+                        id="remote-config-textarea"
+                        class="form-control remote-config-textarea"
+                        rows="12"
+                        placeholder="[remotename]&#10;type = drive&#10;scope = drive&#10;team_drive = ..."
+                        spellcheck="false"
+                      ></textarea>
+                      <small class="remote-config-hint">
+                        <i class="fas fa-info-circle"></i>
+                        Paste your rclone config here. Changes take effect on
+                        the next upload cycle — no restart needed.
+                      </small>
+                    </div>
+                    <div class="remote-config-actions">
+                      <button
+                        type="button"
+                        class="btn btn-save-config"
+                        id="remote-config-save"
+                      >
+                        <i class="fas fa-save"></i> Save Configuration
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-cancel-config"
+                        id="remote-config-cancel"
+                      >
+                        <i class="fas fa-times"></i> Cancel
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -899,7 +948,7 @@
           <div class="settings-tab-content" id="settings-tab-logs">
             <div class="settings-grid">
               <!-- Log Settings -->
-              <div class="card">
+              <div class="card" style="grid-column: 1 / -1">
                 <div class="card-header">
                   <div class="card-title">
                     <i class="fas fa-clipboard-list"></i>
