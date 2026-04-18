@@ -135,7 +135,7 @@ async function fetchWithErrorHandling(url, options = {}) {
  * @param {string} message - Message to display
  * @param {boolean} isError - Whether this is an error message
  */
-function showStatusMessage(message, isError = false) {
+function showStatusMessage(message, type = "success") {
   const statusMessage = document.getElementById("status-message");
   if (!statusMessage) {
     console.error("Status message element not found");
@@ -143,15 +143,22 @@ function showStatusMessage(message, isError = false) {
     return;
   }
 
-  statusMessage.textContent = message;
+  // Set icon based on type
+  const icon =
+    type === "error"
+      ? '<i class="fas fa-exclamation-circle"></i> '
+      : '<i class="fas fa-check-circle"></i> ';
 
-  if (isError) {
+  statusMessage.innerHTML = icon + message;
+
+  statusMessage.classList.remove("error", "success");
+  if (type === "error") {
     statusMessage.classList.add("error");
   } else {
-    statusMessage.classList.remove("error");
+    statusMessage.classList.add("success");
   }
 
-  statusMessage.style.display = "block";
+  statusMessage.style.display = "flex";
 
   // Hide after 3 seconds
   setTimeout(() => {
