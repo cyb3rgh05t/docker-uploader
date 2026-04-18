@@ -1378,8 +1378,6 @@ a:hover {
 
 .action-button:hover {
   border-color: var(--accent-color);
-  color: var(--accent-color);
-  background: var(--accent-transparent);
 }
 
 .action-button .dropdown-arrow {
@@ -1698,8 +1696,6 @@ a:hover {
 
 .btn-save-config:hover {
   border-color: var(--success);
-  color: var(--success);
-  background: rgba(16, 185, 129, 0.1);
 }
 
 .btn-save-config:disabled {
@@ -1714,8 +1710,6 @@ a:hover {
 
 .btn-cancel-config:hover {
   border-color: var(--danger);
-  color: var(--danger);
-  background: rgba(239, 68, 68, 0.1);
 }
 
 /* Settings Grid */
@@ -2064,8 +2058,6 @@ a:hover {
 
 .btn:hover {
   border-color: var(--accent-color);
-  color: var(--accent-color);
-  background: var(--accent-transparent);
 }
 
 .btn:active {
