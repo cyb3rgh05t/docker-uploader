@@ -1747,7 +1747,7 @@ a:hover {
   border: 1px solid var(--border-color);
   background: var(--bg-card);
   box-shadow: var(--shadow-sm);
-  overflow: visible; /* allow custom dropdown menus to extend outside the card */
+  overflow: hidden;
 }
 
 .settings-grid .card:hover {
@@ -1760,7 +1760,6 @@ a:hover {
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-color);
   padding: var(--space-lg);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
 .settings-grid .card-title {
@@ -1779,6 +1778,7 @@ a:hover {
 
 .settings-grid .card-body {
   padding: var(--space-lg);
+  overflow: visible;
 }
 
 .theme-card {
