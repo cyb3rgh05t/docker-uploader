@@ -1488,6 +1488,163 @@ a:hover {
   background: var(--success);
 }
 
+/* Settings Tabs */
+.settings-tabs {
+  display: flex;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-xl);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: var(--space-xs);
+  overflow-x: auto;
+}
+
+.settings-tab {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-lg);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all var(--transition);
+  font-size: 0.9rem;
+  font-weight: 500;
+  white-space: nowrap;
+  flex: 1;
+  justify-content: center;
+}
+
+.settings-tab:hover {
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+}
+
+.settings-tab.active {
+  background: var(--accent-transparent);
+  color: var(--accent-color);
+  border-color: var(--accent-color);
+  font-weight: 600;
+}
+
+.settings-tab i {
+  font-size: 0.85rem;
+}
+
+.settings-tab-content {
+  display: none;
+}
+
+.settings-tab-content.active {
+  display: block;
+}
+
+/* Remote Info Card */
+.remote-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.remote-info-loading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  color: var(--text-tertiary);
+  padding: var(--space-md);
+}
+
+.remote-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-md);
+}
+
+.remote-detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding: var(--space-md);
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+}
+
+.remote-detail-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-tertiary);
+}
+
+.remote-detail-value {
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  font-weight: 500;
+  word-break: break-all;
+}
+
+.remote-detail-value.accent {
+  color: var(--accent-color);
+}
+
+.remote-config-raw {
+  margin-top: var(--space-md);
+}
+
+.remote-config-raw summary {
+  cursor: pointer;
+  color: var(--text-tertiary);
+  font-size: 0.85rem;
+  padding: var(--space-sm) 0;
+  user-select: none;
+}
+
+.remote-config-raw summary:hover {
+  color: var(--accent-color);
+}
+
+.remote-config-raw pre {
+  margin-top: var(--space-sm);
+  padding: var(--space-md);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: "Courier New", monospace;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.remote-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.remote-status-badge.configured {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--success);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.remote-status-badge.not-configured {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--danger);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
 /* Settings Grid */
 .settings-grid {
   display: grid;
@@ -1952,7 +2109,7 @@ a:hover {
 
 .page-item.active .page-link {
   background: var(--accent-color);
-  color: white;
+  color: #000000;
   border-color: var(--accent-color);
 }
 
@@ -2053,6 +2210,28 @@ a:hover {
 
   .overview-mini-icon i {
     font-size: 1.25rem;
+  }
+
+  .settings-tabs {
+    flex-wrap: wrap;
+  }
+
+  .settings-tab {
+    flex: 1 1 calc(50% - var(--space-xs));
+    font-size: 0.8rem;
+    padding: var(--space-sm) var(--space-md);
+  }
+
+  .settings-tab span {
+    display: none;
+  }
+
+  .settings-tab i {
+    font-size: 1rem;
+  }
+
+  .remote-detail-grid {
+    grid-template-columns: 1fr;
   }
 }
 

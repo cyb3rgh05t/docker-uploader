@@ -630,7 +630,31 @@
       <!-- Settings Section -->
       <section class="content-section" id="settings-section">
         <form class="unified-settings-form" id="unified-settings-form">
-          <!-- Save Button at Top -->
+          <!-- Settings Tabs -->
+          <div class="settings-tabs">
+            <button
+              type="button"
+              class="settings-tab active"
+              data-tab="general"
+            >
+              <i class="fas fa-cogs"></i>
+              <span>General</span>
+            </button>
+            <button type="button" class="settings-tab" data-tab="rclone">
+              <i class="fas fa-cloud-upload-alt"></i>
+              <span>Rclone</span>
+            </button>
+            <button type="button" class="settings-tab" data-tab="logs">
+              <i class="fas fa-clipboard-list"></i>
+              <span>Logs</span>
+            </button>
+            <button type="button" class="settings-tab" data-tab="integrations">
+              <i class="fas fa-plug"></i>
+              <span>Integrations</span>
+            </button>
+          </div>
+
+          <!-- Save Button -->
           <div class="settings-save-container settings-save-top">
             <button type="submit" class="btn btn-save-all">
               <i class="fas fa-save"></i>
@@ -647,317 +671,368 @@
               <i class="fas fa-check-circle"></i> Auto-saved
             </span>
           </div>
-          <div class="settings-grid">
-            <!-- System Settings -->
-            <div class="card">
-              <div class="card-header">
-                <div class="card-title">
-                  <i class="fas fa-cogs"></i>
-                  System Settings
-                </div>
-              </div>
-              <div class="card-body">
-                <div class="form-group">
-                  <label for="puid">PUID</label>
-                  <input
-                    type="number"
-                    id="puid"
-                    name="puid"
-                    class="form-control"
-                    placeholder="1000"
-                    min="0"
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="pgid">PGID</label>
-                  <input
-                    type="number"
-                    id="pgid"
-                    name="pgid"
-                    class="form-control"
-                    placeholder="1000"
-                    min="0"
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="timezone">Timezone</label>
-                  <input
-                    type="text"
-                    id="timezone"
-                    name="timezone"
-                    class="form-control"
-                    placeholder="UTC or Region/City"
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="language">Language</label>
-                  <select id="language" name="language" class="form-control">
-                    <option value="en" selected>English</option>
-                    <option value="de">German</option>
-                  </select>
-                </div>
-              </div>
-            </div>
 
-            <!-- User Settings -->
-            <div class="card">
-              <div class="card-header">
-                <div class="card-title">
-                  <i class="fas fa-user-cog"></i>
-                  User Settings
+          <!-- Tab: General -->
+          <div class="settings-tab-content active" id="settings-tab-general">
+            <div class="settings-grid">
+              <!-- System Settings -->
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">
+                    <i class="fas fa-cogs"></i>
+                    System Settings
+                  </div>
                 </div>
-              </div>
-              <div class="card-body">
-                <div class="form-group">
-                  <label for="driveusedspace">Drive Used Space</label>
-                  <input
-                    type="text"
-                    id="driveusedspace"
-                    name="driveusedspace"
-                    class="form-control"
-                    placeholder="null or e.g. 500GB"
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="folder_depth">Folder Depth</label>
-                  <input
-                    type="number"
-                    id="folder_depth"
-                    name="folder_depth"
-                    class="form-control"
-                    value="1"
-                    min="1"
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="folder_priority"
-                    >Folder Priority (comma-separated drives)</label
-                  >
-                  <input
-                    type="text"
-                    id="folder_priority"
-                    name="folder_priority"
-                    class="form-control"
-                    placeholder="driveA,driveB,driveC or null"
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="min_age_upload">Min Age Upload (minutes)</label>
-                  <input
-                    type="number"
-                    id="min_age_upload"
-                    name="min_age_upload"
-                    class="form-control"
-                    value="0"
-                    min="0"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <!-- Rclone Settings -->
-            <div class="card">
-              <div class="card-header">
-                <div class="card-title">
-                  <i class="fas fa-hdd"></i>
-                  Rclone Settings
-                </div>
-              </div>
-              <div class="card-body">
-                <div class="form-group">
-                  <label for="bandwidth_limit">Bandwidth Limit (MB/s)</label>
-                  <input
-                    type="text"
-                    id="bandwidth_limit"
-                    name="bandwidth_limit"
-                    class="form-control"
-                    value="30"
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="transfers">Transfers</label>
-                  <input
-                    type="number"
-                    id="transfers"
-                    name="transfers"
-                    class="form-control"
-                    value="2"
-                    min="1"
-                    max="10"
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="proxy">Proxy</label>
-                  <input
-                    type="text"
-                    id="proxy"
-                    name="proxy"
-                    class="form-control"
-                    placeholder="http://user:pass@host:port or null"
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="dlfolder">Download Folder</label>
-                  <input
-                    type="text"
-                    id="dlfolder"
-                    name="dlfolder"
-                    class="form-control"
-                    placeholder="/mnt/downloads"
-                  />
-                </div>
-                <div class="form-group toggle-group">
-                  <label for="vfs_refresh_enable">VFS Refresh</label>
-                  <label class="toggle-switch">
+                <div class="card-body">
+                  <div class="form-group">
+                    <label for="puid">PUID</label>
                     <input
-                      type="checkbox"
-                      id="vfs_refresh_enable"
-                      name="vfs_refresh_enable"
-                      checked
+                      type="number"
+                      id="puid"
+                      name="puid"
+                      class="form-control"
+                      placeholder="1000"
+                      min="0"
                     />
-                    <span class="toggle-slider"></span>
-                  </label>
+                  </div>
+                  <div class="form-group">
+                    <label for="pgid">PGID</label>
+                    <input
+                      type="number"
+                      id="pgid"
+                      name="pgid"
+                      class="form-control"
+                      placeholder="1000"
+                      min="0"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="timezone">Timezone</label>
+                    <input
+                      type="text"
+                      id="timezone"
+                      name="timezone"
+                      class="form-control"
+                      placeholder="UTC or Region/City"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="language">Language</label>
+                    <select id="language" name="language" class="form-control">
+                      <option value="en" selected>English</option>
+                      <option value="de">German</option>
+                    </select>
+                  </div>
                 </div>
-                <div class="form-group">
-                  <label for="mount">Mount Target</label>
-                  <input
-                    type="text"
-                    id="mount"
-                    name="mount"
-                    class="form-control"
-                    placeholder="mount:8554"
-                  />
+              </div>
+
+              <!-- User Settings -->
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">
+                    <i class="fas fa-user-cog"></i>
+                    User Settings
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="form-group">
+                    <label for="driveusedspace">Drive Used Space</label>
+                    <input
+                      type="text"
+                      id="driveusedspace"
+                      name="driveusedspace"
+                      class="form-control"
+                      placeholder="null or e.g. 500GB"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="folder_depth">Folder Depth</label>
+                    <input
+                      type="number"
+                      id="folder_depth"
+                      name="folder_depth"
+                      class="form-control"
+                      value="1"
+                      min="1"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="folder_priority"
+                      >Folder Priority (comma-separated drives)</label
+                    >
+                    <input
+                      type="text"
+                      id="folder_priority"
+                      name="folder_priority"
+                      class="form-control"
+                      placeholder="driveA,driveB,driveC or null"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="min_age_upload">Min Age Upload (minutes)</label>
+                    <input
+                      type="number"
+                      id="min_age_upload"
+                      name="min_age_upload"
+                      class="form-control"
+                      value="0"
+                      min="0"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
+          </div>
 
-            <!-- Encryption Settings removed - not needed for generic uploader -->
-
-            <!-- Log Settings -->
-            <div class="card">
-              <div class="card-header">
-                <div class="card-title">
-                  <i class="fas fa-clipboard-list"></i>
-                  Log Settings
+          <!-- Tab: Rclone -->
+          <div class="settings-tab-content" id="settings-tab-rclone">
+            <div class="settings-grid">
+              <!-- Rclone Remote Info -->
+              <div class="card" style="grid-column: 1 / -1">
+                <div class="card-header">
+                  <div class="card-title">
+                    <i class="fas fa-server"></i>
+                    Active Remote
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="remote-info" id="remote-info">
+                    <div class="remote-info-loading">
+                      <i class="fas fa-spinner fa-spin"></i>
+                      Loading remote configuration...
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div class="card-body">
-                <div class="form-group">
-                  <label for="log_level">Log Level</label>
-                  <select id="log_level" name="log_level" class="form-control">
-                    <option value="INFO" selected>INFO</option>
-                    <option value="DEBUG">DEBUG</option>
-                    <option value="WARNING">WARNING</option>
-                    <option value="ERROR">ERROR</option>
-                  </select>
+
+              <!-- Rclone Settings -->
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">
+                    <i class="fas fa-hdd"></i>
+                    Rclone Settings
+                  </div>
                 </div>
-                <div class="form-group">
-                  <label for="log_entry">Log Entry Count</label>
-                  <input
-                    type="number"
-                    id="log_entry"
-                    name="log_entry"
-                    class="form-control"
-                    value="1000"
-                    min="100"
-                  />
+                <div class="card-body">
+                  <div class="form-group">
+                    <label for="bandwidth_limit">Bandwidth Limit (MB/s)</label>
+                    <input
+                      type="text"
+                      id="bandwidth_limit"
+                      name="bandwidth_limit"
+                      class="form-control"
+                      value="30"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="transfers">Transfers</label>
+                    <input
+                      type="number"
+                      id="transfers"
+                      name="transfers"
+                      class="form-control"
+                      value="2"
+                      min="1"
+                      max="10"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="proxy">Proxy</label>
+                    <input
+                      type="text"
+                      id="proxy"
+                      name="proxy"
+                      class="form-control"
+                      placeholder="http://user:pass@host:port or null"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="dlfolder">Download Folder</label>
+                    <input
+                      type="text"
+                      id="dlfolder"
+                      name="dlfolder"
+                      class="form-control"
+                      placeholder="/mnt/downloads"
+                    />
+                  </div>
                 </div>
-                <div class="form-group">
-                  <label for="log_retention_days">Log Retention (days)</label>
-                  <input
-                    type="number"
-                    id="log_retention_days"
-                    name="log_retention_days"
-                    class="form-control"
-                    placeholder="null or number"
-                    min="0"
-                  />
+              </div>
+
+              <!-- VFS Settings -->
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">
+                    <i class="fas fa-sync-alt"></i>
+                    VFS Settings
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="form-group toggle-group">
+                    <label for="vfs_refresh_enable">VFS Refresh</label>
+                    <label class="toggle-switch">
+                      <input
+                        type="checkbox"
+                        id="vfs_refresh_enable"
+                        name="vfs_refresh_enable"
+                        checked
+                      />
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </div>
+                  <div class="form-group">
+                    <label for="mount">Mount Target</label>
+                    <input
+                      type="text"
+                      id="mount"
+                      name="mount"
+                      class="form-control"
+                      placeholder="mount:8554"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
+          </div>
 
-            <!-- AutoScan Settings -->
-            <div class="card">
-              <div class="card-header">
-                <div class="card-title">
-                  <i class="fas fa-search"></i>
-                  AutoScan Settings
+          <!-- Tab: Logs -->
+          <div class="settings-tab-content" id="settings-tab-logs">
+            <div class="settings-grid">
+              <!-- Log Settings -->
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">
+                    <i class="fas fa-clipboard-list"></i>
+                    Log Settings
+                  </div>
                 </div>
-              </div>
-              <div class="card-body">
-                <div class="form-group">
-                  <label for="autoscan_url">AutoScan URL</label>
-                  <input
-                    type="text"
-                    id="autoscan_url"
-                    name="autoscan_url"
-                    class="form-control"
-                    placeholder="http://autoscan:3030"
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="autoscan_user">AutoScan Username</label>
-                  <input
-                    type="text"
-                    id="autoscan_user"
-                    name="autoscan_user"
-                    class="form-control"
-                    placeholder="username (leave empty for none)"
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="autoscan_pass">AutoScan Password</label>
-                  <input
-                    type="password"
-                    id="autoscan_pass"
-                    name="autoscan_pass"
-                    class="form-control"
-                    placeholder="password (leave empty for none)"
-                  />
+                <div class="card-body">
+                  <div class="form-group">
+                    <label for="log_level">Log Level</label>
+                    <select
+                      id="log_level"
+                      name="log_level"
+                      class="form-control"
+                    >
+                      <option value="INFO" selected>INFO</option>
+                      <option value="DEBUG">DEBUG</option>
+                      <option value="WARNING">WARNING</option>
+                      <option value="ERROR">ERROR</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="log_entry">Log Entry Count</label>
+                    <input
+                      type="number"
+                      id="log_entry"
+                      name="log_entry"
+                      class="form-control"
+                      value="1000"
+                      min="100"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="log_retention_days">Log Retention (days)</label>
+                    <input
+                      type="number"
+                      id="log_retention_days"
+                      name="log_retention_days"
+                      class="form-control"
+                      placeholder="null or number"
+                      min="0"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
+          </div>
 
-            <!-- Notification Settings -->
-            <div class="card">
-              <div class="card-header">
-                <div class="card-title">
-                  <i class="fas fa-bell"></i>
-                  Notification Settings
+          <!-- Tab: Integrations -->
+          <div class="settings-tab-content" id="settings-tab-integrations">
+            <div class="settings-grid">
+              <!-- AutoScan Settings -->
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">
+                    <i class="fas fa-search"></i>
+                    AutoScan Settings
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="form-group">
+                    <label for="autoscan_url">AutoScan URL</label>
+                    <input
+                      type="text"
+                      id="autoscan_url"
+                      name="autoscan_url"
+                      class="form-control"
+                      placeholder="http://autoscan:3030"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="autoscan_user">AutoScan Username</label>
+                    <input
+                      type="text"
+                      id="autoscan_user"
+                      name="autoscan_user"
+                      class="form-control"
+                      placeholder="username (leave empty for none)"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="autoscan_pass">AutoScan Password</label>
+                    <input
+                      type="password"
+                      id="autoscan_pass"
+                      name="autoscan_pass"
+                      class="form-control"
+                      placeholder="password (leave empty for none)"
+                    />
+                  </div>
                 </div>
               </div>
-              <div class="card-body">
-                <div class="form-group">
-                  <label for="notification_url">Notification URL</label>
-                  <input
-                    type="text"
-                    id="notification_url"
-                    name="notification_url"
-                    class="form-control"
-                    placeholder="discord://webhook-url"
-                  />
+
+              <!-- Notification Settings -->
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">
+                    <i class="fas fa-bell"></i>
+                    Notification Settings
+                  </div>
                 </div>
-                <div class="form-group">
-                  <label for="notification_level">Notification Level</label>
-                  <select
-                    id="notification_level"
-                    name="notification_level"
-                    class="form-control"
-                  >
-                    <option value="ALL" selected>ALL</option>
-                    <option value="ERROR">ERROR</option>
-                    <option value="NONE">NONE</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label for="notification_servername">Server Name</label>
-                  <input
-                    type="text"
-                    id="notification_servername"
-                    name="notification_servername"
-                    class="form-control"
-                    value="Drive-Upload"
-                  />
+                <div class="card-body">
+                  <div class="form-group">
+                    <label for="notification_url">Notification URL</label>
+                    <input
+                      type="text"
+                      id="notification_url"
+                      name="notification_url"
+                      class="form-control"
+                      placeholder="discord://webhook-url"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="notification_level">Notification Level</label>
+                    <select
+                      id="notification_level"
+                      name="notification_level"
+                      class="form-control"
+                    >
+                      <option value="ALL" selected>ALL</option>
+                      <option value="ERROR">ERROR</option>
+                      <option value="NONE">NONE</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="notification_servername">Server Name</label>
+                    <input
+                      type="text"
+                      id="notification_servername"
+                      name="notification_servername"
+                      class="form-control"
+                      value="Drive-Upload"
+                    />
+                  </div>
                 </div>
               </div>
             </div>

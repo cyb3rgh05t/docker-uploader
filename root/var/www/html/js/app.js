@@ -294,6 +294,9 @@ function setupEventListeners() {
 
   setupSettingsModal();
 
+  // Settings tab switching
+  setupSettingsTabs();
+
   // Sidebar accordion toggles
   $(".sidebar-section-header").on("click", function () {
     const targetId = $(this).data("target");
@@ -454,6 +457,116 @@ function setupSettingsModal() {
 
     // Update environment file with new settings
     updateEnvSettings(formId, formData);
+  });
+}
+
+/**
+ * Setup settings tab switching
+ */
+function setupSettingsTabs() {
+  $(".settings-tab").on("click", function () {
+    const tabId = $(this).data("tab");
+
+    // Update tab buttons
+    $(".settings-tab").removeClass("active");
+    $(this).addClass("active");
+
+    // Update tab content
+    $(".settings-tab-content").removeClass("active");
+    $("#settings-tab-" + tabId).addClass("active");
+
+    // Load remote info when rclone tab is activated
+    if (tabId === "rclone") {
+      loadRcloneRemoteInfo();
+    }
+  });
+}
+
+/**
+ * Load rclone remote configuration info
+ */
+function loadRcloneRemoteInfo() {
+  const $container = $("#remote-info");
+
+  $container.html(
+    '<div class="remote-info-loading"><i class="fas fa-spinner fa-spin"></i> Loading remote configuration...</div>',
+  );
+
+  $.ajax({
+    url: "srv/api/system/rclone_remote.php",
+    method: "GET",
+    dataType: "json",
+    success: function (data) {
+      if (!data.success || !data.configured) {
+        $container.html(`
+          <div style="display: flex; align-items: center; gap: var(--space-md); padding: var(--space-md);">
+            <span class="remote-status-badge not-configured">
+              <i class="fas fa-times-circle"></i> Not Configured
+            </span>
+            <span style="color: var(--text-tertiary);">No rclone remote found. Place your rclone config at <code>/system/servicekeys/rclonegdsa.conf</code></span>
+          </div>
+        `);
+        return;
+      }
+
+      let html = '<div class="remote-detail-grid">';
+
+      data.remotes.forEach(function (remote) {
+        const isPrimary = remote.is_primary;
+        const badgeClass = isPrimary ? "configured" : "configured";
+        const badgeText = isPrimary ? "Primary" : "Secondary";
+        const badgeIcon = isPrimary ? "fa-check-circle" : "fa-circle";
+
+        html += `
+          <div class="remote-detail-item">
+            <span class="remote-detail-label">Remote Name</span>
+            <span class="remote-detail-value accent">${escapeHtml(remote.name)}</span>
+          </div>
+          <div class="remote-detail-item">
+            <span class="remote-detail-label">Type</span>
+            <span class="remote-detail-value">${escapeHtml(remote.type)}</span>
+          </div>
+          <div class="remote-detail-item">
+            <span class="remote-detail-label">Status</span>
+            <span class="remote-status-badge ${badgeClass}">
+              <i class="fas ${badgeIcon}"></i> ${badgeText}
+            </span>
+          </div>
+        `;
+
+        // Add extra config details
+        Object.entries(remote.config).forEach(function ([key, value]) {
+          if (key === "type") return;
+          html += `
+            <div class="remote-detail-item">
+              <span class="remote-detail-label">${escapeHtml(key)}</span>
+              <span class="remote-detail-value">${escapeHtml(String(value))}</span>
+            </div>
+          `;
+        });
+      });
+
+      html += "</div>";
+
+      // Add raw config view
+      if (data.raw_config) {
+        html += `
+          <details class="remote-config-raw">
+            <summary><i class="fas fa-code"></i> Show Raw Configuration</summary>
+            <pre>${escapeHtml(data.raw_config)}</pre>
+          </details>
+        `;
+      }
+
+      $container.html(html);
+    },
+    error: function () {
+      $container.html(`
+        <div style="display: flex; align-items: center; gap: var(--space-md); padding: var(--space-md); color: var(--danger);">
+          <i class="fas fa-exclamation-triangle"></i> Failed to load remote configuration
+        </div>
+      `);
+    },
   });
 }
 
