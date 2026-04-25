@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="logoTitle logoDesc">
+  <title id="logoTitle">Docker Uploader Logo</title>
+  <desc id="logoDesc">Dark square logo with lime upload arrow and stacked panels.</desc>
+  <defs>
+    <linearGradient id="accentGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e4f162" />
+      <stop offset="100%" stop-color="#d8ed18" />
+    </linearGradient>
+    <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.35 0" />
+      <feBlend in="SourceGraphic" mode="screen" />
+    </filter>
+  </defs>
+  <rect x="8" y="8" width="112" height="112" rx="28" fill="#030303" />
+  <rect x="8.5" y="8.5" width="111" height="111" rx="27.5" fill="none" stroke="#373737" />
+  <rect x="26" y="30" width="76" height="52" rx="14" fill="#0a0a0a" stroke="#373737" />
+  <rect x="34" y="38" width="60" height="10" rx="5" fill="#1f1f1f" />
+  <rect x="34" y="54" width="43" height="8" rx="4" fill="#1f1f1f" />
+  <rect x="34" y="68" width="52" height="8" rx="4" fill="#1f1f1f" />
+  <g filter="url(#softGlow)">
+    <path d="M64 28 86 50H73v22H55V50H42z" fill="url(#accentGlow)" />
+  </g>
+  <rect x="36" y="86" width="56" height="10" rx="5" fill="#1f1f1f" />
+  <rect x="44" y="102" width="40" height="6" rx="3" fill="#d8ed18" opacity="0.7" />
+</svg>
