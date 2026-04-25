@@ -104,27 +104,29 @@ a:hover {
 /* Mobile Menu Toggle */
 .mobile-menu-toggle {
   position: fixed;
-  top: var(--space-md);
-  left: var(--space-md);
+  top: 1rem;
+  left: 1rem;
   z-index: 1002;
-  background: var(--bg-card);
+  background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
   color: var(--text-primary);
   width: 44px;
   height: 44px;
-  border-radius: var(--radius-md);
+  border-radius: 0.5rem;
   display: none;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all var(--transition);
-  box-shadow: var(--shadow-md);
+  transition:
+    background var(--transition),
+    color var(--transition),
+    border-color var(--transition);
 }
 
 .mobile-menu-toggle:hover {
-  background: var(--accent-color);
+  background: var(--bg-tertiary);
   border-color: var(--accent-color);
-  transform: scale(1.05);
+  color: var(--accent-color);
 }
 
 .mobile-menu-toggle i {
@@ -138,7 +140,7 @@ a:hover {
   top: 0;
   width: var(--sidebar-width);
   height: 100vh;
-  background: var(--bg-secondary);
+  background: var(--bg-primary);
   border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
@@ -148,8 +150,9 @@ a:hover {
 }
 
 .sidebar-header {
-  padding: var(--space-xl) var(--space-lg);
-  background: var(--bg-secondary);
+  padding: 1.5rem 1rem;
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .logo {
@@ -165,9 +168,10 @@ a:hover {
 }
 
 .logo-text {
-  font-size: 1.5rem;
+  font-size: 1.1rem;
   font-weight: 700;
-  letter-spacing: -0.5px;
+  letter-spacing: 0;
+  color: #fff;
 }
 
 .version-badge {
@@ -184,7 +188,7 @@ a:hover {
 
 .sidebar-nav {
   flex: 1;
-  padding: var(--space-lg) 0;
+  padding: 1rem 0.75rem;
   overflow-y: auto;
 }
 
@@ -192,12 +196,15 @@ a:hover {
   display: flex;
   align-items: center;
   gap: var(--space-md);
-  padding: var(--space-md) var(--space-lg);
-  color: var(--text-secondary);
-  transition: all var(--transition);
+  padding: 0.75rem 1rem;
+  color: var(--text-tertiary);
+  transition:
+    color var(--transition),
+    background var(--transition);
   position: relative;
-  margin: 0 var(--space-sm);
-  border-radius: var(--radius-md);
+  margin: 0;
+  border-radius: 0.5rem;
+  font-weight: 500;
 }
 
 .nav-badge {
@@ -223,41 +230,37 @@ a:hover {
 }
 
 .nav-item::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 4px;
-  height: 0;
-  background: var(--accent-color);
-  border-radius: 0 4px 4px 0;
-  transition: height var(--transition);
+  content: none;
 }
 
 .nav-item:hover {
-  color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.05);
+  color: var(--accent-color);
+  background: transparent;
 }
 
 .nav-item.active {
-  color: var(--accent-color);
-  background: var(--accent-transparent);
-  font-weight: 600;
+  color: var(--bg-primary);
+  background: var(--accent-color);
+  font-weight: 700;
 }
 
 .nav-item.active::before {
-  height: 60%;
+  height: 0;
 }
 
 .nav-item i {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   width: 24px;
   text-align: center;
 }
 
+.nav-item.active .nav-badge {
+  border-color: rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.15);
+}
+
 .sidebar-footer {
-  padding: var(--space-lg);
+  padding: 0.75rem;
 }
 
 .version-check {
@@ -265,7 +268,7 @@ a:hover {
   flex-direction: column;
   gap: var(--space-sm);
   padding: var(--space-md);
-  background: var(--bg-tertiary);
+  background: rgba(31, 31, 31, 0.5);
   border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
 }
