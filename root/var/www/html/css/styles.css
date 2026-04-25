@@ -141,6 +141,7 @@ a:hover {
   width: var(--sidebar-width);
   height: 100vh;
   background: var(--bg-primary);
+  border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   z-index: 1000;
@@ -388,7 +389,6 @@ a:hover {
 .top-bar {
   height: var(--topbar-height);
   background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-color);
   padding: 0 var(--space-xl);
   display: flex;
   align-items: center;
