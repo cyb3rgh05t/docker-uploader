@@ -49,7 +49,11 @@ function processJsonFiles()
 function mapLogFileInformation($logfile, UploadJobStatus $jobStatus): UploadJobStatus
 {
     $logBlock = readLastLines($logfile, 6, true);
-    preg_match('/([0-9\%]+)\s\/\d+\.\d+\w{1,2}\,\s(\d+.\d+\w+\/s)\,\s([0-9dhms]+)/', $logBlock, $matches);
+    preg_match(
+        '/([0-9]{1,3}%)\s*\/\s*[0-9.]+\s*[KMGTPE]?i?B,\s*([0-9.]+\s*[KMGTPE]?i?B\/s),\s*([0-9dhms]+)/',
+        $logBlock,
+        $matches
+    );
     if ($matches) {
         $jobStatus->upload_percentage = $matches[1];
         $jobStatus->upload_speed = $matches[2];
