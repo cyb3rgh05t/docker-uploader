@@ -66,3 +66,4 @@ build/
 /.dev
 
 root/var/www/html/release.json
+AGENTS.md
