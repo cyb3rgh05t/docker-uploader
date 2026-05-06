@@ -1,14 +1,20 @@
 name: Release VOD Uploader
 
 on:
+  push:
+    branches:
+      - main
+      - dev
+      - develop
+      - nightly
   release:
     types: [published]
   workflow_dispatch:
     inputs:
       version:
-        description: "Version to use for testing (e.g., test-1.0.0)"
+        description: "Version to use for testing"
         required: true
-        default: "test-1.0.0"
+        default: "nightly"
       force_rebuild:
         description: "Force rebuild without cache"
         required: false
@@ -42,14 +48,19 @@ jobs:
 
       - name: Lowercase repository name
         id: repo_name_lowercase
-        run: echo "REPO_NAME_LOWERCASE=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+        run: |
+          REPO_NAME_LOWERCASE=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          echo "REPO_NAME_LOWERCASE=${REPO_NAME_LOWERCASE}" >> "$GITHUB_ENV"
+          echo "value=${REPO_NAME_LOWERCASE}" >> "$GITHUB_OUTPUT"
 
       - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@v6
         with:
-          images: ghcr.io/${{ env.REPO_NAME_LOWERCASE }}
+          images: ghcr.io/${{ steps.repo_name_lowercase.outputs.value }}
           tags: |
+            type=ref,event=branch
+            type=sha
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
