@@ -1355,9 +1355,9 @@
 
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="js/ui/pagination.js?v=6.1.2"></script>
-    <script src="js/utils.js?v=6.1.2"></script>
-    <script src="js/app.js?v=6.1.2"></script>
+    <script src="js/ui/pagination.js?v=6.1.3"></script>
+    <script src="js/utils.js?v=6.1.3"></script>
+    <script src="js/app.js?v=6.1.3"></script>
 
     <script>
       $(document).ready(function () {
@@ -1387,6 +1387,11 @@
           // Close mobile menu
           $("#sidebar").removeClass("active");
           $("body").removeClass("sidebar-open");
+
+          // Fallback: ensure logs load even if delegated handlers were cached/stale
+          if (section === "logs" && typeof window.loadLogs === "function") {
+            window.loadLogs();
+          }
         });
 
         // Dashboard "View All" links
