@@ -2043,6 +2043,8 @@ const logViewer = {
 };
 
 function setupLogViewer() {
+  const isLogsSectionActive = $("#logs-section").hasClass("active");
+
   // Load logs when the logs nav item is clicked
   $('[data-section="logs"]').on("click", function () {
     loadLogs();
@@ -2080,11 +2082,17 @@ function setupLogViewer() {
     clearTimeout(logViewer.filterDebounce);
     logViewer.filterDebounce = setTimeout(loadLogs, 300);
   });
+
+  // Ensure initial content is loaded even if click handlers were not triggered.
+  loadLogs();
+  if (isLogsSectionActive) {
+    startLogAutoRefresh();
+  }
 }
 
 function loadLogs() {
   const lines = parseInt($("#log-lines-select").val()) || 200;
-  const filter = $("#log-filter-input").val().trim();
+  const filter = (($("#log-filter-input").val() || "") + "").trim();
   const $viewer = $("#log-viewer");
 
   const params = { lines };

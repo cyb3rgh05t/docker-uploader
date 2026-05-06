@@ -1,6 +1,6 @@
 <?php
-include_once('../../../settings.php');
-include_once('../../utility.php');
+include_once(__DIR__ . '/../../../settings.php');
+include_once(__DIR__ . '/../../utility.php');
 
 header('Content-Type: application/json');
 header('Cache-Control: no-cache, no-store, must-revalidate');
@@ -66,8 +66,16 @@ $classified = array_map(function ($line) {
     return ['text' => $line, 'type' => $type];
 }, $slice);
 
-echo json_encode([
+$payload = [
     'success' => true,
     'lines'   => $classified,
     'total'   => $total,
-]);
+];
+
+$json = json_encode($payload);
+if ($json === false) {
+    echo '{"success":false,"message":"Failed to encode log response."}';
+    exit;
+}
+
+echo $json;
