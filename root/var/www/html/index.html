@@ -63,6 +63,10 @@
           <i class="fas fa-gear"></i>
           <span>Settings</span>
         </a>
+        <a href="#logs" class="nav-item" data-section="logs">
+          <i class="fas fa-terminal"></i>
+          <span>Logs</span>
+        </a>
         <a href="#about" class="nav-item" data-section="about">
           <i class="fas fa-circle-info"></i>
           <span>About</span>
@@ -1088,6 +1092,69 @@
             </div>
           </div>
         </form>
+      </section>
+
+      <!-- Logs Section -->
+      <section class="content-section" id="logs-section">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <i class="fas fa-terminal"></i>
+              Container Logs
+            </div>
+            <div class="card-actions">
+              <div class="log-filter-wrap">
+                <input
+                  type="text"
+                  id="log-filter-input"
+                  class="form-control log-filter-input"
+                  placeholder="Filter logs..."
+                />
+              </div>
+              <div class="log-lines-wrap">
+                <select
+                  id="log-lines-select"
+                  class="form-control log-lines-select"
+                >
+                  <option value="100">Last 100</option>
+                  <option value="200" selected>Last 200</option>
+                  <option value="500">Last 500</option>
+                  <option value="1000">Last 1000</option>
+                </select>
+              </div>
+              <button
+                class="action-button"
+                id="log-refresh-btn"
+                title="Refresh logs"
+              >
+                <i class="fas fa-rotate-right"></i>
+                Refresh
+              </button>
+              <button
+                class="action-button"
+                id="log-autoscroll-btn"
+                title="Toggle auto-scroll"
+              >
+                <i class="fas fa-arrow-down-long"></i>
+                Auto-scroll
+              </button>
+            </div>
+          </div>
+          <div class="card-body log-card-body">
+            <div id="log-viewer" class="log-viewer">
+              <div class="log-loading">
+                <i class="fas fa-circle-notch fa-spin"></i> Loading logs...
+              </div>
+            </div>
+          </div>
+          <div class="card-footer log-card-footer">
+            <span id="log-line-count" class="log-line-count">0 lines</span>
+            <span class="log-footer-right">
+              <i class="fas fa-circle log-live-dot"></i>
+              <span id="log-last-updated">—</span>
+            </span>
+          </div>
+        </div>
       </section>
 
       <!-- About Section -->

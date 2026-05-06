@@ -394,6 +394,9 @@ function setupEventListeners() {
     createMockUploadChart("upload-history-chart", timeRange);
     saveUserSetting("chartTimeRange", timeRange);
   });
+
+  // Log viewer
+  setupLogViewer();
 }
 
 /**
@@ -2027,4 +2030,139 @@ function loadDashboardHistory() {
       '<tr><td colspan="7" class="text-center">Failed to load history</td></tr>',
     );
   });
+}
+
+// ─────────────────────────────────────────────────────────────
+// Log Viewer
+// ─────────────────────────────────────────────────────────────
+
+const logViewer = {
+  autoScroll: true,
+  refreshInterval: null,
+  filterDebounce: null,
+};
+
+function setupLogViewer() {
+  // Load logs when the logs nav item is clicked
+  $('[data-section="logs"]').on("click", function () {
+    loadLogs();
+    startLogAutoRefresh();
+  });
+
+  // Stop refresh when leaving the logs section
+  $(".nav-item")
+    .not('[data-section="logs"]')
+    .on("click", function () {
+      stopLogAutoRefresh();
+    });
+
+  // Refresh button
+  $("#log-refresh-btn").on("click", function () {
+    loadLogs();
+  });
+
+  // Auto-scroll toggle
+  $("#log-autoscroll-btn").on("click", function () {
+    logViewer.autoScroll = !logViewer.autoScroll;
+    $(this).toggleClass("active", logViewer.autoScroll);
+    if (logViewer.autoScroll) {
+      scrollLogToBottom();
+    }
+  });
+
+  // Lines selector
+  $("#log-lines-select").on("change", function () {
+    loadLogs();
+  });
+
+  // Filter input with debounce
+  $("#log-filter-input").on("input", function () {
+    clearTimeout(logViewer.filterDebounce);
+    logViewer.filterDebounce = setTimeout(loadLogs, 300);
+  });
+}
+
+function loadLogs() {
+  const lines = parseInt($("#log-lines-select").val()) || 200;
+  const filter = $("#log-filter-input").val().trim();
+  const $viewer = $("#log-viewer");
+
+  const params = { lines };
+  if (filter) params.filter = filter;
+
+  $.getJSON("srv/api/system/logs.php", params, function (data) {
+    if (!data.success) {
+      $viewer.html(
+        '<div class="log-empty"><i class="fas fa-exclamation-triangle"></i> ' +
+          escapeHtml(data.message || "Failed to load logs.") +
+          "</div>",
+      );
+      return;
+    }
+
+    if (!data.lines || data.lines.length === 0) {
+      $viewer.html(
+        '<div class="log-empty"><i class="fas fa-circle-info"></i> ' +
+          escapeHtml(
+            data.message ||
+              (filter
+                ? "No log lines match the filter."
+                : "No log entries yet."),
+          ) +
+          "</div>",
+      );
+      $("#log-line-count").text("0 lines");
+      return;
+    }
+
+    const fragment = document.createDocumentFragment();
+    data.lines.forEach(function (entry) {
+      const div = document.createElement("div");
+      div.className = "log-line log-line--" + entry.type;
+      div.textContent = entry.text;
+      fragment.appendChild(div);
+    });
+
+    $viewer.empty().append(fragment);
+
+    const shown = data.lines.length;
+    const total = data.total || shown;
+    $("#log-line-count").text(
+      shown + " / " + total + " line" + (total !== 1 ? "s" : ""),
+    );
+
+    const now = new Date();
+    $("#log-last-updated").text(
+      now.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      }),
+    );
+
+    if (logViewer.autoScroll) {
+      scrollLogToBottom();
+    }
+  }).fail(function () {
+    $viewer.html(
+      '<div class="log-empty"><i class="fas fa-exclamation-triangle"></i> Could not reach log API.</div>',
+    );
+  });
+}
+
+function scrollLogToBottom() {
+  const el = document.getElementById("log-viewer");
+  if (el) el.scrollTop = el.scrollHeight;
+}
+
+function startLogAutoRefresh() {
+  stopLogAutoRefresh();
+  logViewer.refreshInterval = setInterval(loadLogs, 5000);
+}
+
+function stopLogAutoRefresh() {
+  if (logViewer.refreshInterval) {
+    clearInterval(logViewer.refreshInterval);
+    logViewer.refreshInterval = null;
+  }
 }

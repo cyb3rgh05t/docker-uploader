@@ -111,7 +111,12 @@ function log() {
    GRAY="\033[0;37m"
    BLUE="\033[0;34m"
    NC="\033[0m"
-   $(which echo) -e "${GRAY}[$($(which date) +'%Y/%m/%d %H:%M:%S')]${BLUE} [Uploader]${NC} ${1}"
+   local TIMESTAMP="[$($(which date) +'%Y/%m/%d %H:%M:%S')]"
+   $(which echo) -e "${GRAY}${TIMESTAMP}${BLUE} [Uploader]${NC} ${1}"
+   #### ALSO WRITE PLAIN (NO ANSI) TO MAIN LOG FILE ####
+   local MAIN_LOG="/system/uploader/logs/uploader.log"
+   $(which mkdir) -p "$(dirname "${MAIN_LOG}")" &>/dev/null
+   $(which echo) "${TIMESTAMP} [Uploader] ${1}" >> "${MAIN_LOG}" 2>/dev/null
 }
 
 function update_env_var() {
@@ -182,10 +187,11 @@ function autoscan() {
                STATUSCODE=$($(which curl) -s -o /dev/null -w "%{http_code}" -u "${AUTOSCAN_USER}:${AUTOSCAN_PASS}" "${AUTOSCAN_URL}/triggers/manual")
                if [[ "${STATUSCODE}" == "200" ]]; then
                   if [[ "${AUTOSCAN_USER}" == "null" ]]; then
-                     $(which curl) -sfG -X POST --data-urlencode "dir=${SUNION}/${DIR}" "${AUTOSCAN_URL}/triggers/manual"
+                     $(which curl) -sfG -X POST -o /dev/null --data-urlencode "dir=${SUNION}/${DIR}" "${AUTOSCAN_URL}/triggers/manual"
                   else
-                     $(which curl) -sfG -X POST -u "${AUTOSCAN_USER}:${AUTOSCAN_PASS}" --data-urlencode "dir=${SUNION}/${DIR}" "${AUTOSCAN_URL}/triggers/manual"
+                     $(which curl) -sfG -X POST -o /dev/null -u "${AUTOSCAN_USER}:${AUTOSCAN_PASS}" --data-urlencode "dir=${SUNION}/${DIR}" "${AUTOSCAN_URL}/triggers/manual"
                   fi
+                  log "🔍 Autoscan triggered for: ${SUNION}/${DIR}"
                fi
             fi
          fi

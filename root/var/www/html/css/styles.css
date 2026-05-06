@@ -2836,3 +2836,150 @@ a:hover {
   background: rgba(239, 68, 68, 0.1) !important;
   border-left: 3px solid var(--danger);
 }
+
+/* ─────────────────────────────────────────────
+   Log Viewer
+───────────────────────────────────────────── */
+
+.log-card-body {
+  padding: 0;
+}
+
+.log-viewer {
+  background: #0a0a0a;
+  border-radius: 0;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  height: 600px;
+  overflow-y: auto;
+  overflow-x: auto;
+  padding: var(--space-md);
+  color: #c8c8c8;
+  white-space: pre;
+  scroll-behavior: smooth;
+}
+
+.log-viewer::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.log-viewer::-webkit-scrollbar-track {
+  background: #111;
+}
+
+.log-viewer::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+.log-viewer::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-color);
+}
+
+.log-line {
+  display: block;
+  padding: 1px 0;
+  border-radius: 2px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.log-line--success {
+  color: #86efac;
+}
+
+.log-line--error {
+  color: #fca5a5;
+}
+
+.log-line--warning {
+  color: #fde68a;
+}
+
+.log-line--info {
+  color: #93c5fd;
+}
+
+.log-line--upload {
+  color: var(--accent-color);
+}
+
+.log-line--default {
+  color: #c8c8c8;
+}
+
+.log-empty {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 0.9rem;
+  padding: var(--space-lg);
+}
+
+.log-loading {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.log-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-sm) var(--space-md);
+  border-top: 1px solid var(--border-color);
+  font-size: 0.78rem;
+  color: var(--text-tertiary);
+}
+
+.log-footer-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.log-live-dot {
+  font-size: 0.6rem;
+  color: #86efac;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.log-filter-input {
+  width: 180px;
+  font-size: 0.82rem;
+  padding: 0.3rem 0.6rem;
+  height: 32px;
+}
+
+.log-lines-select {
+  width: 120px;
+  font-size: 0.82rem;
+  padding: 0.3rem 0.5rem;
+  height: 32px;
+}
+
+.log-line-count {
+  font-size: 0.78rem;
+  color: var(--text-tertiary);
+}
+
+#log-autoscroll-btn.active {
+  background: var(--accent-color);
+  color: var(--bg-primary);
+  border-color: var(--accent-color);
+}
+
+@media (max-width: 768px) {
+  .log-viewer {
+    height: 400px;
+    font-size: 0.72rem;
+  }
+
+  .log-filter-input,
+  .log-lines-select {
+    width: 100%;
+  }
+}
