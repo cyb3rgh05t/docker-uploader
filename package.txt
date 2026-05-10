@@ -125,11 +125,11 @@ oniguruma-6.9.10-r0
 pcre2-10.47-r0
 perl-5.42.2-r0
 perl-image-exiftool-13.55-r0
-php82-8.2.30-r2
-php82-common-8.2.30-r2
-php82-fpm-8.2.30-r2
-php82-opcache-8.2.30-r2
-php82-sqlite3-8.2.30-r2
+php82-8.2.31-r0
+php82-common-8.2.31-r0
+php82-fpm-8.2.31-r0
+php82-opcache-8.2.31-r0
+php82-sqlite3-8.2.31-r0
 procps-ng-4.0.5-r0
 py3-packaging-25.0-r0
 py3-packaging-pyc-25.0-r0
