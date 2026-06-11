@@ -3,10 +3,10 @@
   "apppic": "./images/docker-uploader.png",
   "appfolder": "./",
   "webui_version": "5.1.0",
-  "uploader_version": "3.23.0",
+  "uploader_version": "3.24.0",
   "baseimage": "ghcr.io/linuxserver/baseimage-alpine",
-  "baseversion": "3.23-9586c06d-ls16",
+  "baseversion": "3.24-fc91df9f-ls1",
   "description": "VOD Uploader container for automated media uploads",
-  "body": "WebUI 5.1.0 | Uploader 3.23.0",
+  "body": "WebUI 5.1.0 | Uploader 3.24.0",
   "user": "github-actions[bot]"
 }
