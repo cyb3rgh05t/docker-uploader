@@ -73,7 +73,7 @@ bash-5.3.9-r1
 brotli-libs-1.2.0-r1
 busybox-1.37.0-r31
 busybox-binsh-1.37.0-r31
-c-ares-1.34.6-r0
+c-ares-1.34.8-r0
 ca-certificates-20260611-r0
 ca-certificates-bundle-20260611-r0
 caddy-2.11.4-r0
