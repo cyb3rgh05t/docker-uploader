@@ -5,7 +5,7 @@
   "webui_version": "5.1.0",
   "uploader_version": "3.24.0",
   "baseimage": "ghcr.io/linuxserver/baseimage-alpine",
-  "baseversion": "3.24-23c4ecc3-ls5",
+  "baseversion": "3.24-03b33b49-ls6",
   "description": "VOD Uploader container for automated media uploads",
   "body": "WebUI 5.1.0 | Uploader 3.24.0",
   "user": "github-actions[bot]"
