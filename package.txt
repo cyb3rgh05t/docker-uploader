@@ -132,10 +132,10 @@ php82-sqlite3-8.2.33-r0
 procps-ng-4.0.6-r0
 py3-pip-26.1.2-r0
 py3-pip-pyc-26.1.2-r0
-pyc-3.14.5-r0
-python3-3.14.5-r0
-python3-pyc-3.14.5-r0
-python3-pycache-pyc0-3.14.5-r0
+pyc-3.14.7-r1
+python3-3.14.7-r1
+python3-pyc-3.14.7-r1
+python3-pycache-pyc0-3.14.7-r1
 readline-8.3.3-r1
 scanelf-1.3.9-r1
 shadow-4.18.0-r1
