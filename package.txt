@@ -94,7 +94,7 @@ libapk-3.0.7-r0
 libattr-2.5.2-r2
 libbsd-0.12.2-r0
 libbz2-1.0.8-r6
-libcrypto3-3.5.7-r0
+libcrypto3-3.5.8-r0
 libcurl-8.21.0-r0
 libedit-20260508.3.1-r1
 libexpat-2.8.3-r0
@@ -107,7 +107,7 @@ libncursesw-6.6_p20260516-r0
 libpanelw-6.6_p20260516-r0
 libproc2-4.0.6-r0
 libpsl-0.21.5-r3
-libssl3-3.5.7-r0
+libssl3-3.5.8-r0
 libstdc++-15.2.0-r5
 libunistring-1.4.2-r0
 libxml2-2.13.9-r2
