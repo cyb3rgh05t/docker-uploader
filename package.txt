@@ -12,10 +12,10 @@
 
 
 
-[0;37m[2026/09/06 04:03:43][0;34m [Uploader][0m -> Checking for stale upload entries <-
-[0;37m[2026/09/06 04:03:43][0;34m [Uploader][0m -> Starting Caddy <-
-[0;37m[2026/09/06 04:03:43][0;34m [Uploader][0m -> Starting PHP-FPM <-
-[0;37m[2026/09/06 04:03:43][0;34m [Uploader][0m -> Starting Uploader - ALL <-
+[0;37m[2026/09/13 04:03:36][0;34m [Uploader][0m -> Checking for stale upload entries <-
+[0;37m[2026/09/13 04:03:36][0;34m [Uploader][0m -> Starting Caddy <-
+[0;37m[2026/09/13 04:03:36][0;34m [Uploader][0m -> Starting PHP-FPM <-
+[0;37m[2026/09/13 04:03:36][0;34m [Uploader][0m -> Starting Uploader - ALL <-
        _____ __ __ _ __    ____  
        and all other
       | __  |  |  | |  |  |    \ 
@@ -152,7 +152,7 @@ unzip-6.0-r16
 usermod: no changes
 utmps-libs-0.1.3.3-r0
 wget-1.25.0-r3
-xz-libs-5.8.3-r0
+xz-libs-5.8.4-r0
 zlib-1.3.2-r0
 zstd-libs-1.5.7-r2
 |  _ \  ___   ___| | _____  ___ _ ____   _____ _ __ 
