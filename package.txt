@@ -12,10 +12,10 @@
 
 
 
-[0;37m[2026/09/20 04:03:30][0;34m [Uploader][0m -> Checking for stale upload entries <-
-[0;37m[2026/09/20 04:03:30][0;34m [Uploader][0m -> Starting Caddy <-
-[0;37m[2026/09/20 04:03:30][0;34m [Uploader][0m -> Starting PHP-FPM <-
-[0;37m[2026/09/20 04:03:30][0;34m [Uploader][0m -> Starting Uploader - ALL <-
+[0;37m[2026/09/27 04:03:27][0;34m [Uploader][0m -> Checking for stale upload entries <-
+[0;37m[2026/09/27 04:03:27][0;34m [Uploader][0m -> Starting Caddy <-
+[0;37m[2026/09/27 04:03:27][0;34m [Uploader][0m -> Starting PHP-FPM <-
+[0;37m[2026/09/27 04:03:27][0;34m [Uploader][0m -> Starting Uploader - ALL <-
        _____ __ __ _ __    ____  
        and all other
       | __  |  |  | |  |  |    \ 
@@ -101,7 +101,7 @@ libbz2-1.0.8-r6
 libcrypto3-3.5.8-r0
 libcurl-8.22.0-r0
 libedit-20260508.3.1-r1
-libexpat-2.8.4-r0
+libexpat-2.8.5-r0
 libffi-3.5.2-r1
 libgcc-15.2.0-r5
 libidn2-2.3.8-r0
@@ -126,13 +126,13 @@ netcat-openbsd-1.234.1-r0
 nghttp2-libs-1.69.0-r0
 oniguruma-6.9.10-r0
 pcre2-10.48-r0
-perl-5.42.2-r0
+perl-5.42.2-r1
 perl-image-exiftool-13.55-r0
-php82-8.2.33-r0
-php82-common-8.2.33-r0
-php82-fpm-8.2.33-r0
-php82-opcache-8.2.33-r0
-php82-sqlite3-8.2.33-r0
+php82-8.2.34-r0
+php82-common-8.2.34-r0
+php82-fpm-8.2.34-r0
+php82-opcache-8.2.34-r0
+php82-sqlite3-8.2.34-r0
 procps-ng-4.0.6-r0
 py3-pip-26.1.2-r0
 py3-pip-pyc-26.1.2-r0
