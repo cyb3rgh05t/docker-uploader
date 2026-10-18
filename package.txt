@@ -12,10 +12,10 @@
 
 
 
-[0;37m[2026/10/11 04:05:45][0;34m [Uploader][0m -> Checking for stale upload entries <-
-[0;37m[2026/10/11 04:05:45][0;34m [Uploader][0m -> Starting Caddy <-
-[0;37m[2026/10/11 04:05:45][0;34m [Uploader][0m -> Starting PHP-FPM <-
-[0;37m[2026/10/11 04:05:45][0;34m [Uploader][0m -> Starting Uploader - ALL <-
+[0;37m[2026/10/18 04:03:22][0;34m [Uploader][0m -> Checking for stale upload entries <-
+[0;37m[2026/10/18 04:03:22][0;34m [Uploader][0m -> Starting Caddy <-
+[0;37m[2026/10/18 04:03:22][0;34m [Uploader][0m -> Starting PHP-FPM <-
+[0;37m[2026/10/18 04:03:22][0;34m [Uploader][0m -> Starting Uploader - ALL <-
        _____ __ __ _ __    ____  
        and all other
       | __  |  |  | |  |  |    \ 
@@ -80,7 +80,7 @@ busybox-binsh-1.37.0-r31
 c-ares-1.34.8-r0
 ca-certificates-20260909-r0
 ca-certificates-bundle-20260909-r0
-caddy-2.11.4-r1
+caddy-2.11.4-r2
 catatonit-0.2.1-r0
 coreutils-9.11-r0
 coreutils-env-9.11-r0
@@ -101,7 +101,7 @@ libbz2-1.0.8-r6
 libcrypto3-3.5.9-r0
 libcurl-8.22.0-r0
 libedit-20260508.3.1-r1
-libexpat-2.8.5-r0
+libexpat-2.9.0-r0
 libffi-3.5.2-r1
 libgcc-15.2.0-r5
 libidn2-2.3.8-r0
