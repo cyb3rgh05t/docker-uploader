@@ -12,10 +12,10 @@
 
 
 
-[0;37m[2026/11/08 04:01:57][0;34m [Uploader][0m -> Checking for stale upload entries <-
-[0;37m[2026/11/08 04:01:57][0;34m [Uploader][0m -> Starting Caddy <-
-[0;37m[2026/11/08 04:01:57][0;34m [Uploader][0m -> Starting PHP-FPM <-
-[0;37m[2026/11/08 04:01:57][0;34m [Uploader][0m -> Starting Uploader - ALL <-
+[0;37m[2026/11/15 04:02:06][0;34m [Uploader][0m -> Checking for stale upload entries <-
+[0;37m[2026/11/15 04:02:06][0;34m [Uploader][0m -> Starting Caddy <-
+[0;37m[2026/11/15 04:02:06][0;34m [Uploader][0m -> Starting PHP-FPM <-
+[0;37m[2026/11/15 04:02:06][0;34m [Uploader][0m -> Starting Uploader - ALL <-
        _____ __ __ _ __    ____  
        and all other
       | __  |  |  | |  |  |    \ 
